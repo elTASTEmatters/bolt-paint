@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bolt Paint</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#03045e;--blue:#0077b6;--teal:#00b4d8;--sky:#caf0f8;
+  --sand:#e9c46a;--terra:#f4a261;--coral:#e76f51;
+  --bp:#1a6fb5;--ep:#d45f30;
+  --ink:#111827;--mid:#6b7280;--light:#f1f5f9;--off:#f8fafc;
+  --r8:8px;--r12:12px;--r16:16px;--r24:24px;--r32:32px;--r99:999px;
+  --sh:0 2px 12px rgba(0,0,0,.07);--sh2:0 8px 32px rgba(0,0,0,.12);--sh3:0 20px 60px rgba(0,0,0,.18);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:'DM Sans',sans-serif;background:var(--off);color:var(--ink);overflow-x:hidden;min-height:100vh;}
+
+/* ══ MOBILE APP FEEL ══ */
+.app-wrap{max-width:430px;margin:0 auto;background:#fff;min-height:100vh;position:relative;box-shadow:var(--sh3);}
+@media(min-width:800px){
+  .app-wrap{max-width:100%;box-shadow:none;}
+  .app-inner{max-width:1200px;margin:0 auto;padding:0 24px;}
+}
+
+/* ══ TOP STATUS BAR ══ */
+.status-bar{background:var(--navy);height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:400;}
+.sb-time{font-size:13px;font-weight:700;color:#fff;}
+.sb-icons{display:flex;align-items:center;gap:6px;}
+.sb-icon{font-size:12px;color:rgba(255,255,255,.8);}
+
+/* ══ NAVBAR ══ */
+.navbar{background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:44px;z-index:399;padding:0 16px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+
+/* ══ BOLT LOGO — artistic photo-logo ══ */
+.bolt-logo-area{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.bolt-logo-frame{
+  position:relative;width:44px;height:44px;flex-shrink:0;
+  border-radius:14px;overflow:hidden;
+  box-shadow:0 2px 10px rgba(3,4,94,.25),0 0 0 2px rgba(0,180,216,.3);
+  background:linear-gradient(135deg,#0077b6,#03045e);
+}
+.bolt-logo-frame img{
+  width:100%;height:100%;object-fit:cover;object-position:50% 28%;
+  display:block;mix-blend-mode:luminosity;opacity:.92;
+  filter:contrast(1.1) brightness(1.05);
+}
+.bolt-logo-frame::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,180,216,.25) 0%,transparent 60%,rgba(233,196,106,.2) 100%);
+  pointer-events:none;
+}
+.bolt-logo-frame .bolt-flash{
+  position:absolute;bottom:3px;right:3px;
+  font-size:10px;background:var(--teal);border-radius:4px;
+  padding:1px 3px;line-height:1;color:#fff;font-weight:900;
+  box-shadow:0 1px 4px rgba(0,180,216,.5);
+}
+.bolt-wordmark{line-height:1.1;}
+.bolt-wordmark .nm{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--navy);letter-spacing:-.4px;}
+.bolt-wordmark .sub{font-size:9px;color:var(--mid);text-transform:uppercase;letter-spacing:2px;font-weight:500;}
+
+/* Brand pills in nav */
+.brand-pills-nav{display:flex;gap:6px;align-items:center;}
+.bpill{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--r8);font-size:11px;font-weight:700;border:1.5px solid;cursor:pointer;transition:.15s;white-space:nowrap;}
+.bpill-bp{background:#f0f7ff;border-color:rgba(26,111,181,.3);color:var(--bp);}
+.bpill-ep{background:#fff5f0;border-color:rgba(212,95,48,.3);color:var(--ep);}
+.bpill-logo{font-size:16px;line-height:1;}
+.bpill.active-bp{background:var(--bp);color:#fff;border-color:var(--bp);}
+.bpill.active-ep{background:var(--ep);color:#fff;border-color:var(--ep);}
+
+.nav-right{display:flex;align-items:center;gap:8px;}
+.nav-icon-btn{width:38px;height:38px;border-radius:var(--r12);border:none;background:var(--light);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;position:relative;transition:.2s;}
+.nav-icon-btn:hover{background:#e2e8f0;}
+.nav-badge{position:absolute;top:-4px;right:-4px;background:var(--coral);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;}
+
+/* ══ HERO — sala photo ══ */
+.hero{position:relative;height:280px;overflow:hidden;}
+.hero-photo{width:100%;height:100%;object-fit:cover;object-position:center 40%;display:block;}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(3,4,94,.82) 0%,rgba(3,4,94,.5) 50%,rgba(3,4,94,.15) 100%);}
+.hero-content{position:absolute;inset:0;padding:24px 20px;display:flex;flex-direction:column;justify-content:flex-end;}
+.hero-eye{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:var(--r99);padding:4px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--sky);margin-bottom:10px;width:fit-content;}
+.hero-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:#fff;line-height:1.1;margin-bottom:8px;}
+.hero-title .yl{color:var(--sand);}
+.hero-sub{font-size:12px;color:rgba(255,255,255,.82);line-height:1.5;max-width:280px;margin-bottom:16px;}
+.hero-actions{display:flex;gap:8px;}
+.btn-hero-p{background:linear-gradient(135deg,var(--terra),var(--coral));color:#fff;border:none;border-radius:var(--r99);padding:10px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(231,111,81,.4);}
+.btn-hero-s{background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:var(--r99);padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+
+/* ══ QUICK STATS ══ */
+.quick-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#eaecf0;border-bottom:1px solid #eaecf0;}
+.qs-item{background:#fff;padding:14px 8px;text-align:center;}
+.qs-val{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy);}
+.qs-lbl{font-size:10px;color:var(--mid);text-transform:uppercase;letter-spacing:.8px;margin-top:1px;}
+
+/* ══ SECTION ══ */
+.section{padding:20px 16px;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy);}
+.sec-link{font-size:12px;color:var(--blue);font-weight:600;cursor:pointer;}
+
+/* ══ COMPARADOR ══ */
+.comparador-card{background:linear-gradient(135deg,var(--navy),#023e7d);border-radius:var(--r24);padding:20px;margin-bottom:16px;}
+.comp-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.comp-head-ico{width:40px;height:40px;background:rgba(255,255,255,.12);border-radius:var(--r12);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.comp-head-txt h3{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#fff;}
+.comp-head-txt p{font-size:11px;color:rgba(255,255,255,.7);margin-top:1px;}
+.comp-fields{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.comp-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.comp-inp-wrap{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:var(--r12);padding:10px 13px;display:flex;align-items:center;gap:7px;}
+.comp-inp-wrap input,.comp-inp-wrap select{border:none;background:transparent;outline:none;font-family:'DM Sans',sans-serif;font-size:13px;color:#fff;flex:1;width:100%;}
+.comp-inp-wrap input::placeholder{color:rgba(255,255,255,.5);}
+.comp-inp-wrap select option{background:var(--navy);color:#fff;}
+.comp-inp-ico{font-size:15px;flex-shrink:0;}
+.comp-run-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--sand),var(--terra));color:var(--navy);border:none;border-radius:var(--r12);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.2px;}
+
+/* comparison results */
+.comp-results-wrap{display:none;margin-top:14px;}
+.comp-results-wrap.show{display:block;}
+.comp-res-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.6);margin-bottom:10px;}
+.comp-res-cards{display:flex;flex-direction:column;gap:8px;}
+.crc{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.14);border-radius:var(--r16);padding:14px;position:relative;}
+.crc.winner{background:rgba(0,180,216,.15);border-color:var(--teal);}
+.crc.current-p{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);}
+.crc-badge{display:inline-flex;align-items:center;gap:4px;border-radius:var(--r99);padding:2px 9px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+.crc-badge-curr{background:rgba(244,162,97,.25);color:var(--sand);}
+.crc-badge-win{background:var(--teal);color:#fff;}
+.crc-badge-bp{background:rgba(26,111,181,.3);color:#90d0f8;}
+.crc-badge-ep{background:rgba(212,95,48,.3);color:#f4a261;}
+.crc-main{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;}
+.crc-info .crc-name{font-size:11px;color:rgba(255,255,255,.65);margin-bottom:2px;}
+.crc-info .crc-price{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#fff;line-height:1;}
+.crc-info .crc-unit{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;}
+.crc-saving{text-align:right;flex-shrink:0;}
+.crc-saving .sav-amt{font-size:13px;font-weight:700;}
+.sav-good{color:#4ade80;}
+.sav-bad{color:#f87171;}
+.crc-add-btn{width:100%;padding:8px;margin-top:10px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:var(--r8);color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;}
+.crc-add-btn:hover{background:rgba(255,255,255,.2);}
+.crc-add-btn.win-btn{background:var(--teal);border-color:var(--teal);}
+.comp-summary-bar{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);border-radius:var(--r12);padding:10px 13px;display:flex;align-items:center;gap:8px;margin-top:10px;}
+.comp-summary-bar p{font-size:11px;color:rgba(255,255,255,.85);line-height:1.45;}
+.comp-summary-bar strong{color:#4ade80;}
+
+/* ══ SCENARIOS HORIZONTAL SCROLL ══ */
+.cat-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.cat-scroll::-webkit-scrollbar{display:none;}
+.cat-chip{flex-shrink:0;width:140px;height:190px;border-radius:var(--r16);overflow:hidden;position:relative;cursor:pointer;box-shadow:var(--sh2);transition:.3s;}
+.cat-chip:hover,.cat-chip:active{transform:scale(.97);}
+.cat-chip.chosen{outline:2.5px solid var(--teal);outline-offset:2px;}
+.cat-chip img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.cat-chip:hover img{transform:scale(1.06);}
+.cat-chip-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(3,4,94,.88) 0%,transparent 55%);}
+.cat-chip-info{position:absolute;bottom:0;left:0;right:0;padding:12px 10px;}
+.cat-chip-ico{font-size:16px;margin-bottom:2px;}
+.cat-chip-name{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#fff;line-height:1.2;}
+.cat-chip-chk{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;opacity:0;transform:scale(.3);transition:.2s;}
+.cat-chip.chosen .cat-chip-chk{opacity:1;transform:scale(1);}
+
+/* ══ CATALOG ══ */
+.line-tabs{display:flex;gap:6px;margin-bottom:12px;}
+.ltab{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r99);border:1.5px solid #dde4ee;background:#fff;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;transition:.15s;}
+.ltab.a-all{background:var(--navy);color:#fff;border-color:var(--navy);}
+.ltab.a-bp{background:var(--bp);color:#fff;border-color:var(--bp);}
+.ltab.a-ep{background:var(--ep);color:#fff;border-color:var(--ep);}
+.ltab-ico{font-size:18px;line-height:1;}
+.search-row{display:flex;gap:8px;margin-bottom:10px;}
+.srch-box{flex:1;display:flex;align-items:center;gap:7px;background:#f1f5f9;border-radius:var(--r12);padding:9px 13px;}
+.srch-box input{border:none;background:transparent;outline:none;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);flex:1;}
+.filter-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin-bottom:14px;}
+.filter-chips::-webkit-scrollbar{display:none;}
+.fchip{flex-shrink:0;padding:5px 12px;border-radius:var(--r99);background:#f1f5f9;border:1.5px solid transparent;font-size:11px;font-weight:600;color:var(--mid);cursor:pointer;transition:.13s;}
+.fchip.active{background:var(--navy);color:#fff;}
+.prod-list{display:flex;flex-direction:column;gap:10px;}
+.pcard{background:#fff;border-radius:var(--r16);box-shadow:var(--sh);display:flex;align-items:center;gap:12px;padding:12px;transition:.2s;cursor:pointer;}
+.pcard:hover{box-shadow:var(--sh2);transform:translateX(2px);}
+.pcard-swatch{width:52px;height:52px;border-radius:var(--r12);flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.14);}
+.pcard-info{flex:1;min-width:0;}
+.pcard-badges{display:flex;gap:4px;margin-bottom:3px;}
+.pbadge{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:var(--r99);font-size:9px;font-weight:700;text-transform:uppercase;}
+.pb-bp{background:#e8f4ff;color:var(--bp);}
+.pb-ep{background:#fff0eb;color:var(--ep);}
+.pb-cat{background:#f1f5f9;color:var(--mid);}
+.pcard-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pcard-sub{font-size:11px;color:var(--mid);margin-top:1px;}
+.pcard-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.pcard-price{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--navy);}
+.pcard-sz{display:flex;gap:3px;}
+.psz{padding:3px 7px;border:1.5px solid #dde4ee;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;color:var(--mid);transition:.12s;}
+.psz.active{border-color:var(--blue);color:var(--blue);background:#f0f7ff;}
+.pcard-add{width:30px;height:30px;border-radius:var(--r8);background:var(--navy);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.pcard-add:hover{background:var(--blue);}
+.no-res{text-align:center;padding:36px 20px;color:var(--mid);font-size:13px;}
+
+/* ══ ORDER STATUS ══ */
+.order-status-card{background:#fff;border-radius:var(--r24);box-shadow:var(--sh);padding:18px;margin-bottom:10px;}
+.osc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.osc-num{font-size:12px;color:var(--mid);}
+.osc-num strong{color:var(--navy);font-weight:700;}
+.osc-date{font-size:11px;color:var(--mid);}
+.status-track{display:flex;align-items:center;gap:0;}
+.st-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.st-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:.3s;}
+.st-dot.done{background:var(--teal);box-shadow:0 0 0 4px rgba(0,180,216,.18);}
+.st-dot.active{background:var(--navy);box-shadow:0 0 0 4px rgba(3,4,94,.15);animation:pulse 2s ease-in-out infinite;}
+.st-dot.pending{background:#f1f5f9;color:var(--mid);}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(3,4,94,.15);}50%{box-shadow:0 0 0 8px rgba(3,4,94,.08);}}
+.st-lbl{font-size:10px;font-weight:600;color:var(--mid);text-align:center;line-height:1.3;}
+.st-lbl.done-lbl{color:var(--teal);}
+.st-lbl.active-lbl{color:var(--navy);font-weight:700;}
+.st-line{flex:1;height:3px;border-radius:var(--r99);margin-bottom:18px;}
+.st-line.done-line{background:var(--teal);}
+.st-line.pending-line{background:#e8edf3;}
+.osc-eta{margin-top:12px;background:var(--light);border-radius:var(--r12);padding:10px 13px;display:flex;align-items:center;gap:8px;}
+.osc-eta p{font-size:12px;color:var(--mid);line-height:1.4;}
+.osc-eta strong{color:var(--navy);}
+
+/* ══ BOTTOM TAB BAR ══ */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid #eaecf0;display:flex;align-items:center;justify-content:space-around;padding:8px 0;padding-bottom:calc(8px + var(--safe-bottom));z-index:500;box-shadow:0 -4px 20px rgba(0,0,0,.08);}
+@media(min-width:800px){.bottom-nav{max-width:100%;position:sticky;}}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 12px;border-radius:var(--r12);transition:.15s;min-width:64px;}
+.tab-item:hover,.tab-item.active{background:var(--light);}
+.tab-ico{font-size:22px;line-height:1;}
+.tab-lbl{font-size:10px;font-weight:600;color:var(--mid);}
+.tab-item.active .tab-lbl{color:var(--navy);}
+.tab-bolt{position:relative;}
+.tab-bolt .tab-ico-wrap{width:48px;height:48px;border-radius:var(--r16);overflow:hidden;border:2px solid var(--teal);box-shadow:0 2px 10px rgba(0,180,216,.3);}
+.tab-bolt img{width:100%;height:100%;object-fit:cover;object-position:50% 28%;display:block;}
+
+/* ══ BOLT RESUELVE — AI ASSISTANT ══ */
+.bolt-fab{
+  position:fixed;bottom:calc(76px + var(--safe-bottom));right:16px;
+  width:56px;height:56px;border-radius:var(--r16);
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  box-shadow:0 6px 24px rgba(0,180,216,.45);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:490;transition:.3s;
+  border:none;
+}
+.bolt-fab:hover{transform:scale(1.08);box-shadow:0 8px 32px rgba(0,180,216,.55);}
+.bolt-fab-ico{font-size:26px;line-height:1;}
+.bolt-fab-badge{position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:#4ade80;border-radius:50%;border:2px solid #fff;animation:blink 2.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* Chat drawer */
+.chat-drawer{position:fixed;bottom:0;right:0;width:100%;max-width:430px;height:0;background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.18);z-index:600;transition:height .4s cubic-bezier(.34,1.56,.64,1);overflow:hidden;display:flex;flex-direction:column;}
+.chat-drawer.open{height:85vh;}
+.chat-handle{width:36px;height:4px;background:#e2e8f0;border-radius:var(--r99);margin:12px auto 0;}
+.chat-header{padding:12px 16px 12px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:12px;}
+.chat-avatar{width:44px;height:44px;border-radius:var(--r12);background:linear-gradient(135deg,var(--teal),var(--blue));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 2px 10px rgba(0,180,216,.3);}
+.chat-meta{flex:1;}
+.chat-meta .cname{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--navy);}
+.chat-meta .cstatus{font-size:11px;color:#4ade80;display:flex;align-items:center;gap:4px;}
+.chat-close{width:32px;height:32px;border-radius:var(--r8);border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--mid);}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
+.msg{max-width:85%;display:flex;flex-direction:column;gap:3px;}
+.msg.bot{align-self:flex-start;}
+.msg.user{align-self:flex-end;}
+.msg-bubble{padding:11px 14px;border-radius:18px;font-size:13px;line-height:1.55;}
+.msg.bot .msg-bubble{background:#f1f5f9;color:var(--ink);border-bottom-left-radius:4px;}
+.msg.user .msg-bubble{background:linear-gradient(135deg,var(--teal),var(--blue));color:#fff;border-bottom-right-radius:4px;}
+.msg-time{font-size:10px;color:var(--mid);}
+.msg.user .msg-time{text-align:right;}
+.chat-suggestions{display:flex;gap:7px;overflow-x:auto;padding:8px 16px 0;scrollbar-width:none;}
+.chat-suggestions::-webkit-scrollbar{display:none;}
+.sug-chip{flex-shrink:0;padding:7px 13px;background:#f0f9ff;border:1.5px solid rgba(0,180,216,.3);border-radius:var(--r99);font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;white-space:nowrap;transition:.15s;}
+.sug-chip:hover{background:#e0f4ff;}
+.chat-input-area{padding:10px 12px;border-top:1px solid #f1f5f9;display:flex;align-items:flex-end;gap:8px;background:#fff;padding-bottom:calc(10px + var(--safe-bottom));}
+.chat-input{flex:1;border:2px solid #e2e8f0;border-radius:var(--r16);padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;resize:none;max-height:100px;min-height:42px;transition:.2s;line-height:1.4;}
+.chat-input:focus{border-color:var(--teal);}
+.chat-send{width:40px;height:40px;border-radius:var(--r12);background:linear-gradient(135deg,var(--teal),var(--blue));border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s;}
+.chat-send:hover{transform:scale(1.06);}
+.typing{display:flex;gap:4px;align-items:center;padding:2px 0;}
+.typing span{width:7px;height:7px;background:var(--mid);border-radius:50%;animation:ty .9s ease-in-out infinite;}
+.typing span:nth-child(2){animation-delay:.15s;}
+.typing span:nth-child(3){animation-delay:.3s;}
+@keyframes ty{0%,80%,100%{transform:scale(.8);opacity:.5;}40%{transform:scale(1);opacity:1;}}
+
+/* ══ CART DRAWER ══ */
+.cart-drawer{position:fixed;bottom:0;right:0;width:100%;max-width:430px;height:0;background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.18);z-index:600;transition:height .4s cubic-bezier(.34,1.56,.64,1);overflow:hidden;display:flex;flex-direction:column;}
+.cart-drawer.open{height:90vh;}
+.cart-hd{padding:16px 16px 10px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;}
+.cart-hd h3{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--navy);}
+.close-btn{width:30px;height:30px;border-radius:var(--r8);border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;font-size:14px;color:var(--mid);display:flex;align-items:center;justify-content:center;}
+.cart-items{flex:1;overflow-y:auto;padding:12px 16px;}
+.ci{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f8f9fc;}
+.ci-sw{width:44px;height:44px;border-radius:var(--r12);flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+.ci-inf{flex:1;}
+.ci-inf strong{display:block;font-size:12px;font-weight:700;color:var(--navy);}
+.ci-inf span{font-size:11px;color:var(--mid);}
+.ci-p{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--coral);}
+.ci-rm{background:none;border:none;cursor:pointer;color:var(--mid);font-size:12px;}
+.cart-ft{padding:14px 16px;border-top:1px solid #f1f5f9;padding-bottom:calc(14px + var(--safe-bottom));}
+.cart-tot{display:flex;justify-content:space-between;margin-bottom:12px;}
+.cart-tot span{font-size:13px;color:var(--mid);}
+.cart-tot strong{font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);}
+.dlv{background:#f8fafc;border-radius:var(--r16);padding:12px;margin-bottom:12px;}
+.dlv h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--navy);margin-bottom:8px;}
+.dinput{width:100%;border:1.5px solid #e2e8f0;border-radius:var(--r8);padding:8px 11px;font-size:12px;font-family:'DM Sans',sans-serif;background:#fff;outline:none;margin-bottom:6px;transition:.15s;}
+.dinput:focus{border-color:var(--teal);}
+.dinput-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.order-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--terra),var(--coral));color:#fff;border:none;border-radius:var(--r16);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(231,111,81,.35);display:flex;align-items:center;justify-content:center;gap:6px;}
+
+/* ══ SUCCESS ══ */
+.succ-ov{display:none;position:fixed;inset:0;background:#fff;z-index:700;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;}
+.succ-ov.open{display:flex;}
+.succ-ico{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--blue));display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 16px;animation:pop .5s ease;}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+.succ-ov h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.succ-ov>p{font-size:13px;color:var(--mid);max-width:320px;line-height:1.6;margin-bottom:20px;}
+.succ-det{background:#f8fafc;border-radius:var(--r16);padding:16px;max-width:360px;width:100%;text-align:left;margin-bottom:18px;}
+.sdr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eef0f5;font-size:12px;}
+.sdr:last-child{border:none;}
+.sdr strong{color:var(--navy);font-weight:700;}
+.btn-new{background:var(--navy);color:#fff;border:none;border-radius:var(--r99);padding:12px 28px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+
+</style>
+</head>
+<body>
+<div class="app-wrap">
+<div class="page" id="pageHome">
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span class="sb-time" id="sbTime">9:41</span>
+  <div class="sb-icons">
+    <span class="sb-icon">📶</span>
+    <span class="sb-icon">🔋</span>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="bolt-logo-area" onclick="scrollToTop()">
+    <div class="bolt-logo-frame">
+      <img src="data:image/jpeg;base64,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" alt="Bolt">
+      <div class="bolt-flash">⚡</div>
+    </div>
+    <div class="bolt-wordmark">
+      <span class="nm">Bolt Paint</span>
+      <span class="sub">Mexicali · B.C.</span>
+    </div>
+  </div>
+
+  <!-- Brand pills — estilo anterior con nombre completo -->
+  <div class="brand-pills-nav">
+    <div class="bpill bpill-bp active-bp" id="pill-bp" onclick="setLine('BpaintDepot')" title="BpaintDepot">
+      <span class="bpill-logo">🎨</span>
+      <span>BpaintDepot</span>
+    </div>
+    <div class="bpill bpill-ep" id="pill-ep" onclick="setLine('ElPerico')" title="El Perico">
+      <span class="bpill-logo">🦜</span>
+      <span>El Perico</span>
+    </div>
+    <div class="bpill" id="pill-all" onclick="setLine('all')" style="border-color:#dde4ee;color:var(--mid);">
+      <span>Todos</span>
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <button class="nav-icon-btn" onclick="openCart()">
+      🛒
+      <div class="nav-badge" id="cartBdg">0</div>
+    </button>
+    <button class="nav-icon-btn" onclick="openAdmin()">⚙️</button>
+  </div>
+</div>
+
+<!-- HERO — sala photo -->
+<div class="hero">
+  <img class="hero-photo"
+       src="https://images.unsplash.com/photo-1600210492493-0946911123ea?w=900&q=85&fit=crop"
+       alt="Sala pintada"
+       onerror="this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=900&q=85&fit=crop'">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eye">🐾 Distribuidor autorizado · Mexicali</div>
+    <h2 class="hero-title">Los mejores colores<br>de <span class="yl">BpaintDepot</span><br>y <span class="yl">El Perico</span></h2>
+    <p class="hero-sub">Compara precios, configura tu espacio y recibe en 10 días hábiles.</p>
+    <div class="hero-actions">
+      <button class="btn-hero-p" onclick="scrollToSection('comparador')">💰 Comparar precios</button>
+      <button class="btn-hero-s" onclick="openChat()">🤖 Bolt Resuelve</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK STATS -->
+<div class="quick-stats">
+  <div class="qs-item"><div class="qs-val">54+</div><div class="qs-lbl">Colores</div></div>
+  <div class="qs-item"><div class="qs-val">2</div><div class="qs-lbl">Líneas</div></div>
+  <div class="qs-item"><div class="qs-val">10 días</div><div class="qs-lbl">Entrega</div></div>
+</div>
+
+<!-- ══ COMPARADOR ══ -->
+<div class="section" id="comparador">
+  <div class="sec-hd">
+    <div class="sec-title">💰 Comparador</div>
+    <span class="sec-link" onclick="openChat()">¿Necesitas ayuda?</span>
+  </div>
+  <div class="comparador-card">
+    <div class="comp-head">
+      <div class="comp-head-ico">💰</div>
+      <div class="comp-head-txt">
+        <h3>Compara con tu proveedor</h3>
+        <p>Ingresa su precio y te decimos cuánto ahorras con Bolt Paint</p>
+      </div>
+    </div>
+    <div class="comp-fields">
+      <div class="comp-inp-wrap">
+        <span class="comp-inp-ico">💲</span>
+        <input type="number" id="cmpPrecio" placeholder="Precio actual (ej: 220)">
+      </div>
+      <div class="comp-row">
+        <div class="comp-inp-wrap">
+          <span class="comp-inp-ico">📦</span>
+          <select id="cmpTipo">
+            <option value="litro">Litro (1L)</option>
+            <option value="galon" selected>Galón</option>
+            <option value="cubeta">Cubeta 19L</option>
+          </select>
+        </div>
+        <div class="comp-inp-wrap">
+          <span class="comp-inp-ico">🎨</span>
+          <select id="cmpCat">
+            <option value="">Cualquier color</option>
+            <option value="azul">Azul</option>
+            <option value="beige">Beige</option>
+            <option value="blanco">Blanco</option>
+            <option value="cafe">Café</option>
+            <option value="gris">Gris</option>
+            <option value="morado">Morado</option>
+            <option value="amarillo">Amarillo</option>
+            <option value="naranja">Naranja / Teja</option>
+            <option value="rosa">Rosa</option>
+            <option value="verde">Verde</option>
+            <option value="negro">Negro</option>
+          </select>
+        </div>
+      </div>
+      <div class="comp-inp-wrap">
+        <span class="comp-inp-ico">🔍</span>
+        <input type="text" id="cmpNombre" placeholder="Nombre del color (opcional: Baby Blue, Teal...)">
+      </div>
+    </div>
+    <button class="comp-run-btn" onclick="runComp()">⚡ Ver mis opciones en Bolt Paint</button>
+
+    <div class="comp-results-wrap" id="cmpResults">
+      <div class="comp-res-title" id="cmpResTitle"></div>
+      <div class="comp-res-cards" id="cmpCards"></div>
+      <div class="comp-summary-bar" id="cmpSummary" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCENARIOS ══ -->
+<div class="section" id="cats">
+  <div class="sec-hd">
+    <div class="sec-title">Elige tu espacio</div>
+    <span class="sec-link" id="catMsg">Filtrar →</span>
+  </div>
+  <div class="cat-scroll">
+    <div class="cat-chip" id="cc-sala" onclick="pickCat('sala')">
+      <div class="cat-chip-chk" id="ck-sala">✓</div>
+      <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80&fit=crop" alt="Sala" onerror="this.style.background='#8ab8d8'">
+      <div class="cat-chip-ov"></div>
+      <div class="cat-chip-info"><div class="cat-chip-ico">🛋</div><div class="cat-chip-name">Sala & Living</div></div>
+    </div>
+    <div class="cat-chip" id="cc-recamara" onclick="pickCat('recamara')">
+      <div class="cat-chip-chk" id="ck-recamara">✓</div>
+      <img src="https://images.unsplash.com/photo-1540518614846-7eded433c457?w=400&q=80&fit=crop" alt="Recámara" onerror="this.style.background='#f0c8b8'">
+      <div class="cat-chip-ov"></div>
+      <div class="cat-chip-info"><div class="cat-chip-ico">🛏</div><div class="cat-chip-name">Recámara</div></div>
+    </div>
+    <div class="cat-chip" id="cc-fachada" onclick="pickCat('fachada')">
+      <div class="cat-chip-chk" id="ck-fachada">✓</div>
+      <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&q=80&fit=crop" alt="Fachada" onerror="this.style.background='#a0c8e8'">
+      <div class="cat-chip-ov"></div>
+      <div class="cat-chip-info"><div class="cat-chip-ico">🏠</div><div class="cat-chip-name">Fachada</div></div>
+    </div>
+    <div class="cat-chip" id="cc-oficina" onclick="pickCat('oficina')">
+      <div class="cat-chip-chk" id="ck-oficina">✓</div>
+      <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=80&fit=crop" alt="Oficina" onerror="this.style.background='#b0d8c0'">
+      <div class="cat-chip-ov"></div>
+      <div class="cat-chip-info"><div class="cat-chip-ico">💼</div><div class="cat-chip-name">Oficina</div></div>
+    </div>
+    <div class="cat-chip" id="cc-bano" onclick="pickCat('bano')">
+      <div class="cat-chip-chk" id="ck-bano">✓</div>
+      <img src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=400&q=80&fit=crop" alt="Baño" onerror="this.style.background='#c8e8f8'">
+      <div class="cat-chip-ov"></div>
+      <div class="cat-chip-info"><div class="cat-chip-ico">🚿</div><div class="cat-chip-name">Baño</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CATALOG ══ -->
+<div class="section" id="shop">
+  <div class="sec-hd">
+    <div class="sec-title">Catálogo</div>
+    <div class="adm-badge" id="adminBadge" style="display:none;font-size:10px;color:#1a7a4a;font-weight:700;background:#e8f8f0;padding:3px 9px;border-radius:var(--r99);">✅ Master cargado</div>
+  </div>
+
+  <!-- Line tabs — estilo anterior con icono + nombre completo -->
+  <div class="line-tabs">
+    <div class="ltab a-all" id="lt-all" onclick="setLine('all')">
+      <span>Todos</span>
+    </div>
+    <div class="ltab" id="lt-bp" onclick="setLine('BpaintDepot')">
+      <span class="ltab-ico">🎨</span>
+      <span>BpaintDepot — Americana</span>
+    </div>
+    <div class="ltab" id="lt-ep" onclick="setLine('ElPerico')">
+      <span class="ltab-ico">🦜</span>
+      <span>El Perico — Mexicana</span>
+    </div>
+  </div>
+
+  <div class="search-row">
+    <div class="srch-box">
+      <span>🔍</span>
+      <input type="text" id="searchInput" placeholder="Buscar: Baby Blue, Teal, Arena..." oninput="filterProds()">
+    </div>
+  </div>
+
+  <div class="filter-chips">
+    <div class="fchip active" onclick="setCatF('all',this)">Todos</div>
+    <div class="fchip" onclick="setCatF('amarillo',this)">🟡 Amarillo</div>
+    <div class="fchip" onclick="setCatF('azul',this)">🔵 Azul</div>
+    <div class="fchip" onclick="setCatF('beige',this)">🟤 Beige</div>
+    <div class="fchip" onclick="setCatF('blanco',this)">⬜ Blanco</div>
+    <div class="fchip" onclick="setCatF('cafe',this)">☕ Café</div>
+    <div class="fchip" onclick="setCatF('gris',this)">🩶 Gris</div>
+    <div class="fchip" onclick="setCatF('morado',this)">🟣 Morado</div>
+    <div class="fchip" onclick="setCatF('naranja',this)">🟠 Naranja</div>
+    <div class="fchip" onclick="setCatF('rosa',this)">🩷 Rosa</div>
+    <div class="fchip" onclick="setCatF('verde',this)">🟢 Verde</div>
+    <div class="fchip" onclick="setCatF('negro',this)">⬛ Negro</div>
+  </div>
+
+  <div class="prod-list" id="pgrid"></div>
+</div>
+
+<!-- ══ MY ORDERS STATUS ══ -->
+<div class="section" id="orders">
+  <div class="sec-hd">
+    <div class="sec-title">📦 Mis Pedidos</div>
+    <span class="sec-link" onclick="openCart()">Nuevo pedido →</span>
+  </div>
+  <div id="ordersList">
+    <div style="text-align:center;padding:32px 20px;color:var(--mid);font-size:13px;">
+      <div style="font-size:36px;margin-bottom:10px;">📭</div>
+      Aún no tienes pedidos.<br>
+      <span style="color:var(--blue);cursor:pointer;font-weight:600;" onclick="scrollToSection('shop')">Explora el catálogo →</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /pageHome -->
+
+<!-- ══ BOLT RESUELVE FAB ══ -->
+<button class="bolt-fab" onclick="openChat()" title="Bolt Resuelve — Asistente de diseño">
+  <span class="bolt-fab-ico">🤖</span>
+  <div class="bolt-fab-badge"></div>
+</button>
+
+<!-- ══ BOTTOM TAB BAR ══ -->
+<div class="bottom-nav">
+  <div class="tab-item active" onclick="scrollToTop()">
+    <span class="tab-ico">🏠</span>
+    <span class="tab-lbl">Inicio</span>
+  </div>
+  <div class="tab-item" onclick="scrollToSection('shop')">
+    <span class="tab-ico">🎨</span>
+    <span class="tab-lbl">Catálogo</span>
+  </div>
+  <div class="tab-item tab-bolt" onclick="scrollToSection('comparador')">
+    <span class="tab-ico">💰</span>
+    <span class="tab-lbl">Comparar</span>
+  </div>
+  <div class="tab-item" onclick="scrollToSection('orders')">
+    <span class="tab-ico">📦</span>
+    <span class="tab-lbl">Mis pedidos</span>
+  </div>
+  <div class="tab-item" onclick="openChat()">
+    <span class="tab-ico">🤖</span>
+    <span class="tab-lbl">Bolt Resuelve</span>
+  </div>
+</div>
+
+<!-- ══ BOLT RESUELVE CHAT ══ -->
+<div class="chat-drawer" id="chatDrawer">
+  <div class="chat-handle"></div>
+  <div class="chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-meta">
+      <div class="cname">Bolt Resuelve</div>
+      <div class="cstatus"><span style="width:6px;height:6px;background:#4ade80;border-radius:50%;display:inline-block;"></span> Diseñador de interiores · En línea</div>
+    </div>
+    <button class="chat-close" onclick="closeChat()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="chat-suggestions" id="chatSuggestions"></div>
+  <div class="chat-input-area">
+    <textarea class="chat-input" id="chatInput" placeholder="Escribe tu pregunta..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+    <button class="chat-send" onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
+<!-- ══ CART DRAWER ══ -->
+<div class="cart-drawer" id="cartDrawer">
+  <div class="chat-handle"></div>
+  <div class="cart-hd">
+    <h3>🛒 Mi Pedido</h3>
+    <button class="close-btn" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <p style="text-align:center;color:var(--mid);margin-top:36px;font-size:13px;">Tu carrito está vacío.</p>
+  </div>
+  <div class="cart-ft">
+    <div class="cart-tot"><span>Total estimado</span><strong id="cartTotal">$0 MXN</strong></div>
+    <div class="dlv">
+      <h4>📍 Datos de entrega</h4>
+      <input class="dinput" type="text" id="dn" placeholder="Nombre completo">
+      <input class="dinput" type="tel" id="dt" placeholder="WhatsApp / Teléfono">
+      <input class="dinput" type="text" id="dd" placeholder="Dirección completa">
+      <div class="dinput-row">
+        <input class="dinput" type="text" id="dc" value="Mexicali, B.C.">
+        <input class="dinput" type="text" id="dcp" placeholder="C.P.">
+      </div>
+      <input class="dinput" type="text" id="dno" placeholder="Notas: horario, referencias...">
+    </div>
+    <button class="order-btn" onclick="doCheckout()">⚡ Confirmar · 10 días hábiles</button>
+  </div>
+</div>
+
+<!-- ══ SUCCESS ══ -->
+<div class="succ-ov" id="succOv">
+  <div class="succ-ico">🐾</div>
+  <h2>¡Pedido confirmado!</h2>
+  <p>Bolt Paint recibió tu pedido. Te contactamos por WhatsApp para confirmar detalles y pago.</p>
+  <div class="succ-det" id="succDet"></div>
+  <button class="btn-new" onclick="resetAll()">Hacer otro pedido</button>
+</div>
+
+<!-- ══ ADMIN PANEL ══ -->
+<div class="adm-ov" id="admOv">
+  <div class="adm-modal">
+    <div class="adm-hdr">
+      <h2>⚙️ Admin · Bolt Paint</h2>
+      <button class="close-btn" onclick="closeAdmin()">✕</button>
+    </div>
+    <!-- LOGIN -->
+    <div id="admLogin">
+      <p style="font-size:13px;color:var(--mid);margin-bottom:12px;">Ingresa la contraseña para gestionar precios y catálogo.</p>
+      <input type="password" class="adm-pwd-inp" id="admPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')chkPwd()">
+      <button class="adm-btn adm-btn-main" onclick="chkPwd()">Acceder</button>
+      <div class="adm-err" id="admErr"></div>
+    </div>
+    <!-- DASH -->
+    <div class="adm-dash" id="admDash">
+      <div class="adm-stats-row">
+        <div class="adm-stat"><strong id="statT">0</strong><span>Total</span></div>
+        <div class="adm-stat"><strong id="statBP">0</strong><span>🎨 BP</span></div>
+        <div class="adm-stat"><strong id="statEP">0</strong><span>🦜 EP</span></div>
+      </div>
+      <!-- JSONbin Cloud Config -->
+      <div style="background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1.5px solid #bae6fd;border-radius:16px;padding:16px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:22px;">☁️</span>
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:#0c4a6e;">Sincronización en la nube (JSONbin)</div>
+            <div style="font-size:11px;color:#0369a1;margin-top:1px;">Catálogo compartido en todos los dispositivos</div>
+          </div>
+          <div id="jbStatus" style="margin-left:auto;font-size:11px;font-weight:700;color:#64748b;">Sin configurar</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px;">
+          <div>
+            <label class="mini-lbl">JSONbin BIN ID</label>
+            <input type="text" class="mini-inp" id="jbId" placeholder="6741234abc..." value="">
+          </div>
+          <div>
+            <label class="mini-lbl">Master Key (X-Master-Key)</label>
+            <input type="password" class="mini-inp" id="jbKey" placeholder="$2a$10$..." value="">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="saveJBConfig()" style="flex:1;padding:9px;background:#0077b6;color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">💾 Guardar config</button>
+          <button onclick="testJBConfig()" style="flex:1;padding:9px;background:#fff;color:#0077b6;border:1.5px solid #0077b6;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">🔗 Probar conexión</button>
+          <button onclick="pushToJB()" style="flex:1;padding:9px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">⬆️ Subir catálogo</button>
+        </div>
+        <div style="margin-top:10px;background:#fff;border-radius:10px;padding:10px;font-size:11px;color:#475569;line-height:1.55;">
+          <strong>📋 Cómo configurar JSONbin:</strong><br>
+          1. Ve a <a href="https://jsonbin.io" target="_blank" style="color:#0077b6;">jsonbin.io</a> y crea cuenta gratis<br>
+          2. Crea un nuevo Bin con contenido <code>[]</code><br>
+          3. Copia el <strong>BIN ID</strong> y tu <strong>Master Key</strong><br>
+          4. Pégalos aquí y toca "Guardar config"<br>
+          5. Sube tu catálogo con "⬆️ Subir catálogo"
+        </div>
+      </div>
+
+      <div class="adm-section-title">📁 Subir archivo master</div>
+      <div class="adm-section-sub">CSV o Excel con tus precios. Se aplica al instante en la tienda.</div>
+      <div class="up-zone" id="upZone" onclick="document.getElementById('fileIn').click()"
+           ondragover="event.preventDefault();this.classList.add('dragover')"
+           ondragleave="this.classList.remove('dragover')"
+           ondrop="handleDrop(event)">
+        <input type="file" id="fileIn" accept=".csv,.xlsx,.xls" onchange="handleFile(this.files[0])">
+        <div style="font-size:28px;margin-bottom:6px;">📊</div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy);">Arrastra o toca para seleccionar</div>
+        <div style="font-size:11px;color:var(--mid);margin-top:2px;">CSV · Excel .xlsx / .xls</div>
+      </div>
+      <div class="up-prog" id="upProg"><div class="up-bar" id="upBar"></div></div>
+      <div class="up-ok" id="upOk"></div>
+      <div class="adm-section-title" style="margin-bottom:4px;">📋 Formato (9 columnas)</div>
+      <div class="csv-fmt">nombre,color_hex,categoria,precio_litro,precio_galon,precio_cubeta,marca,linea,tipo
+BABY BLUE,#89CFF0,azul,189,756,1049,BpaintDepot,Americana,interior
+BLANCO TOTAL,#F8F9FA,blanco,120,480,898,ElPerico,El Perico,interior</div>
+      <div class="adm-actions-row" style="margin-bottom:16px;">
+        <button class="btn-dl-tpl" onclick="dlTpl()">⬇️ Plantilla CSV</button>
+        <button class="btn-rst" onclick="rstCatalog()">🗑 Restablecer defaults</button>
+      </div>
+      <div id="prevSec" style="display:none;">
+        <div class="adm-section-title" style="margin-bottom:6px;">👁 Vista previa</div>
+        <div class="prev-tbl-wr"><table class="prev-tbl">
+          <thead><tr><th>Color</th><th>Nombre</th><th>Cat.</th><th>Galón</th><th>Cubeta</th><th>Marca</th></tr></thead>
+          <tbody id="prevBody"></tbody>
+        </table></div>
+        <div class="adm-actions-row" style="margin-top:8px;">
+          <button class="btn-apply" onclick="applyPrices()">✅ Aplicar</button>
+        </div>
+      </div>
+      <div class="adm-divider"></div>
+      <div class="adm-section-title" style="margin-bottom:4px;">➕ Agregar producto</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+        <div><label class="mini-lbl">Nombre</label><input type="text" class="mini-inp" id="mn" placeholder="BABY BLUE"></div>
+        <div><label class="mini-lbl">Color</label><input type="color" class="mini-clr" id="mh" value="#89CFF0"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
+        <div><label class="mini-lbl">Litro $</label><input type="number" class="mini-inp" id="ml" placeholder="180"></div>
+        <div><label class="mini-lbl">Galón $</label><input type="number" class="mini-inp" id="mg" placeholder="720"></div>
+        <div><label class="mini-lbl">Cubeta $</label><input type="number" class="mini-inp" id="mc" placeholder="1650"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px;">
+        <div><label class="mini-lbl">Categoría</label>
+          <select class="mini-sel" id="mcat"><option>amarillo</option><option>azul</option><option>beige</option><option>blanco</option><option>cafe</option><option>gris</option><option>morado</option><option>naranja</option><option>negro</option><option>rojo</option><option>rosa</option><option>verde</option></select></div>
+        <div><label class="mini-lbl">Marca</label>
+          <select class="mini-sel" id="mm"><option>BpaintDepot</option><option>ElPerico</option></select></div>
+        <div><label class="mini-lbl">Tipo</label>
+          <select class="mini-sel" id="mt"><option>interior</option><option>exterior</option><option>interior/exterior</option><option>esmalte</option></select></div>
+      </div>
+      <button class="btn-apply" onclick="addManual()" style="width:100%;">➕ Agregar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════
+   DATA
+════════════════════════════════ */
+const DEFAULT = [{"id": "p001", "nombre": "BABY BLUE", "hex": "#89CFF0", "cat": "azul", "litro": "189", "galon": "756", "cubeta": "1049", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p002", "nombre": "TEAL", "hex": "#008080", "cat": "azul", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p003", "nombre": "AQUARIUM", "hex": "#4EC9B0", "cat": "azul", "litro": "216", "galon": "864", "cubeta": "1590", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p004", "nombre": "CORN FLOWER", "hex": "#6495ED", "cat": "azul", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p005", "nombre": "ARENA DE BAJA", "hex": "#D4B483", "cat": "beige", "litro": "140", "galon": "560", "cubeta": "898", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior/exterior"}, {"id": "p006", "nombre": "CREMA", "hex": "#FFFDD0", "cat": "beige", "litro": "140", "galon": "560", "cubeta": "898", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p007", "nombre": "MAZAPAN", "hex": "#E8C99A", "cat": "beige", "litro": "160", "galon": "640", "cubeta": "898", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p008", "nombre": "TAN", "hex": "#D2B48C", "cat": "beige", "litro": "140", "galon": "560", "cubeta": "898", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p009", "nombre": "CREMA OCRE", "hex": "#D4A855", "cat": "beige", "litro": "140", "galon": "560", "cubeta": "898", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior/exterior"}, {"id": "p010", "nombre": "SANDY BROWN", "hex": "#C4A265", "cat": "cafe", "litro": "140", "galon": "560", "cubeta": "898", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior/exterior"}, {"id": "p011", "nombre": "CARAMELO SUAVE", "hex": "#C8874A", "cat": "cafe", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p012", "nombre": "SOFT CHOCOLATE", "hex": "#7B4F2E", "cat": "cafe", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p013", "nombre": "XOCHOLATE SECO", "hex": "#5C3317", "cat": "cafe", "litro": "140", "galon": "560", "cubeta": "898", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p014", "nombre": "AZUCAR MASCABADO", "hex": "#8B6343", "cat": "cafe", "litro": "160", "galon": "640", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p015", "nombre": "LIGHT CAMEL", "hex": "#C19A6B", "cat": "cafe", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p016", "nombre": "OXY BROWN", "hex": "#5C4827", "cat": "cafe", "litro": "189", "galon": "756", "cubeta": "1049", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p017", "nombre": "ARSENIC", "hex": "#3B444B", "cat": "gris", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p018", "nombre": "VIOLETA CENIZA", "hex": "#8E7D9A", "cat": "morado", "litro": "140", "galon": "560", "cubeta": "898", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p019", "nombre": "LILA", "hex": "#C8A2C8", "cat": "morado", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p020", "nombre": "PLUM", "hex": "#8E4585", "cat": "morado", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p021", "nombre": "EGGPLANT", "hex": "#614051", "cat": "morado", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p022", "nombre": "MORADO VINO", "hex": "#722F37", "cat": "morado", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p023", "nombre": "LIGHT PURPLE", "hex": "#B39DDB", "cat": "morado", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p024", "nombre": "AMBER", "hex": "#FFBF00", "cat": "amarillo", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p025", "nombre": "OLD GOLD", "hex": "#CFB53B", "cat": "amarillo", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p026", "nombre": "ANTOINETTE", "hex": "#F4A57A", "cat": "naranja", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p027", "nombre": "PEACH", "hex": "#FFCBA4", "cat": "naranja", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p028", "nombre": "SALMON", "hex": "#FA8072", "cat": "rosa", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p029", "nombre": "BERRY", "hex": "#883A5F", "cat": "rosa", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p030", "nombre": "HIEDRA", "hex": "#3D5A3E", "cat": "verde", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p031", "nombre": "AMAZONAS", "hex": "#2C7744", "cat": "verde", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p032", "nombre": "APPLE", "hex": "#6FAA3E", "cat": "verde", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p033", "nombre": "AVOCADO", "hex": "#568203", "cat": "verde", "litro": "160", "galon": "640", "cubeta": "1350", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p034", "nombre": "TEJA INTENSA", "hex": "#A0522D", "cat": "naranja", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p035", "nombre": "TEJA FRANCESA", "hex": "#C2613C", "cat": "naranja", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p036", "nombre": "TEJA NARANJA", "hex": "#D2622B", "cat": "naranja", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p037", "nombre": "TEJA COLONIAL", "hex": "#B8562A", "cat": "naranja", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p038", "nombre": "TEJA CLARA", "hex": "#D4875A", "cat": "naranja", "litro": "180", "galon": "720", "cubeta": "1650", "marca": "BpaintDepot", "linea": "Americana", "tipo": "exterior"}, {"id": "p039", "nombre": "BLANCO PURO", "hex": "#FFFFFF", "cat": "blanco", "litro": "0", "galon": "0", "cubeta": "0", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p040", "nombre": "NEGRO CARBON", "hex": "#1C1C1C", "cat": "negro", "litro": "0", "galon": "0", "cubeta": "0", "marca": "BpaintDepot", "linea": "Americana", "tipo": "interior"}, {"id": "p041", "nombre": "BLANCO TOTAL", "hex": "#F8F9FA", "cat": "blanco", "litro": "120", "galon": "480", "cubeta": "898", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior"}, {"id": "p042", "nombre": "VINILTEX BLANCO", "hex": "#F5F5F5", "cat": "blanco", "litro": "125", "galon": "500", "cubeta": "920", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior"}, {"id": "p043", "nombre": "VINILTEX CIELO", "hex": "#A8D8EA", "cat": "azul", "litro": "130", "galon": "520", "cubeta": "950", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior"}, {"id": "p044", "nombre": "AZUL HORIZONTE", "hex": "#5B9BD5", "cat": "azul", "litro": "135", "galon": "540", "cubeta": "980", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior"}, {"id": "p045", "nombre": "BRISA DEL MAR", "hex": "#90E0EF", "cat": "azul", "litro": "130", "galon": "520", "cubeta": "950", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior"}, {"id": "p046", "nombre": "VERDE CAMPO", "hex": "#4A8A50", "cat": "verde", "litro": "150", "galon": "600", "cubeta": "1150", "marca": "ElPerico", "linea": "El Perico", "tipo": "exterior"}, {"id": "p047", "nombre": "VERDE MENTA", "hex": "#A8E6CF", "cat": "verde", "litro": "135", "galon": "540", "cubeta": "980", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior"}, {"id": "p048", "nombre": "ARENA CLASICA", "hex": "#C8A878", "cat": "beige", "litro": "125", "galon": "500", "cubeta": "920", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior/exterior"}, {"id": "p049", "nombre": "CREMA CALIDA", "hex": "#FEF3C7", "cat": "beige", "litro": "120", "galon": "480", "cubeta": "898", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior"}, {"id": "p050", "nombre": "ROSA DUNAS", "hex": "#FCE4D6", "cat": "rosa", "litro": "125", "galon": "500", "cubeta": "920", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior"}, {"id": "p051", "nombre": "TERRA COTA", "hex": "#E07A5F", "cat": "naranja", "litro": "135", "galon": "540", "cubeta": "980", "marca": "ElPerico", "linea": "El Perico", "tipo": "exterior"}, {"id": "p052", "nombre": "OCRE CLASICO", "hex": "#CA8A04", "cat": "amarillo", "litro": "130", "galon": "520", "cubeta": "950", "marca": "ElPerico", "linea": "El Perico", "tipo": "exterior"}, {"id": "p053", "nombre": "GRIS NIEBLA", "hex": "#CFD8DC", "cat": "gris", "litro": "120", "galon": "480", "cubeta": "898", "marca": "ElPerico", "linea": "El Perico", "tipo": "interior"}, {"id": "p054", "nombre": "BLANCO ARQUITECTO", "hex": "#F8FAFC", "cat": "blanco", "litro": "120", "galon": "480", "cubeta": "898", "marca": "ElPerico", "linea": "El Perico", "tipo": "exterior"}];
+// ── JSONbin config (set in admin panel) ──
+let JSONBIN_ID  = localStorage.getItem('bp_jsonbin_id')  || '';
+let JSONBIN_KEY = localStorage.getItem('bp_jsonbin_key') || '';
+
+let CATALOG = JSON.parse(localStorage.getItem('bp_cat')||'null') || DEFAULT.map((p,i)=>({...p,id:'p'+(i+1).toString().padStart(3,'0')}));
+let cart=[], szMap={}, activeFilter='all', activeLine='all', activeCatScene=null;
+let pendingProds=null;
+let orders = JSON.parse(localStorage.getItem('bp_orders')||'[]');
+const ADMIN_PWD='Bolt2026';
+
+// ── Load catalog from JSONbin on startup ──
+async function loadFromJSONbin() {
+  if(!JSONBIN_ID) return; // no bin configured yet
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    if(!res.ok) throw new Error('JSONbin fetch failed: ' + res.status);
+    const data = await res.json();
+    if(data.record && Array.isArray(data.record)) {
+      CATALOG = data.record;
+      localStorage.setItem('bp_cat', JSON.stringify(CATALOG));
+      filterProds();
+      document.getElementById('adminBadge').style.display = 'block';
+      document.getElementById('catalogSub').textContent =
+        CATALOG.length + ' productos · Desde JSONbin (nube)';
+      console.log('✅ Catalog loaded from JSONbin:', CATALOG.length, 'products');
+    }
+  } catch(e) {
+    console.warn('JSONbin unavailable, using local cache:', e.message);
+  }
+}
+
+// ── Save catalog to JSONbin (admin only) ──
+async function saveToJSONbin(catalog) {
+  if(!JSONBIN_ID || !JSONBIN_KEY) return false;
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_KEY
+      },
+      body: JSON.stringify(catalog)
+    });
+    if(!res.ok) throw new Error('JSONbin save failed: ' + res.status);
+    console.log('✅ Catalog saved to JSONbin');
+    return true;
+  } catch(e) {
+    console.warn('JSONbin save failed:', e.message);
+    return false;
+  }
+}
+
+/* ══ CLOCK ══ */
+function updateClock(){const n=new Date();document.getElementById('sbTime').textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');}
+updateClock();setInterval(updateClock,30000);
+
+/* ══ NAV HELPERS ══ */
+function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
+function scrollToSection(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+
+/* ══ CATALOG RENDER ══ */
+function colorBg(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `linear-gradient(135deg,rgba(${r},${g},${b},.18),rgba(${r},${g},${b},.32))`;
+}
+function filterProds(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  let list=CATALOG;
+  if(activeLine!=='all') list=list.filter(p=>p.marca===activeLine);
+  if(activeFilter!=='all') list=list.filter(p=>p.cat===activeFilter);
+  if(activeCatScene){
+    const m={sala:'interior',recamara:'interior',fachada:'exterior',oficina:'interior',bano:'interior'};
+    list=list.filter(p=>p.tipo&&p.tipo.includes(m[activeCatScene]));
+  }
+  if(q) list=list.filter(p=>(p.nombre||'').toLowerCase().includes(q)||(p.cat||'').includes(q));
+  renderGrid(list);
+}
+function renderGrid(list){
+  const g=document.getElementById('pgrid');
+  if(!list.length){g.innerHTML='<div class="no-res">🔍 Sin resultados. Prueba otro filtro.</div>';return;}
+  const isBP=p=>p.marca==='BpaintDepot';
+  g.innerHTML=list.map(p=>{
+    const sz=szMap[p.id]||'galon';
+    const pr=sz==='cubeta'?p.cubeta:sz==='litro'?p.litro:p.galon;
+    return `<div class="pcard">
+      <div class="pcard-swatch" style="background:${p.hex};"></div>
+      <div class="pcard-info">
+        <div class="pcard-badges">
+          <span class="pbadge ${isBP(p)?'pb-bp':'pb-ep'}">${isBP(p)?'🎨 BP':'🦜 EP'}</span>
+          <span class="pbadge pb-cat">${p.cat}</span>
+        </div>
+        <div class="pcard-name">${p.nombre}</div>
+        <div class="pcard-sub">${p.linea||p.marca} · ${p.tipo}</div>
+      </div>
+      <div class="pcard-right">
+        <div class="pcard-price">${pr?'$'+pr.toLocaleString():'Consultar'}</div>
+        <div class="pcard-sz">
+          ${p.litro?`<div class="psz ${sz==='litro'?'active':''}" onclick="setSz('${p.id}','litro')">1L</div>`:''}
+          <div class="psz ${sz==='galon'?'active':''}" onclick="setSz('${p.id}','galon')">Gal</div>
+          <div class="psz ${sz==='cubeta'?'active':''}" onclick="setSz('${p.id}','cubeta')">Cub</div>
+        </div>
+        <button class="pcard-add" onclick="addP('${p.id}')">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function setSz(id,sz){szMap[id]=sz;filterProds();}
+function setCatF(f,el){
+  document.querySelectorAll('.fchip').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');activeFilter=f;filterProds();
+}
+function setLine(l){
+  activeLine=l;
+  document.querySelectorAll('.ltab').forEach(b=>{b.className='ltab';});
+  document.querySelectorAll('.bpill').forEach(b=>{b.className=b.className.replace(/active-\w+/g,'').trim();});
+  if(l==='all'){
+    document.getElementById('lt-all').classList.add('a-all');
+    document.getElementById('pill-all').style.background='var(--navy)';
+    document.getElementById('pill-all').style.color='#fff';
+    document.getElementById('pill-bp').className='bpill bpill-bp';
+    document.getElementById('pill-ep').className='bpill bpill-ep';
+  } else if(l==='BpaintDepot'){
+    document.getElementById('lt-bp').classList.add('a-bp');
+    document.getElementById('pill-bp').className='bpill bpill-bp active-bp';
+    document.getElementById('pill-all').style.background='';document.getElementById('pill-all').style.color='';
+    document.getElementById('lt-all').classList.remove('a-all');
+  } else {
+    document.getElementById('lt-ep').classList.add('a-ep');
+    document.getElementById('pill-ep').className='bpill bpill-ep active-ep';
+    document.getElementById('pill-all').style.background='';document.getElementById('pill-all').style.color='';
+    document.getElementById('lt-all').classList.remove('a-all');
+  }
+  filterProds();
+}
+function addP(id){
+  const p=CATALOG.find(x=>x.id===id);
+  const sz=szMap[id]||'galon';
+  const pr=sz==='cubeta'?p.cubeta:sz==='litro'?p.litro:p.galon;
+  if(!pr){showToast('⚠️ Precio no disponible — contacta por WhatsApp');return;}
+  const ex=cart.find(c=>c.id===id&&c.sz===sz);
+  if(ex){ex.qty++;}else{cart.push({id,nombre:p.nombre,hex:p.hex,sz,pr,qty:1,marca:p.marca});}
+  updCart();showToast('✅ '+p.nombre+' agregado');
+}
+
+/* ══ SCENARIOS ══ */
+function pickCat(id){
+  const already=document.getElementById('cc-'+id).classList.contains('chosen');
+  document.querySelectorAll('.cat-chip').forEach(c=>c.classList.remove('chosen'));
+  document.querySelectorAll('[id^="ck-"]').forEach(c=>{c.style.opacity='0';c.style.transform='scale(.3)';});
+  if(!already){
+    document.getElementById('cc-'+id).classList.add('chosen');
+    const ck=document.getElementById('ck-'+id);ck.style.opacity='1';ck.style.transform='scale(1)';
+    const nm={sala:'Sala & Living',recamara:'Recámara',fachada:'Fachada',oficina:'Oficina',bano:'Baño'};
+    document.getElementById('catMsg').textContent='✅ '+nm[id];
+    activeCatScene=id;filterProds();
+    scrollToSection('shop');
+  } else {
+    document.getElementById('catMsg').textContent='Filtrar →';
+    activeCatScene=null;filterProds();
+  }
+}
+
+/* ══ COMPARADOR ══ */
+function runComp(){
+  const precio=parseFloat(document.getElementById('cmpPrecio').value);
+  if(!precio||precio<=0){showToast('⚠️ Ingresa el precio de tu proveedor');return;}
+  const tipo=document.getElementById('cmpTipo').value;
+  const cat=document.getElementById('cmpCat').value;
+  const nombre=document.getElementById('cmpNombre').value.trim().toLowerCase();
+  let bpL=CATALOG.filter(p=>p.marca==='BpaintDepot'&&p[tipo]>0);
+  let epL=CATALOG.filter(p=>p.marca==='ElPerico'&&p[tipo]>0);
+  if(cat){bpL=bpL.filter(p=>p.cat===cat);epL=epL.filter(p=>p.cat===cat);}
+  if(nombre){
+    const bn=bpL.filter(p=>p.nombre.toLowerCase().includes(nombre));
+    const en=epL.filter(p=>p.nombre.toLowerCase().includes(nombre));
+    if(bn.length)bpL=bn;if(en.length)epL=en;
+  }
+  bpL.sort((a,b)=>a[tipo]-b[tipo]);epL.sort((a,b)=>a[tipo]-b[tipo]);
+  const bpB=bpL[0],epB=epL[0];
+  const tl={litro:'por litro',galon:'por galón',cubeta:'por cubeta 19L'};
+  const savBP=bpB?precio-bpB[tipo]:null;
+  const savEP=epB?precio-epB[tipo]:null;
+  const winner=(savBP!==null&&savEP!==null)?(savBP>=savEP?'bp':'ep'):(savBP!==null?'bp':'ep');
+  document.getElementById('cmpResTitle').textContent=`Tu proveedor ($${precio.toLocaleString()}) vs Bolt Paint — ${tl[tipo]}`;
+  let cards='';
+  // Current provider
+  cards+=`<div class="crc current-p">
+    <span class="crc-badge crc-badge-curr">Tu proveedor actual</span>
+    <div class="crc-main">
+      <div class="crc-info"><div class="crc-name">Precio de referencia</div><div class="crc-price">$${precio.toLocaleString()}</div><div class="crc-unit">MXN ${tl[tipo]}</div></div>
+      <div class="crc-saving"><div class="sav-amt" style="color:rgba(255,255,255,.5)">Referencia</div></div>
+    </div>
+  </div>`;
+  // BpaintDepot
+  if(bpB){
+    const sav=savBP,pct=Math.round(Math.abs(sav)/precio*100);
+    cards+=`<div class="crc ${winner==='bp'?'winner':''}">
+      <span class="crc-badge ${winner==='bp'?'crc-badge-win':'crc-badge-bp'}">${winner==='bp'?'🏆 Mejor precio':'🎨 BpaintDepot'}</span>
+      <div class="crc-main">
+        <div class="crc-info"><div class="crc-name">${bpB.nombre}</div><div class="crc-price">$${bpB[tipo].toLocaleString()}</div><div class="crc-unit">MXN ${tl[tipo]}</div></div>
+        <div class="crc-saving"><div class="sav-amt ${sav>=0?'sav-good':'sav-bad'}">${sav>=0?'↓ $'+sav.toLocaleString():'↑ $'+Math.abs(sav).toLocaleString()}</div><div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;">${pct}% ${sav>=0?'menos':'más'}</div></div>
+      </div>
+      <button class="crc-add-btn ${winner==='bp'?'win-btn':''}" onclick="addFromComp('${bpB.id}','${tipo}')">Agregar al carrito →</button>
+    </div>`;
+  }
+  // El Perico
+  if(epB){
+    const sav=savEP,pct=Math.round(Math.abs(sav)/precio*100);
+    cards+=`<div class="crc ${winner==='ep'?'winner':''}">
+      <span class="crc-badge ${winner==='ep'?'crc-badge-win':'crc-badge-ep'}">${winner==='ep'?'🏆 Mejor precio':'🦜 El Perico'}</span>
+      <div class="crc-main">
+        <div class="crc-info"><div class="crc-name">${epB.nombre}</div><div class="crc-price">$${epB[tipo].toLocaleString()}</div><div class="crc-unit">MXN ${tl[tipo]}</div></div>
+        <div class="crc-saving"><div class="sav-amt ${sav>=0?'sav-good':'sav-bad'}">${sav>=0?'↓ $'+sav.toLocaleString():'↑ $'+Math.abs(sav).toLocaleString()}</div><div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;">${pct}% ${sav>=0?'menos':'más'}</div></div>
+      </div>
+      <button class="crc-add-btn ${winner==='ep'?'win-btn':''}" onclick="addFromComp('${epB.id}','${tipo}')">Agregar al carrito →</button>
+    </div>`;
+  }
+  document.getElementById('cmpCards').innerHTML=cards;
+  const bestSav=Math.max(savBP||0,savEP||0);
+  const sumEl=document.getElementById('cmpSummary');
+  if(bestSav>0){
+    const bname=winner==='bp'?(bpB?bpB.nombre:'BpaintDepot'):(epB?epB.nombre:'El Perico');
+    const bbrand=winner==='bp'?'BpaintDepot':'El Perico';
+    sumEl.innerHTML=`<p>🐾 Con <strong>${bbrand} — ${bname}</strong> ahorras <strong>$${bestSav.toLocaleString()} MXN</strong> ${tl[tipo]}. ¿Necesitas calcular cuántos galones necesitas? Pregúntale a <strong>Bolt Resuelve</strong>.</p>`;
+    sumEl.style.display='flex';
+  } else {
+    sumEl.innerHTML=`<p>💡 Nuestros precios son similares. Pero con Bolt Paint recibes en tu puerta + asesoría gratis por WhatsApp.</p>`;
+    sumEl.style.display='flex';
+  }
+  document.getElementById('cmpResults').classList.add('show');
+}
+function addFromComp(id,tipo){
+  szMap[id]=tipo;addP(id);openCart();
+}
+
+/* ══ CART ══ */
+function updCart(){
+  const tot=cart.reduce((s,i)=>s+i.pr*i.qty,0);
+  const cnt=cart.reduce((s,i)=>s+i.qty,0);
+  document.getElementById('cartBdg').textContent=cnt;
+  document.getElementById('cartTotal').textContent='$'+tot.toLocaleString()+' MXN';
+  const el=document.getElementById('cartItems');
+  if(!cart.length){el.innerHTML='<p style="text-align:center;color:var(--mid);margin-top:36px;font-size:13px;">Tu carrito está vacío.</p>';return;}
+  el.innerHTML=cart.map((it,i)=>`<div class="ci">
+    <div class="ci-sw" style="background:${it.hex};"></div>
+    <div class="ci-inf"><strong>${it.nombre}</strong><span>${it.qty} × ${it.sz==='cubeta'?'Cubeta':it.sz==='litro'?'Litro':'Galón'} · $${it.pr.toLocaleString()}</span></div>
+    <div class="ci-p">$${(it.pr*it.qty).toLocaleString()}</div>
+    <button class="ci-rm" onclick="rmItem(${i})">🗑</button>
+  </div>`).join('');
+}
+function rmItem(i){cart.splice(i,1);updCart();}
+function openCart(){document.getElementById('cartDrawer').classList.add('open');document.body.style.overflow='hidden';}
+function closeCart(){document.getElementById('cartDrawer').classList.remove('open');document.body.style.overflow='';}
+
+/* ══ CHECKOUT ══ */
+function doCheckout(){
+  const n=document.getElementById('dn').value.trim(),t=document.getElementById('dt').value.trim(),d=document.getElementById('dd').value.trim();
+  if(!n||!t||!d){showToast('⚠️ Completa nombre, teléfono y dirección');return;}
+  if(!cart.length){showToast('⚠️ Tu carrito está vacío');return;}
+  const tot=cart.reduce((s,i)=>s+i.pr*i.qty,0);
+  const oid='BP-'+Date.now().toString().slice(-6);
+  const now=new Date();
+  const del=new Date();del.setDate(del.getDate()+10);
+  const ds=del.toLocaleDateString('es-MX',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+  // Save order
+  const newOrder={id:oid,nombre:n,telefono:t,direccion:d+', '+document.getElementById('dc').value,total:tot,fecha:now.toLocaleDateString('es-MX'),eta:ds,items:[...cart],status:'preparando'};
+  orders.unshift(newOrder);
+  localStorage.setItem('bp_orders',JSON.stringify(orders));
+  renderOrders();
+  document.getElementById('succDet').innerHTML=`
+    <div class="sdr"><span>Pedido</span><strong>${oid}</strong></div>
+    <div class="sdr"><span>Cliente</span><strong>${n}</strong></div>
+    <div class="sdr"><span>WhatsApp</span><strong>${t}</strong></div>
+    <div class="sdr"><span>Entrega</span><strong>${d}</strong></div>
+    <div class="sdr"><span>Fecha estimada</span><strong>${ds}</strong></div>
+    <div class="sdr"><span>Total</span><strong style="color:var(--coral)">$${tot.toLocaleString()} MXN</strong></div>`;
+  closeCart();document.getElementById('succOv').classList.add('open');
+}
+function resetAll(){
+  cart=[];updCart();document.getElementById('succOv').classList.remove('open');
+  ['dn','dt','dd','dno'].forEach(id=>{document.getElementById(id).value='';});
+}
+
+/* ══ ORDER STATUS ══ */
+function renderOrders(){
+  const el=document.getElementById('ordersList');
+  if(!orders.length){
+    el.innerHTML='<div style="text-align:center;padding:32px 20px;color:var(--mid);font-size:13px;"><div style="font-size:36px;margin-bottom:10px;">📭</div>Aún no tienes pedidos.<br><span style="color:var(--blue);cursor:pointer;font-weight:600;" onclick="scrollToSection('shop')">Explora el catálogo →</span></div>';
+    return;
+  }
+  el.innerHTML=orders.map(o=>{
+    const stages=[
+      {key:'preparando',lbl:'Preparando',ico:'📦'},
+      {key:'enviado',lbl:'En camino',ico:'🚚'},
+      {key:'entregado',lbl:'Entregado',ico:'🎉'}
+    ];
+    const idx=stages.findIndex(s=>s.key===o.status);
+    const trackHtml=stages.map((s,i)=>{
+      const done=i<idx,active=i===idx;
+      const dotCls=done?'done':active?'active':'pending';
+      const lblCls=done?'done-lbl':active?'active-lbl':'';
+      const lineCls=i<stages.length-1?(done?'done-line':'pending-line'):'';
+      return `<div class="st-step">
+        <div class="st-dot ${dotCls}">${s.ico}</div>
+        <div class="st-lbl ${lblCls}">${s.lbl}</div>
+      </div>${i<stages.length-1?`<div class="st-line ${lineCls}"></div>`:''}`;
+    }).join('');
+    // Admin status changer (quick)
+    const nextStatus=o.status==='preparando'?'enviado':o.status==='enviado'?'entregado':null;
+    return `<div class="order-status-card">
+      <div class="osc-header">
+        <div class="osc-num">Pedido <strong>${o.id}</strong><br><span style="font-size:10px;">${o.nombre}</span></div>
+        <div class="osc-date">${o.fecha}</div>
+      </div>
+      <div class="status-track">${trackHtml}</div>
+      <div class="osc-eta"><span style="font-size:18px;">📅</span><p>Entrega estimada: <strong>${o.eta}</strong>${o.status==='entregado'?' — <strong style="color:var(--teal)">¡Entregado! 🎉</strong>':''}</p></div>
+      ${nextStatus?`<button onclick="advanceOrder('${o.id}')" style="width:100%;margin-top:10px;padding:8px;border:1.5px solid var(--teal);border-radius:var(--r8);background:rgba(0,180,216,.06);color:var(--teal);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Admin: marcar como "${nextStatus==='enviado'?'En camino':'Entregado'}" →</button>`:''}
+    </div>`;
+  }).join('');
+}
+function advanceOrder(id){
+  const o=orders.find(x=>x.id===id);
+  if(!o)return;
+  const next={preparando:'enviado',enviado:'entregado'};
+  if(next[o.status]) o.status=next[o.status];
+  localStorage.setItem('bp_orders',JSON.stringify(orders));
+  renderOrders();showToast('✅ Pedido actualizado a: '+o.status);
+}
+
+/* ══ BOLT RESUELVE — AI ASSISTANT ══ */
+const BOLT_PERSONA = `Eres Bolt Resuelve, el asistente de diseño de interiores y exteriores de Bolt Paint en Mexicali, B.C. Tienes amplio conocimiento en:
+- Diseño de interiores y exteriores: paletas de color, combinaciones, psicología del color, estilos
+- Pinturas BpaintDepot (línea americana: Baby Blue, Teal, Aquarium, Lila, Plum, Teja Francesa, Amazonas, etc.) y Pinturas El Perico (línea mexicana)
+- Cálculo de cantidad de pintura por m²
+- Asesoría para la compra
+
+Responde siempre en español. Sé amigable, experto y conciso. Sugiere colores específicos del catálogo de Bolt Paint cuando sea relevante. Usa emojis ocasionalmente. Si el cliente menciona un espacio (sala, recámara, fachada, oficina, baño), sugiere colores y combinaciones concretas. Termina ofreciendo agregar productos al carrito o comparar precios.`;
+
+let chatHistory = [];
+let chatOpen = false;
+
+const SUGGESTIONS_BY_CONTEXT = {
+  default:['¿Qué color me recomiendas para sala?','¿Cómo combinar colores?','Calcula cuánta pintura necesito','¿Cuál es la diferencia entre BpaintDepot y El Perico?','¿Para fachada qué funciona?'],
+  sala:['¿Qué colores van con sofá gris?','Recomiéndame una paleta relajante','¿Teal o Baby Blue para sala?','¿Cómo iluminar más con pintura?'],
+  recamara:['Colores para dormir mejor','¿Lavanda o azul para recámara?','Paleta romántica para recámara','¿Color para cuarto de bebé?'],
+  fachada:['¿Teja o naranja para fachada?','Colores modernos para exterior','¿Qué pintura aguanta el sol de Mexicali?','¿Blanco o gris para fachada moderna?'],
+  oficina:['Colores para concentrarse','¿Verde o azul para oficina?','Paleta minimalista para home office'],
+};
+
+function openChat(){
+  document.getElementById('chatDrawer').classList.add('open');
+  document.body.style.overflow='hidden';
+  chatOpen=true;
+  if(chatHistory.length===0) initChat();
+}
+function closeChat(){document.getElementById('chatDrawer').classList.remove('open');document.body.style.overflow='';chatOpen=false;}
+
+function initChat(){
+  chatHistory=[];
+  const welcome=`¡Hola! 👋 Soy **Bolt Resuelve**, tu diseñador de interiores y exteriores de confianza.
+
+Estoy aquí para ayudarte a elegir el color perfecto, calcular cuánta pintura necesitas, y encontrar la mejor opción entre nuestras dos líneas:
+🎨 **BpaintDepot** — pinturas americanas premium
+🦜 **El Perico** — pintura mexicana de calidad
+
+¿Con qué espacio empezamos?`;
+  addBotMsg(welcome);
+  showSuggestions('default');
+}
+
+function addBotMsg(text){
+  const msgs=document.getElementById('chatMsgs');
+  const div=document.createElement('div');
+  div.className='msg bot';
+  const t=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=`<div class="msg-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/
+/g,'<br>')}</div><div class="msg-time">${t}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function addUserMsg(text){
+  const msgs=document.getElementById('chatMsgs');
+  const div=document.createElement('div');
+  div.className='msg user';
+  const t=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=`<div class="msg-bubble">${text}</div><div class="msg-time">${t}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function addTyping(){
+  const msgs=document.getElementById('chatMsgs');
+  const div=document.createElement('div');
+  div.className='msg bot';div.id='typing-indicator';
+  div.innerHTML='<div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+}
+function removeTyping(){document.getElementById('typing-indicator')?.remove();}
+function showSuggestions(ctx){
+  const sugs=SUGGESTIONS_BY_CONTEXT[ctx]||SUGGESTIONS_BY_CONTEXT.default;
+  const el=document.getElementById('chatSuggestions');
+  el.innerHTML=sugs.map(s=>`<div class="sug-chip" onclick="useSuggestion('${s}')">${s}</div>`).join('');
+}
+function useSuggestion(text){
+  document.getElementById('chatInput').value=text;
+  sendMsg();
+}
+
+/* ══════════════════════════════════════
+   BOLT RESUELVE — MOTOR LOCAL DE DISEÑO
+══════════════════════════════════════ */
+function getBoltLocal(text, tl) {
+  if(!tl) tl = text.toLowerCase();
+  const getProd = (cat, marca) => {
+    let list = CATALOG.filter(p=>(!cat||p.cat===cat)&&(!marca||p.marca===marca)&&p.galon>0);
+    return list.slice(0,3).map(p=>`**${p.nombre}** ($${p.galon.toLocaleString()} gal)`).join(', ');
+  };
+  const getBP = cat => getProd(cat,'BpaintDepot');
+  const getEP = cat => getProd(cat,'ElPerico');
+
+  if(tl.includes('sala')||tl.includes('living')||tl.includes('estancia'))
+    return `¡Perfecto! 🛋 Para **sala** te recomiendo:\n\n**Frescos y amplios:**\n🎨 BpaintDepot: ${getBP('azul')||'Baby Blue, Aquarium, Corn Flower'}\n🦜 El Perico: ${getEP('azul')||'Viniltex Cielo'}\n\n**Tonos cálidos:**\n🎨 BpaintDepot: ${getBP('beige')||'Mazapán, Arena de Baja, Crema'}\n\n⭐ **Combo estrella:** **Baby Blue** en pared principal + **Crema** en las demás = sala más amplia y luminosa.\n\n¿Qué color tienen tus muebles? Te afino la paleta.`;
+
+  if(tl.includes('recam')||tl.includes('dormitorio')||tl.includes('cuarto')||tl.includes('habitaci'))
+    return `Para **recámara** el color afecta el descanso 🛏\n\n**Colores relajantes:**\n🎨 ${getBP('morado')||'Lila, Violeta Ceniza'} — lavandas reducen el estrés\n🎨 ${getBP('beige')||'Crema, Mazapán'} — calidez y calma\n🦜 ${getEP('rosa')||'Rosa Dunas'} — suave y elegante\n\n**Paletas:**\n🌙 **Lila** + **Crema** = romántica\n🌑 **Arsenic** + **Blanco** = moderna\n☁️ **Baby Blue** + **Blanco** = fresca\n\n¿Es para adultos o niños?`;
+
+  if(tl.includes('fachada')||tl.includes('exterior')||tl.includes('afuera'))
+    return `Para **fachada** en Mexicali considera el sol intenso ☀️\n\n**Colores resistentes:**\n🎨 BpaintDepot: ${getBP('naranja')||'Teja Francesa, Teja Intensa'}\n🎨 BpaintDepot: ${getBP('verde')||'Hiedra, Amazonas, Apple'}\n🦜 El Perico: ${getEP('beige')||'Arena Clásica'} — formulada para exterior\n\n**Combinaciones clásicas:**\n🏠 **Teja Francesa** + **Blanco** = mexicano tradicional\n🏠 **Arsenic** + **Blanco** = moderno minimalista\n🏠 **Amazonas** + **Arena** = tropical\n\n¿Qué estilo tiene tu casa?`;
+
+  if(tl.includes('oficina')||tl.includes('home office')||tl.includes('trabajo')||tl.includes('estudio'))
+    return `Para **oficina** los colores impactan la productividad 💼\n\n**Para concentrarse:**\n🎨 BpaintDepot: ${getBP('azul')||'Teal, Corn Flower, Baby Blue'}\n🎨 BpaintDepot: ${getBP('verde')||'Hiedra, Amazonas'}\n\n**Paletas:**\n💡 **Teal** + madera = productivo y elegante\n💡 **Arsenic** + **Blanco** = minimalista profesional\n💡 **Aquarium** + blanco = creativo y fresco\n\n¿Recibes clientes o es solo para ti?`;
+
+  if(tl.includes('baño')||tl.includes('bano')||tl.includes('sanitario'))
+    return `Para **baños** clave: limpieza y amplitud visual 🚿\n\n🎨 BpaintDepot: ${getBP('azul')||'Baby Blue, Aquarium'}\n🦜 El Perico: ${getEP('blanco')||'Blanco Total'}\n\n**Tip:** En baños pequeños usa claros para verlo más grande. En grandes puedes usar **Teal** o **Lila** como acento.\n\n¿Cuántos m² tiene aproximadamente?`;
+
+  if(tl.includes('combin')||tl.includes('paleta')||tl.includes('armoniz')||tl.includes('pega con'))
+    return `🎨 **Regla 60-30-10:**\n• 60% color dominante (paredes)\n• 30% secundario (muebles/cortinas)\n• 10% acento (cojines/detalles)\n\n**Combos ganadores:**\n✅ **Baby Blue** + **Crema** + detalles **Amber**\n✅ **Teal** + **Blanco** + madera\n✅ **Lila** + **Crema** + acento **Berry**\n✅ **Arsenic** + **Blanco** = nórdico\n✅ **Teja Francesa** + **Blanco** = mexicano\n\n¿De qué espacio hablamos?`;
+
+  if(tl.includes('cuánto')||tl.includes('cuanto')||tl.includes('calcul')||tl.includes('m2')||tl.includes('metro')||tl.includes('litro')||tl.includes('galón')||tl.includes('galon'))
+    return `📐 **Fórmula:**\n(Ancho + Largo) × 2 × Alto − huecos = m²\nm² ÷ 10 × manos × 1.1 = litros\n\n**Equivalencias:**\n• 1 galón (3.78L) ≈ 37 m² con 1 mano\n• 1 cubeta (19L) ≈ 190 m² con 1 mano\n\n**Ejemplo:** Sala 5×4m, 2.7m alto, 2 manos:\n(5+4)×2×2.7 = 48.6 − 4m² huecos = 44.6 m²\n44.6÷10×2×1.1 = **9.8L → 3 galones** 🎯\n\nDame las medidas y te calculo exacto.`;
+
+  if(tl.includes('diferencia')||tl.includes('cuál es mejor')||tl.includes('cual es mejor')||tl.includes('recomiendas entre')) {
+    const minBP=CATALOG.filter(p=>p.marca==='BpaintDepot'&&p.galon>0).sort((a,b)=>a.galon-b.galon)[0]?.galon||560;
+    const minEP=CATALOG.filter(p=>p.marca==='ElPerico'&&p.galon>0).sort((a,b)=>a.galon-b.galon)[0]?.galon||480;
+    return `**Comparación honesta** 🎯\n\n🎨 **BpaintDepot — Americana**\n• Pinturas importadas premium\n• Mayor variedad de tonos especiales\n• Desde $${minBP.toLocaleString()} el galón\n\n🦜 **El Perico — Mexicana**\n• Formulada para el clima de México\n• Excelente precio-calidad\n• Desde $${minEP.toLocaleString()} el galón\n\n→ Interior colores especiales = **BpaintDepot**\n→ Exterior sol de Mexicali = **El Perico**\n→ Precio en blancos = **El Perico**\n\n¿Para qué espacio es?`;
+  }
+
+  if(tl.includes('precio')||tl.includes('costo')||tl.includes('cuesta')||tl.includes('barato')) {
+    const minBP=CATALOG.filter(p=>p.marca==='BpaintDepot'&&p.galon>0).sort((a,b)=>a.galon-b.galon)[0]?.galon||560;
+    const minEP=CATALOG.filter(p=>p.marca==='ElPerico'&&p.galon>0).sort((a,b)=>a.galon-b.galon)[0]?.galon||480;
+    return `💰 **Precios actuales Bolt Paint:**\n\n🎨 BpaintDepot: desde $${minBP.toLocaleString()} MXN/galón\n🦜 El Perico: desde $${minEP.toLocaleString()} MXN/galón\n\nUsa el **Comparador** ↑ para ver cuánto ahorras vs tu proveedor actual.\n\n¿Te cotizo una cantidad específica?`;
+  }
+
+  const colorMap=[['baby blue','azul'],['teal','azul'],['aquarium','azul'],['corn flower','azul'],['lila','morado'],['plum','morado'],['berry','rosa'],['salmon','rosa'],['arsenic','gris'],['amber','amarillo'],['old gold','amarillo'],['teja','naranja'],['amazonas','verde'],['hiedra','verde'],['apple','verde'],['avocado','verde'],['mazapan','beige'],['mazapán','beige'],['crema','beige'],['arena','beige'],['chocolate','cafe'],['blanco','blanco']];
+  const found=colorMap.find(([c])=>tl.includes(c));
+  if(found){
+    const prod=CATALOG.find(p=>p.nombre.toLowerCase().includes(found[0]));
+    if(prod){
+      const combos={'baby blue':'con **Crema** o **Blanco** + detalles dorados (**Amber**).','teal':'con **Blanco Puro** y madera natural. Muy sofisticado.','aquarium':'con **Arena de Baja** o **Crema**. Vibe tropical.','lila':'con **Crema Cálida** y detalles **Berry**.','arsenic':'con **Blanco Puro** y madera. Estilo nórdico.','teja':'con **Blanco Arquitecto** en molduras. Clásico mexicano.','amazonas':'con **Arena de Baja**. Tropical y llamativo.'};
+      const combo=combos[found[0]]||'con neutros como **Crema** o **Blanco**.';
+      return `¡Gran elección! 🎨 **${prod.nombre}**\n\n${prod.marca==='BpaintDepot'?'🎨 BpaintDepot':'🦜 El Perico'} · ${prod.cat} · ${prod.tipo}\n💰 Galón: $${prod.galon.toLocaleString()} | Cubeta: $${prod.cubeta.toLocaleString()} MXN\n\n**Combínalo** ${combo}\n\n¿Lo agrego al carrito o calculamos cuántos galones necesitas?`;
+    }
+  }
+
+  if(tl.includes('comprar')||tl.includes('carrito')||tl.includes('pedido')||tl.includes('ordenar'))
+    return `🛒 **Para hacer tu pedido:**\n1️⃣ Elige color en el **Catálogo**\n2️⃣ Selecciona Litro, Galón o Cubeta\n3️⃣ Toca **+** para agregar\n4️⃣ Abre 🛒 y llena tus datos\n5️⃣ Confirma → **10 días hábiles** en Mexicali\n\n¿Ya tienes el color en mente?`;
+
+  if(tl.includes('hola')||tl.includes('buenas')||tl.includes('buenos')||tl.includes('ayuda')||tl.length<12)
+    return `¡Hola! 👋 Soy **Bolt Resuelve**, tu diseñador de interiores de Bolt Paint Mexicali.\n\nPuedo ayudarte con:\n🏠 Color ideal por espacio (sala, recámara, fachada, oficina, baño)\n🎨 Combinaciones y paletas profesionales\n📐 Calcular cuánta pintura necesitas\n💰 Precios y comparaciones BpaintDepot vs El Perico\n\n¿Con qué espacio empezamos?`;
+
+  return `¡Buena pregunta! 🐾 Tenemos **${CATALOG.length} colores**:\n🎨 **BpaintDepot** — ${CATALOG.filter(p=>p.marca==='BpaintDepot').length} colores americanos\n🦜 **El Perico** — ${CATALOG.filter(p=>p.marca==='ElPerico').length} colores mexicanos\n\nPregúntame sobre colores para cualquier espacio, combinaciones, precios o cómo calcular cuánta pintura necesitas. ¿En qué te ayudo? 😊`;
+}
+
+
+
+async function sendMsg(){
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  inp.value = ''; inp.style.height = 'auto';
+  addUserMsg(text);
+  document.getElementById('chatSuggestions').innerHTML = '';
+  chatHistory.push({role:'user', content:text});
+  addTyping();
+
+  const tl = text.toLowerCase();
+  let ctx = 'default';
+  if(tl.includes('sala') || tl.includes('living')) ctx = 'sala';
+  else if(tl.includes('rec') || tl.includes('dormitorio') || tl.includes('cuarto')) ctx = 'recamara';
+  else if(tl.includes('fachada') || tl.includes('exterior')) ctx = 'fachada';
+  else if(tl.includes('oficina') || tl.includes('trabajo')) ctx = 'oficina';
+
+  // Small delay to simulate thinking, then respond with local engine
+  setTimeout(() => {
+    removeTyping();
+    const reply = getBoltLocal(text, tl);
+    addBotMsg(reply);
+    chatHistory.push({role:'assistant', content:reply});
+    showSuggestions(ctx);
+  }, 800 + Math.random() * 600);
+}
+
+/* ══ ADMIN ══ */
+function openAdmin(){
+  document.getElementById('admOv').classList.add('open');
+  // Pre-fill JSONbin fields from localStorage
+  document.getElementById('jbId').value  = localStorage.getItem('bp_jsonbin_id')  || '';
+  document.getElementById('jbKey').value = localStorage.getItem('bp_jsonbin_key') || '';
+  updateJBStatus();
+}
+function updateJBStatus(){
+  const id  = localStorage.getItem('bp_jsonbin_id')  || '';
+  const key = localStorage.getItem('bp_jsonbin_key') || '';
+  const el  = document.getElementById('jbStatus');
+  if(!el) return;
+  if(id && key) { el.textContent='✅ Configurado'; el.style.color='#16a34a'; }
+  else          { el.textContent='Sin configurar'; el.style.color='#64748b'; }
+}
+function saveJBConfig(){
+  const id  = document.getElementById('jbId').value.trim();
+  const key = document.getElementById('jbKey').value.trim();
+  if(!id || !key){ showToast('⚠️ Ingresa el BIN ID y la Master Key'); return; }
+  JSONBIN_ID  = id;
+  JSONBIN_KEY = key;
+  localStorage.setItem('bp_jsonbin_id',  id);
+  localStorage.setItem('bp_jsonbin_key', key);
+  updateJBStatus();
+  showToast('✅ Configuración JSONbin guardada');
+}
+async function testJBConfig(){
+  const id  = document.getElementById('jbId').value.trim()  || JSONBIN_ID;
+  const key = document.getElementById('jbKey').value.trim() || JSONBIN_KEY;
+  if(!id || !key){ showToast('⚠️ Configura el BIN ID y Master Key primero'); return; }
+  showToast('🔗 Probando conexión...');
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`, {
+      headers: { 'X-Master-Key': key }
+    });
+    if(res.ok){
+      const data = await res.json();
+      const count = Array.isArray(data.record) ? data.record.length : '?';
+      showToast(`✅ Conexión exitosa · ${count} productos en la nube`);
+    } else {
+      showToast('❌ Error ' + res.status + ' — revisa el BIN ID y Master Key');
+    }
+  } catch(e){
+    showToast('❌ Sin conexión a JSONbin');
+  }
+}
+async function pushToJB(){
+  const id  = document.getElementById('jbId').value.trim()  || JSONBIN_ID;
+  const key = document.getElementById('jbKey').value.trim() || JSONBIN_KEY;
+  if(!id || !key){ showToast('⚠️ Configura el BIN ID y Master Key primero'); return; }
+  showToast('☁️ Subiendo catálogo...');
+  JSONBIN_ID = id; JSONBIN_KEY = key;
+  localStorage.setItem('bp_jsonbin_id', id);
+  localStorage.setItem('bp_jsonbin_key', key);
+  const ok = await saveToJSONbin(CATALOG);
+  showToast(ok ? `✅ ${CATALOG.length} productos subidos a la nube` : '❌ Error al subir — revisa tus credenciales');
+}
+function openAdmin_inner(){document.getElementById('admOv').classList.add('open');}
+function closeAdmin(){document.getElementById('admOv').classList.remove('open');}
+function chkPwd(){
+  if(document.getElementById('admPwd').value===ADMIN_PWD){
+    document.getElementById('admLogin').style.display='none';
+    document.getElementById('admDash').classList.add('open');
+    refreshStats();
+  } else {document.getElementById('admErr').textContent='❌ Contraseña incorrecta';}
+}
+function refreshStats(){
+  document.getElementById('statT').textContent=CATALOG.length;
+  document.getElementById('statBP').textContent=CATALOG.filter(p=>p.marca==='BpaintDepot').length;
+  document.getElementById('statEP').textContent=CATALOG.filter(p=>p.marca==='ElPerico').length;
+}
+function handleDrop(e){e.preventDefault();document.getElementById('upZone').classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)handleFile(f);}
+function handleFile(file){
+  if(!file)return;
+  const nm=file.name.toLowerCase();
+  showProg();
+  if(nm.endsWith('.csv')){const r=new FileReader();r.onload=e=>{parseCSV(e.target.result);hideProg();};r.readAsText(file);}
+  else if(nm.endsWith('.xlsx')||nm.endsWith('.xls')){
+    if(typeof XLSX==='undefined'){const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=()=>{parseExcel(file);hideProg();};document.head.appendChild(s);}
+    else{parseExcel(file);hideProg();}
+  } else {showToast('⚠️ Solo .csv, .xlsx o .xls');hideProg();}
+}
+function showProg(){const p=document.getElementById('upProg');p.style.display='block';let w=0;const b=document.getElementById('upBar');const iv=setInterval(()=>{w=Math.min(w+18,90);b.style.width=w+'%';if(w>=90)clearInterval(iv);},80);}
+function hideProg(){document.getElementById('upBar').style.width='100%';setTimeout(()=>{document.getElementById('upProg').style.display='none';document.getElementById('upBar').style.width='0';},500);}
+function parseCSV(text){
+  const lines=text.trim().split(/
+?
+/);
+  if(lines.length<2){showToast('⚠️ Archivo vacío');return;}
+  const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
+  const A={nombre:['nombre','name','color'],hex:['hex','color_hex'],cat:['cat','categoria'],litro:['litro','precio_litro'],galon:['galon','precio_galon'],cubeta:['cubeta','precio_cubeta'],marca:['marca','brand'],linea:['linea','line'],tipo:['tipo','type','uso']};
+  const cm={};
+  headers.forEach((h,i)=>{for(const[k,al]of Object.entries(A)){if(al.some(a=>h.includes(a)))cm[k]=i;}});
+  if(cm.nombre===undefined){showToast('⚠️ Columna "nombre" no encontrada');return;}
+  const prods=[];
+  for(let i=1;i<lines.length;i++){
+    const r=lines[i].split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+    if(!r[cm.nombre])continue;
+    prods.push({id:'csv'+i,nombre:(r[cm.nombre]||'').toUpperCase(),hex:r[cm.hex]||'#888888',cat:(r[cm.cat]||'beige').toLowerCase(),litro:parseFloat(r[cm.litro])||0,galon:parseFloat(r[cm.galon])||0,cubeta:parseFloat(r[cm.cubeta])||0,marca:r[cm.marca]||'BpaintDepot',linea:r[cm.linea]||'Americana',tipo:r[cm.tipo]||'interior'});
+  }
+  if(!prods.length){showToast('⚠️ Sin productos en el archivo');return;}
+  pendingProds=prods;showPreview(prods);
+}
+function parseExcel(file){const r=new FileReader();r.onload=e=>{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];parseCSV(XLSX.utils.sheet_to_csv(ws));};r.readAsArrayBuffer(file);}
+function showPreview(p){
+  const tb=document.getElementById('prevBody');
+  tb.innerHTML=p.slice(0,40).map(x=>`<tr>
+    <td><span class="cdot" style="background:${x.hex};"></span></td>
+    <td><strong>${x.nombre}</strong></td><td>${x.cat}</td>
+    <td>${x.galon?'$'+x.galon:'—'}</td><td>${x.cubeta?'$'+x.cubeta:'—'}</td>
+    <td>${x.marca}</td>
+  </tr>`).join('');
+  if(p.length>40)tb.innerHTML+=`<tr><td colspan="6" style="text-align:center;color:var(--mid);font-style:italic;">...y ${p.length-40} más</td></tr>`;
+  document.getElementById('prevSec').style.display='block';
+  const ok=document.getElementById('upOk');ok.textContent=`✅ ${p.length} productos listos. Revisa y aplica.`;ok.classList.add('show');
+}
+async function applyPrices(){
+  if(!pendingProds)return;
+  CATALOG=pendingProds;
+  localStorage.setItem('bp_cat',JSON.stringify(CATALOG));
+  refreshStats();filterProds();
+  document.getElementById('adminBadge').style.display='block';
+  document.getElementById('catalogSub').textContent = CATALOG.length+' productos · Precios desde archivo master';
+  // Try to sync to JSONbin
+  if(JSONBIN_ID && JSONBIN_KEY){
+    showToast('☁️ Sincronizando con JSONbin...');
+    const ok = await saveToJSONbin(CATALOG);
+    showToast(ok ? '✅ '+CATALOG.length+' productos aplicados y sincronizados en la nube' : '✅ '+CATALOG.length+' productos aplicados (sin conexión a JSONbin)');
+  } else {
+    showToast('✅ '+CATALOG.length+' productos aplicados');
+  }
+  setTimeout(closeAdmin, 1400);
+}
+async function rstCatalog(){
+  if(!confirm('¿Restablecer catálogo por defecto?'))return;
+  CATALOG=DEFAULT.map((p,i)=>({...p,id:'p'+(i+1).toString().padStart(3,'0')}));
+  localStorage.removeItem('bp_cat');filterProds();refreshStats();
+  document.getElementById('adminBadge').style.display='none';
+  if(JSONBIN_ID && JSONBIN_KEY) await saveToJSONbin(CATALOG);
+  showToast('🔄 Catálogo restablecido');
+}
+async function addManual(){
+  const nm=document.getElementById('mn').value.trim().toUpperCase();
+  if(!nm){showToast('⚠️ Escribe el nombre');return;}
+  const p={id:'man'+Date.now(),nombre:nm,hex:document.getElementById('mh').value,cat:document.getElementById('mcat').value,litro:parseFloat(document.getElementById('ml').value)||0,galon:parseFloat(document.getElementById('mg').value)||0,cubeta:parseFloat(document.getElementById('mc').value)||0,marca:document.getElementById('mm').value,linea:document.getElementById('mm').value==='BpaintDepot'?'Americana':'El Perico',tipo:document.getElementById('mt').value};
+  CATALOG.push(p);localStorage.setItem('bp_cat',JSON.stringify(CATALOG));
+  filterProds();refreshStats();['mn','ml','mg','mc'].forEach(id=>document.getElementById(id).value='');
+  if(JSONBIN_ID && JSONBIN_KEY) await saveToJSONbin(CATALOG);
+  showToast('✅ '+p.nombre+' agregado');
+}
+function dlTpl(){
+  const csv=`nombre,color_hex,categoria,precio_litro,precio_galon,precio_cubeta,marca,linea,tipo
+BABY BLUE,#89CFF0,azul,189,756,1049,BpaintDepot,Americana,interior
+TEAL,#008080,azul,180,720,1650,BpaintDepot,Americana,interior
+BLANCO TOTAL,#F8F9FA,blanco,120,480,898,ElPerico,El Perico,interior
+VERDE CAMPO,#4A8A50,verde,150,600,1150,ElPerico,El Perico,exterior`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='bolt_paint_plantilla.csv';a.click();
+}
+
+/* ══ TOAST ══ */
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+/* ══ INIT ══ */
+filterProds();
+renderOrders();
+if(localStorage.getItem('bp_cat')) document.getElementById('adminBadge').style.display='block';
+loadFromJSONbin(); // fetch latest catalog from cloud if configured
+</script>
+</div><!-- /app-wrap -->
+</body>
+</html>
