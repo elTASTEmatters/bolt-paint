@@ -38,30 +38,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--off);color:var(--ink);ove
 /* ══ BOLT LOGO — artistic photo-logo ══ */
 .bolt-logo-area{display:flex;align-items:center;gap:10px;cursor:pointer;}
 .bolt-logo-frame{
-  position:relative;width:44px;height:44px;flex-shrink:0;
-  border-radius:14px;overflow:hidden;
-  box-shadow:0 2px 10px rgba(3,4,94,.25),0 0 0 2px rgba(0,180,216,.3);
-  background:linear-gradient(135deg,#0077b6,#03045e);
+  position:relative;width:48px;height:48px;flex-shrink:0;
+  border-radius:50%;overflow:hidden;
+  box-shadow:
+    0 0 0 2.5px #fff,
+    0 0 0 4.5px var(--teal),
+    0 4px 16px rgba(0,180,216,.35);
+  background:#03045e;
 }
 .bolt-logo-frame img{
-  width:100%;height:100%;object-fit:cover;object-position:50% 28%;
-  display:block;mix-blend-mode:luminosity;opacity:.92;
-  filter:contrast(1.1) brightness(1.05);
+  width:100%;height:100%;object-fit:cover;object-position:50% 25%;
+  display:block;
+  filter:contrast(1.08) brightness(1.04) saturate(1.1);
 }
 .bolt-logo-frame::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(0,180,216,.25) 0%,transparent 60%,rgba(233,196,106,.2) 100%);
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,.12) 0%,transparent 50%);
   pointer-events:none;
 }
 .bolt-logo-frame .bolt-flash{
-  position:absolute;bottom:3px;right:3px;
-  font-size:10px;background:var(--teal);border-radius:4px;
-  padding:1px 3px;line-height:1;color:#fff;font-weight:900;
-  box-shadow:0 1px 4px rgba(0,180,216,.5);
+  position:absolute;bottom:2px;right:2px;
+  width:16px;height:16px;
+  background:linear-gradient(135deg,var(--teal),#0077b6);
+  border-radius:50%;border:2px solid #fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;font-weight:900;color:#fff;line-height:1;
+  box-shadow:0 1px 6px rgba(0,180,216,.6);
 }
-.bolt-wordmark{line-height:1.1;}
-.bolt-wordmark .nm{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--navy);letter-spacing:-.4px;}
-.bolt-wordmark .sub{font-size:9px;color:var(--mid);text-transform:uppercase;letter-spacing:2px;font-weight:500;}
+.bolt-wordmark{line-height:1.15;}
+.bolt-wordmark .nm{
+  font-family:'Playfair Display',serif;font-size:19px;font-weight:900;
+  color:var(--navy);letter-spacing:-.5px;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.bolt-wordmark .sub{font-size:9px;color:var(--mid);text-transform:uppercase;letter-spacing:2.5px;font-weight:600;}
 
 /* Brand pills in nav */
 .brand-pills-nav{display:flex;gap:6px;align-items:center;}
@@ -146,9 +158,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--off);color:var(--ink);ove
 .comp-summary-bar strong{color:#4ade80;}
 
 /* ══ SCENARIOS HORIZONTAL SCROLL ══ */
-.cat-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-.cat-scroll::-webkit-scrollbar{display:none;}
-.cat-chip{flex-shrink:0;width:140px;height:190px;border-radius:var(--r16);overflow:hidden;position:relative;cursor:pointer;box-shadow:var(--sh2);transition:.3s;}
+.cat-scroll{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding-bottom:4px;}
+@media(max-width:600px){.cat-scroll{grid-template-columns:repeat(5,minmax(100px,1fr));overflow-x:auto;display:flex;}}
+.cat-chip{width:100%;aspect-ratio:.75;min-width:100px;border-radius:var(--r16);overflow:hidden;position:relative;cursor:pointer;box-shadow:var(--sh2);transition:.3s;}
 .cat-chip:hover,.cat-chip:active{transform:scale(.97);}
 .cat-chip.chosen{outline:2.5px solid var(--teal);outline-offset:2px;}
 .cat-chip img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
@@ -1137,14 +1149,19 @@ Estoy aquí para ayudarte a elegir el color perfecto, calcular cuánta pintura n
 }
 
 function addBotMsg(text){
-  const msgs=document.getElementById('chatMsgs');
-  const div=document.createElement('div');
-  div.className='msg bot';
-  const t=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
-  div.innerHTML=`<div class="msg-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/
-/g,'<br>')}</div><div class="msg-time">${t}</div>`;
+  const msgs = document.getElementById('chatMsgs');
+  const div  = document.createElement('div');
+  div.className = 'msg bot';
+  const t = new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  // Safe formatting: bold and newlines
+  let formatted = text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/
+/g,'<br>');
+  div.innerHTML = '<div class="msg-bubble">'+formatted+'</div><div class="msg-time">'+t+'</div>';
   msgs.appendChild(div);
-  msgs.scrollTop=msgs.scrollHeight;
+  msgs.scrollTop = msgs.scrollHeight;
 }
 function addUserMsg(text){
   const msgs=document.getElementById('chatMsgs');
@@ -1173,98 +1190,240 @@ function useSuggestion(text){
   sendMsg();
 }
 
-/* ══════════════════════════════════════
-   BOLT RESUELVE — MOTOR LOCAL DE DISEÑO
-══════════════════════════════════════ */
-function getBoltLocal(text, tl) {
-  if(!tl) tl = text.toLowerCase();
-  const getProd = (cat, marca) => {
-    let list = CATALOG.filter(p=>(!cat||p.cat===cat)&&(!marca||p.marca===marca)&&p.galon>0);
-    return list.slice(0,3).map(p=>`**${p.nombre}** ($${p.galon.toLocaleString()} gal)`).join(', ');
-  };
-  const getBP = cat => getProd(cat,'BpaintDepot');
-  const getEP = cat => getProd(cat,'ElPerico');
-
-  if(tl.includes('sala')||tl.includes('living')||tl.includes('estancia'))
-    return `¡Perfecto! 🛋 Para **sala** te recomiendo:\n\n**Frescos y amplios:**\n🎨 BpaintDepot: ${getBP('azul')||'Baby Blue, Aquarium, Corn Flower'}\n🦜 El Perico: ${getEP('azul')||'Viniltex Cielo'}\n\n**Tonos cálidos:**\n🎨 BpaintDepot: ${getBP('beige')||'Mazapán, Arena de Baja, Crema'}\n\n⭐ **Combo estrella:** **Baby Blue** en pared principal + **Crema** en las demás = sala más amplia y luminosa.\n\n¿Qué color tienen tus muebles? Te afino la paleta.`;
-
-  if(tl.includes('recam')||tl.includes('dormitorio')||tl.includes('cuarto')||tl.includes('habitaci'))
-    return `Para **recámara** el color afecta el descanso 🛏\n\n**Colores relajantes:**\n🎨 ${getBP('morado')||'Lila, Violeta Ceniza'} — lavandas reducen el estrés\n🎨 ${getBP('beige')||'Crema, Mazapán'} — calidez y calma\n🦜 ${getEP('rosa')||'Rosa Dunas'} — suave y elegante\n\n**Paletas:**\n🌙 **Lila** + **Crema** = romántica\n🌑 **Arsenic** + **Blanco** = moderna\n☁️ **Baby Blue** + **Blanco** = fresca\n\n¿Es para adultos o niños?`;
-
-  if(tl.includes('fachada')||tl.includes('exterior')||tl.includes('afuera'))
-    return `Para **fachada** en Mexicali considera el sol intenso ☀️\n\n**Colores resistentes:**\n🎨 BpaintDepot: ${getBP('naranja')||'Teja Francesa, Teja Intensa'}\n🎨 BpaintDepot: ${getBP('verde')||'Hiedra, Amazonas, Apple'}\n🦜 El Perico: ${getEP('beige')||'Arena Clásica'} — formulada para exterior\n\n**Combinaciones clásicas:**\n🏠 **Teja Francesa** + **Blanco** = mexicano tradicional\n🏠 **Arsenic** + **Blanco** = moderno minimalista\n🏠 **Amazonas** + **Arena** = tropical\n\n¿Qué estilo tiene tu casa?`;
-
-  if(tl.includes('oficina')||tl.includes('home office')||tl.includes('trabajo')||tl.includes('estudio'))
-    return `Para **oficina** los colores impactan la productividad 💼\n\n**Para concentrarse:**\n🎨 BpaintDepot: ${getBP('azul')||'Teal, Corn Flower, Baby Blue'}\n🎨 BpaintDepot: ${getBP('verde')||'Hiedra, Amazonas'}\n\n**Paletas:**\n💡 **Teal** + madera = productivo y elegante\n💡 **Arsenic** + **Blanco** = minimalista profesional\n💡 **Aquarium** + blanco = creativo y fresco\n\n¿Recibes clientes o es solo para ti?`;
-
-  if(tl.includes('baño')||tl.includes('bano')||tl.includes('sanitario'))
-    return `Para **baños** clave: limpieza y amplitud visual 🚿\n\n🎨 BpaintDepot: ${getBP('azul')||'Baby Blue, Aquarium'}\n🦜 El Perico: ${getEP('blanco')||'Blanco Total'}\n\n**Tip:** En baños pequeños usa claros para verlo más grande. En grandes puedes usar **Teal** o **Lila** como acento.\n\n¿Cuántos m² tiene aproximadamente?`;
-
-  if(tl.includes('combin')||tl.includes('paleta')||tl.includes('armoniz')||tl.includes('pega con'))
-    return `🎨 **Regla 60-30-10:**\n• 60% color dominante (paredes)\n• 30% secundario (muebles/cortinas)\n• 10% acento (cojines/detalles)\n\n**Combos ganadores:**\n✅ **Baby Blue** + **Crema** + detalles **Amber**\n✅ **Teal** + **Blanco** + madera\n✅ **Lila** + **Crema** + acento **Berry**\n✅ **Arsenic** + **Blanco** = nórdico\n✅ **Teja Francesa** + **Blanco** = mexicano\n\n¿De qué espacio hablamos?`;
-
-  if(tl.includes('cuánto')||tl.includes('cuanto')||tl.includes('calcul')||tl.includes('m2')||tl.includes('metro')||tl.includes('litro')||tl.includes('galón')||tl.includes('galon'))
-    return `📐 **Fórmula:**\n(Ancho + Largo) × 2 × Alto − huecos = m²\nm² ÷ 10 × manos × 1.1 = litros\n\n**Equivalencias:**\n• 1 galón (3.78L) ≈ 37 m² con 1 mano\n• 1 cubeta (19L) ≈ 190 m² con 1 mano\n\n**Ejemplo:** Sala 5×4m, 2.7m alto, 2 manos:\n(5+4)×2×2.7 = 48.6 − 4m² huecos = 44.6 m²\n44.6÷10×2×1.1 = **9.8L → 3 galones** 🎯\n\nDame las medidas y te calculo exacto.`;
-
-  if(tl.includes('diferencia')||tl.includes('cuál es mejor')||tl.includes('cual es mejor')||tl.includes('recomiendas entre')) {
-    const minBP=CATALOG.filter(p=>p.marca==='BpaintDepot'&&p.galon>0).sort((a,b)=>a.galon-b.galon)[0]?.galon||560;
-    const minEP=CATALOG.filter(p=>p.marca==='ElPerico'&&p.galon>0).sort((a,b)=>a.galon-b.galon)[0]?.galon||480;
-    return `**Comparación honesta** 🎯\n\n🎨 **BpaintDepot — Americana**\n• Pinturas importadas premium\n• Mayor variedad de tonos especiales\n• Desde $${minBP.toLocaleString()} el galón\n\n🦜 **El Perico — Mexicana**\n• Formulada para el clima de México\n• Excelente precio-calidad\n• Desde $${minEP.toLocaleString()} el galón\n\n→ Interior colores especiales = **BpaintDepot**\n→ Exterior sol de Mexicali = **El Perico**\n→ Precio en blancos = **El Perico**\n\n¿Para qué espacio es?`;
-  }
-
-  if(tl.includes('precio')||tl.includes('costo')||tl.includes('cuesta')||tl.includes('barato')) {
-    const minBP=CATALOG.filter(p=>p.marca==='BpaintDepot'&&p.galon>0).sort((a,b)=>a.galon-b.galon)[0]?.galon||560;
-    const minEP=CATALOG.filter(p=>p.marca==='ElPerico'&&p.galon>0).sort((a,b)=>a.galon-b.galon)[0]?.galon||480;
-    return `💰 **Precios actuales Bolt Paint:**\n\n🎨 BpaintDepot: desde $${minBP.toLocaleString()} MXN/galón\n🦜 El Perico: desde $${minEP.toLocaleString()} MXN/galón\n\nUsa el **Comparador** ↑ para ver cuánto ahorras vs tu proveedor actual.\n\n¿Te cotizo una cantidad específica?`;
-  }
-
-  const colorMap=[['baby blue','azul'],['teal','azul'],['aquarium','azul'],['corn flower','azul'],['lila','morado'],['plum','morado'],['berry','rosa'],['salmon','rosa'],['arsenic','gris'],['amber','amarillo'],['old gold','amarillo'],['teja','naranja'],['amazonas','verde'],['hiedra','verde'],['apple','verde'],['avocado','verde'],['mazapan','beige'],['mazapán','beige'],['crema','beige'],['arena','beige'],['chocolate','cafe'],['blanco','blanco']];
-  const found=colorMap.find(([c])=>tl.includes(c));
-  if(found){
-    const prod=CATALOG.find(p=>p.nombre.toLowerCase().includes(found[0]));
-    if(prod){
-      const combos={'baby blue':'con **Crema** o **Blanco** + detalles dorados (**Amber**).','teal':'con **Blanco Puro** y madera natural. Muy sofisticado.','aquarium':'con **Arena de Baja** o **Crema**. Vibe tropical.','lila':'con **Crema Cálida** y detalles **Berry**.','arsenic':'con **Blanco Puro** y madera. Estilo nórdico.','teja':'con **Blanco Arquitecto** en molduras. Clásico mexicano.','amazonas':'con **Arena de Baja**. Tropical y llamativo.'};
-      const combo=combos[found[0]]||'con neutros como **Crema** o **Blanco**.';
-      return `¡Gran elección! 🎨 **${prod.nombre}**\n\n${prod.marca==='BpaintDepot'?'🎨 BpaintDepot':'🦜 El Perico'} · ${prod.cat} · ${prod.tipo}\n💰 Galón: $${prod.galon.toLocaleString()} | Cubeta: $${prod.cubeta.toLocaleString()} MXN\n\n**Combínalo** ${combo}\n\n¿Lo agrego al carrito o calculamos cuántos galones necesitas?`;
-    }
-  }
-
-  if(tl.includes('comprar')||tl.includes('carrito')||tl.includes('pedido')||tl.includes('ordenar'))
-    return `🛒 **Para hacer tu pedido:**\n1️⃣ Elige color en el **Catálogo**\n2️⃣ Selecciona Litro, Galón o Cubeta\n3️⃣ Toca **+** para agregar\n4️⃣ Abre 🛒 y llena tus datos\n5️⃣ Confirma → **10 días hábiles** en Mexicali\n\n¿Ya tienes el color en mente?`;
-
-  if(tl.includes('hola')||tl.includes('buenas')||tl.includes('buenos')||tl.includes('ayuda')||tl.length<12)
-    return `¡Hola! 👋 Soy **Bolt Resuelve**, tu diseñador de interiores de Bolt Paint Mexicali.\n\nPuedo ayudarte con:\n🏠 Color ideal por espacio (sala, recámara, fachada, oficina, baño)\n🎨 Combinaciones y paletas profesionales\n📐 Calcular cuánta pintura necesitas\n💰 Precios y comparaciones BpaintDepot vs El Perico\n\n¿Con qué espacio empezamos?`;
-
-  return `¡Buena pregunta! 🐾 Tenemos **${CATALOG.length} colores**:\n🎨 **BpaintDepot** — ${CATALOG.filter(p=>p.marca==='BpaintDepot').length} colores americanos\n🦜 **El Perico** — ${CATALOG.filter(p=>p.marca==='ElPerico').length} colores mexicanos\n\nPregúntame sobre colores para cualquier espacio, combinaciones, precios o cómo calcular cuánta pintura necesitas. ¿En qué te ayudo? 😊`;
-}
-
-
-
 async function sendMsg(){
-  const inp = document.getElementById('chatInput');
-  const text = inp.value.trim();
+  var inp = document.getElementById('chatInput');
+  var text = (inp.value || '').trim();
   if(!text) return;
-  inp.value = ''; inp.style.height = 'auto';
+  inp.value = '';
+  inp.style.height = 'auto';
   addUserMsg(text);
   document.getElementById('chatSuggestions').innerHTML = '';
   chatHistory.push({role:'user', content:text});
   addTyping();
 
-  const tl = text.toLowerCase();
-  let ctx = 'default';
-  if(tl.includes('sala') || tl.includes('living')) ctx = 'sala';
-  else if(tl.includes('rec') || tl.includes('dormitorio') || tl.includes('cuarto')) ctx = 'recamara';
-  else if(tl.includes('fachada') || tl.includes('exterior')) ctx = 'fachada';
-  else if(tl.includes('oficina') || tl.includes('trabajo')) ctx = 'oficina';
+  var tl = text.toLowerCase();
+  var ctx = 'default';
+  if(tl.includes('sala')||tl.includes('living')) ctx = 'sala';
+  else if(tl.includes('rec')||tl.includes('dormitor')||tl.includes('cuarto')) ctx = 'recamara';
+  else if(tl.includes('fachada')||tl.includes('exterior')) ctx = 'fachada';
+  else if(tl.includes('oficina')||tl.includes('trabajo')) ctx = 'oficina';
 
-  // Small delay to simulate thinking, then respond with local engine
-  setTimeout(() => {
+  // Respond after short delay (simulates thinking)
+  setTimeout(function(){
     removeTyping();
-    const reply = getBoltLocal(text, tl);
+    var reply = getBoltLocal(text, tl);
     addBotMsg(reply);
     chatHistory.push({role:'assistant', content:reply});
     showSuggestions(ctx);
-  }, 800 + Math.random() * 600);
+  }, 700 + Math.floor(Math.random()*600));
+}
+
+
+
+/* ══════════════════════════════════════
+   BOLT RESUELVE — MOTOR LOCAL DE DISEÑO
+══════════════════════════════════════ */
+function getBoltLocal(text, tl) {
+  if(!tl) tl = (text||'').toLowerCase();
+
+  var getProd = function(cat, marca) {
+    var list = CATALOG.filter(function(p){
+      return (!cat || p.cat===cat) && (!marca || p.marca===marca) && p.galon>0;
+    });
+    return list.slice(0,3).map(function(p){
+      return '<b>'+p.nombre+'</b> ($'+p.galon.toLocaleString()+' gal)';
+    }).join(', ') || '—';
+  };
+  var getBP = function(c){ return getProd(c,'BpaintDepot'); };
+  var getEP = function(c){ return getProd(c,'ElPerico'); };
+  var br = '<br>';
+
+  // SALA
+  if(tl.includes('sala')||tl.includes('living')||tl.includes('estancia'))
+    return '¡Perfecto! 🛋 Para <b>sala</b> te recomiendo:'+br+br+
+      '<b>Frescos y amplios:</b>'+br+
+      '🎨 BpaintDepot: '+getBP('azul')+br+
+      '🦜 El Perico: '+getEP('azul')+br+br+
+      '<b>Tonos cálidos:</b>'+br+
+      '🎨 BpaintDepot: '+getBP('beige')+br+br+
+      '⭐ <b>Combo estrella:</b> Baby Blue en pared principal + Crema en las demás = sala más amplia y luminosa ✨'+br+br+
+      '¿Qué color tienen tus muebles? Te afino la paleta.';
+
+  // RECÁMARA
+  if(tl.includes('recam')||tl.includes('dormitor')||tl.includes('cuarto')||tl.includes('habitaci'))
+    return 'Para <b>recámara</b> el color afecta la calidad del sueño 🛏'+br+br+
+      '<b>Colores relajantes:</b>'+br+
+      '🎨 '+getBP('morado')+' — lavandas reducen el estrés'+br+
+      '🎨 '+getBP('beige')+' — calidez y calma'+br+
+      '🦜 '+getEP('rosa')+' — suave y elegante'+br+br+
+      '<b>Paletas:</b>'+br+
+      '🌙 Lila + Crema = romántica y relajante'+br+
+      '🌑 Arsenic + Blanco = moderna y sofisticada'+br+
+      '☁️ Baby Blue + Blanco = fresca y aireada'+br+br+
+      '¿Es para adultos o niños?';
+
+  // FACHADA
+  if(tl.includes('fachada')||tl.includes('exterior')||tl.includes('afuera'))
+    return 'Para <b>fachada</b> en Mexicali considera el sol intenso ☀️'+br+br+
+      '<b>Colores resistentes:</b>'+br+
+      '🎨 BpaintDepot: '+getBP('naranja')+br+
+      '🎨 BpaintDepot: '+getBP('verde')+br+
+      '🦜 El Perico: '+getEP('beige')+' — formulada para exterior'+br+br+
+      '<b>Combinaciones clásicas:</b>'+br+
+      '🏠 Teja Francesa + Blanco en molduras = mexicano tradicional'+br+
+      '🏠 Arsenic + Blanco = moderno minimalista'+br+
+      '🏠 Amazonas + Arena = tropical'+br+br+
+      '¿Qué estilo tiene tu casa?';
+
+  // OFICINA
+  if(tl.includes('oficina')||tl.includes('home office')||tl.includes('trabajo')||tl.includes('estudio'))
+    return 'Para <b>oficina</b> los colores impactan la productividad 💼'+br+br+
+      '<b>Para concentrarse:</b>'+br+
+      '🎨 BpaintDepot: '+getBP('azul')+br+
+      '🎨 BpaintDepot: '+getBP('verde')+br+br+
+      '<b>Paletas:</b>'+br+
+      '💡 Teal + escritorio de madera = productivo y elegante'+br+
+      '💡 Arsenic + Blanco = minimalista profesional'+br+
+      '💡 Aquarium + muebles blancos = creativo y fresco'+br+br+
+      '¿Recibes clientes o es solo para ti?';
+
+  // BAÑO
+  if(tl.includes('baño')||tl.includes('bano')||tl.includes('sanitario'))
+    return 'Para <b>baños</b> clave: limpieza y amplitud visual 🚿'+br+br+
+      '🎨 BpaintDepot: '+getBP('azul')+br+
+      '🦜 El Perico: '+getEP('blanco')+br+br+
+      '<b>Tip:</b> En baños pequeños usa claros para verlo más grande. En grandes puedes usar Teal o Lila como acento.'+br+br+
+      '¿Cuántos m² tiene aproximadamente?';
+
+  // COMBINAR / PALETA
+  if(tl.includes('combin')||tl.includes('paleta')||tl.includes('armoniz')||tl.includes('pega con'))
+    return '🎨 <b>Regla 60-30-10:</b>'+br+
+      '• 60% color dominante (paredes)'+br+
+      '• 30% secundario (muebles/cortinas)'+br+
+      '• 10% acento (cojines/detalles)'+br+br+
+      '<b>Combos ganadores:</b>'+br+
+      '✅ Baby Blue + Crema + detalles Amber (dorado)'+br+
+      '✅ Teal + Blanco + madera natural'+br+
+      '✅ Lila + Crema + acento Berry'+br+
+      '✅ Arsenic + Blanco = nórdico moderno'+br+
+      '✅ Teja Francesa + Blanco = mexicano clásico'+br+br+
+      '¿De qué espacio hablamos? Te armo una paleta específica. 🏠';
+
+  // CALCULAR
+  if(tl.includes('cuánto')||tl.includes('cuanto')||tl.includes('calcul')||tl.includes('m2')||tl.includes('metro')||tl.includes('litro')||tl.includes('galon')||tl.includes('galón'))
+    return '📐 <b>Fórmula:</b>'+br+
+      '(Ancho + Largo) × 2 × Alto − huecos = m²'+br+
+      'm² ÷ 10 × manos × 1.1 = litros'+br+br+
+      '<b>Equivalencias:</b>'+br+
+      '• 1 galón (3.78L) ≈ 37 m² con 1 mano'+br+
+      '• 1 cubeta (19L) ≈ 190 m² con 1 mano'+br+br+
+      '<b>Ejemplo:</b> Sala 5×4m, 2.7m alto, 2 manos:'+br+
+      '(5+4)×2×2.7 = 48.6 − 4m² huecos = 44.6 m²'+br+
+      '44.6÷10×2×1.1 = <b>9.8L → 3 galones</b> 🎯'+br+br+
+      'Dame las medidas y te calculo exacto.';
+
+  // DIFERENCIA / COMPARAR MARCAS
+  if(tl.includes('diferencia')||tl.includes('cuál es mejor')||tl.includes('cual es mejor')||tl.includes('recomiendas entre')||tl.includes('perico vs')||tl.includes('vs perico')) {
+    var minBP = 560, minEP = 480;
+    var bpList = CATALOG.filter(function(p){return p.marca==='BpaintDepot'&&p.galon>0;}).sort(function(a,b){return a.galon-b.galon;});
+    var epList = CATALOG.filter(function(p){return p.marca==='ElPerico'&&p.galon>0;}).sort(function(a,b){return a.galon-b.galon;});
+    if(bpList.length) minBP = bpList[0].galon;
+    if(epList.length) minEP = epList[0].galon;
+    return '<b>Comparación honesta</b> 🎯'+br+br+
+      '🎨 <b>BpaintDepot — Americana</b>'+br+
+      '• Pinturas importadas premium'+br+
+      '• Mayor variedad de tonos especiales'+br+
+      '• Desde $'+minBP.toLocaleString()+' el galón'+br+br+
+      '🦜 <b>El Perico — Mexicana</b>'+br+
+      '• Formulada para el clima de México'+br+
+      '• Excelente precio-calidad'+br+
+      '• Desde $'+minEP.toLocaleString()+' el galón'+br+br+
+      '→ Interior colores especiales = <b>BpaintDepot</b>'+br+
+      '→ Exterior sol de Mexicali = <b>El Perico</b>'+br+
+      '→ Precio en blancos = <b>El Perico</b>'+br+br+
+      '¿Para qué espacio es?';
+  }
+
+  // PRECIO
+  if(tl.includes('precio')||tl.includes('costo')||tl.includes('cuesta')||tl.includes('barato')||tl.includes('econom')) {
+    var minBP2=560,minEP2=480,minCubEP=898;
+    var bL=CATALOG.filter(function(p){return p.marca==='BpaintDepot'&&p.galon>0;}).sort(function(a,b){return a.galon-b.galon;});
+    var eL=CATALOG.filter(function(p){return p.marca==='ElPerico'&&p.galon>0;}).sort(function(a,b){return a.galon-b.galon;});
+    var ecL=CATALOG.filter(function(p){return p.marca==='ElPerico'&&p.cubeta>0;}).sort(function(a,b){return a.cubeta-b.cubeta;});
+    if(bL.length) minBP2=bL[0].galon; if(eL.length) minEP2=eL[0].galon; if(ecL.length) minCubEP=ecL[0].cubeta;
+    return '💰 <b>Precios actuales Bolt Paint:</b>'+br+br+
+      '🎨 BpaintDepot: desde $'+minBP2.toLocaleString()+' MXN/galón'+br+
+      '🦜 El Perico: desde $'+minEP2.toLocaleString()+' MXN/galón'+br+br+
+      'Usa el <b>Comparador</b> ↑ para ver cuánto ahorras vs tu proveedor actual.'+br+br+
+      '¿Te cotizo una cantidad específica?';
+  }
+
+  // COLOR ESPECÍFICO
+  var colorMap = [
+    ['baby blue','azul'],['teal','azul'],['aquarium','azul'],['corn flower','azul'],
+    ['lila','morado'],['plum','morado'],['berry','rosa'],['salmon','rosa'],
+    ['arsenic','gris'],['amber','amarillo'],['old gold','amarillo'],
+    ['teja','naranja'],['amazonas','verde'],['hiedra','verde'],['apple','verde'],['avocado','verde'],
+    ['mazapan','beige'],['mazapán','beige'],['crema','beige'],['arena','beige'],
+    ['chocolate','cafe'],['blanco','blanco']
+  ];
+  var combosMap = {
+    'baby blue':'con Crema o Blanco + detalles dorados (Amber).',
+    'teal':'con Blanco Puro y madera natural. Muy sofisticado.',
+    'aquarium':'con Arena de Baja o Crema. Vibe tropical.',
+    'lila':'con Crema Cálida y detalles Berry.',
+    'plum':'con Crema o Blanco. Dramático y sofisticado.',
+    'arsenic':'con Blanco Puro y madera. Estilo nórdico perfecto.',
+    'teja':'con Blanco Arquitecto en molduras. Clásico mexicano.',
+    'amazonas':'con Arena de Baja. Estilo tropical llamativo.',
+    'hiedra':'con Crema o Arena. Natural y elegante.',
+    'amber':'con Blanco o Crema. Cálido y luminoso.'
+  };
+  for(var ci=0;ci<colorMap.length;ci++){
+    var cname=colorMap[ci][0];
+    if(tl.includes(cname)){
+      var prod=null;
+      for(var pi=0;pi<CATALOG.length;pi++){
+        if(CATALOG[pi].nombre.toLowerCase().includes(cname)){prod=CATALOG[pi];break;}
+      }
+      if(prod){
+        var combo=combosMap[cname]||'con neutros como Crema o Blanco.';
+        return '¡Gran elección! 🎨 <b>'+prod.nombre+'</b>'+br+br+
+          (prod.marca==='BpaintDepot'?'🎨 BpaintDepot':'🦜 El Perico')+' · '+prod.cat+' · '+prod.tipo+br+
+          '💰 Galón: $'+prod.galon.toLocaleString()+' | Cubeta: $'+prod.cubeta.toLocaleString()+' MXN'+br+br+
+          '<b>¿Cómo combinarlo?</b> Ideal '+combo+br+br+
+          '¿Lo agrego al carrito o calculamos cuántos galones necesitas?';
+      }
+    }
+  }
+
+  // COMPRAR / CARRITO
+  if(tl.includes('comprar')||tl.includes('carrito')||tl.includes('pedido')||tl.includes('ordenar'))
+    return '🛒 <b>Para hacer tu pedido:</b>'+br+
+      '1️⃣ Elige color en el <b>Catálogo</b>'+br+
+      '2️⃣ Selecciona Litro, Galón o Cubeta'+br+
+      '3️⃣ Toca <b>+</b> para agregar'+br+
+      '4️⃣ Abre 🛒 y llena tus datos'+br+
+      '5️⃣ Confirma → <b>10 días hábiles</b> en Mexicali'+br+br+
+      '¿Ya tienes el color en mente?';
+
+  // SALUDO / AYUDA
+  if(tl.includes('hola')||tl.includes('buenas')||tl.includes('buenos')||tl.includes('ayuda')||tl.length<12)
+    return '¡Hola! 👋 Soy <b>Bolt Resuelve</b>, tu diseñador de interiores de Bolt Paint Mexicali.'+br+br+
+      'Puedo ayudarte con:'+br+
+      '🏠 Color ideal por espacio'+br+
+      '🎨 Combinaciones y paletas profesionales'+br+
+      '📐 Calcular cuánta pintura necesitas'+br+
+      '💰 Comparar BpaintDepot vs El Perico'+br+br+
+      '¿Con qué espacio empezamos?';
+
+  // DEFAULT
+  return '¡Buena pregunta! 🐾 Tenemos <b>'+CATALOG.length+' colores</b>:'+br+
+    '🎨 <b>BpaintDepot</b> — '+CATALOG.filter(function(p){return p.marca==='BpaintDepot';}).length+' colores americanos'+br+
+    '🦜 <b>El Perico</b> — '+CATALOG.filter(function(p){return p.marca==='ElPerico';}).length+' colores mexicanos'+br+br+
+    'Pregúntame sobre colores para sala, recámara, fachada, oficina o baño, combinaciones, precios o cómo calcular. ¿En qué te ayudo? 😊';
+}
+
 }
 
 /* ══ ADMIN ══ */
