@@ -341,6 +341,56 @@ body{font-family:'DM Sans',sans-serif;background:var(--off);color:var(--ink);ove
 .csv-fmt{background:#f8f9fc;border-radius:7px;padding:8px;font-size:9px;font-family:monospace;color:var(--mid);line-height:1.6;overflow-x:auto;white-space:pre;margin:6px 0;}
 .prev-sec{display:none;}
 
+/* ── PAYMENT SECTION ── */
+.pay-tabs{display:flex;gap:6px;margin-bottom:12px;}
+.pay-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px;border-radius:var(--r12);border:2px solid #dde4ee;background:#fff;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;transition:.15s;}
+.pay-tab.active{border-color:var(--navy);background:var(--navy);color:#fff;}
+.pay-tab-ico{font-size:16px;}
+.pay-section{display:none;}
+.pay-section.show{display:block;}
+.card-preview{background:linear-gradient(135deg,var(--navy) 0%,#0077b6 100%);border-radius:var(--r16);padding:18px 16px 14px;margin-bottom:14px;position:relative;overflow:hidden;}
+.card-preview::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);}
+.card-preview::after{content:'';position:absolute;bottom:-40px;left:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.04);}
+.card-chip{width:32px;height:24px;background:linear-gradient(135deg,#e9c46a,#d4a017);border-radius:5px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;}
+.card-chip-lines{display:flex;flex-direction:column;gap:3px;}
+.card-chip-line{height:2px;background:rgba(255,255,255,.5);border-radius:1px;}
+.card-chip-line:first-child{width:20px;}
+.card-chip-line:last-child{width:14px;}
+.card-num-display{font-family:monospace;font-size:16px;font-weight:700;color:#fff;letter-spacing:3px;margin-bottom:12px;}
+.card-bottom{display:flex;justify-content:space-between;align-items:flex-end;}
+.card-holder-lbl{font-size:8px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
+.card-holder-name{font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;}
+.card-expiry-box{text-align:right;}
+.card-expiry-lbl{font-size:8px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
+.card-expiry-val{font-size:12px;font-weight:700;color:#fff;font-family:monospace;}
+.card-brand{position:absolute;top:16px;right:16px;font-size:28px;}
+.card-inp-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px;}
+.card-inp-full{margin-bottom:7px;}
+.cinput{width:100%;border:1.5px solid #e2e8f0;border-radius:var(--r8);padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;outline:none;transition:.15s;}
+.cinput:focus{border-color:var(--teal);}
+.cinput-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--mid);display:block;margin-bottom:3px;}
+.secure-badge{display:flex;align-items:center;gap:5px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--r8);padding:6px 10px;margin-top:6px;}
+.secure-badge span{font-size:10px;color:#15803d;font-weight:500;}
+.transfer-box{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1.5px solid #bae6fd;border-radius:var(--r16);padding:14px;margin-bottom:10px;}
+.transfer-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(186,230,253,.5);font-size:12px;}
+.transfer-row:last-child{border:none;}
+.transfer-lbl{color:#0369a1;font-weight:500;}
+.transfer-val{color:var(--navy);font-weight:700;font-family:'Playfair Display',serif;}
+.transfer-copy{background:var(--blue);color:#fff;border:none;border-radius:5px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;}
+.cash-box{background:#fff8f0;border:1.5px solid #fed7aa;border-radius:var(--r16);padding:14px;}
+.cash-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;}
+.cash-step:last-child{margin-bottom:0;}
+.cash-num{width:24px;height:24px;border-radius:50%;background:var(--terra);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cash-text{font-size:12px;color:var(--ink);line-height:1.5;padding-top:3px;}
+.factura-toggle{display:flex;align-items:center;justify-content:space-between;background:var(--light);border-radius:var(--r12);padding:10px 13px;cursor:pointer;margin-bottom:8px;user-select:none;}
+.factura-toggle-lbl{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--navy);}
+.toggle-switch{width:38px;height:22px;border-radius:var(--r99);background:#dde4ee;position:relative;transition:.25s;flex-shrink:0;}
+.toggle-switch.on{background:var(--teal);}
+.toggle-knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:.25s;}
+.toggle-switch.on .toggle-knob{left:18px;}
+.factura-fields{display:none;background:#fff;border:1.5px solid #e2e8f0;border-radius:var(--r12);padding:12px;margin-bottom:10px;}
+.factura-fields.show{display:block;}
+
 /* ── TOAST ── */
 .toast{position:fixed;bottom:calc(78px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:#fff;padding:10px 20px;border-radius:var(--r99);font-size:12px;font-weight:600;box-shadow:var(--sh2);z-index:900;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .35s;opacity:0;white-space:nowrap;pointer-events:none;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
@@ -521,6 +571,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--off);color:var(--ink);ove
   <div class="cart-hd"><h3>🛒 Mi Pedido</h3><button class="close-x" onclick="closeCart()">✕</button></div>
   <div class="cart-items" id="cartItems"><p style="text-align:center;color:var(--mid);margin-top:32px;font-size:13px;">Tu carrito está vacío.</p></div>
   <div class="cart-ft">
+    <!-- Timeline -->
     <div class="timeline">
       <div class="tl-s"><div class="tl-d done">✓</div><div class="tl-lb">Hoy</div></div>
       <div class="tl-ln"></div>
@@ -531,6 +582,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--off);color:var(--ink);ove
       <div class="tl-s"><div class="tl-d pend">🎉</div><div class="tl-lb">Día 10</div></div>
     </div>
     <div class="cart-tot"><span>Total estimado</span><strong id="cartTotal">$0 MXN</strong></div>
+
+    <!-- Delivery data -->
     <div class="dlv">
       <h4>📍 Datos de entrega</h4>
       <input class="dinp" type="text" id="dn" placeholder="Nombre completo">
@@ -542,7 +595,158 @@ body{font-family:'DM Sans',sans-serif;background:var(--off);color:var(--ink);ove
       </div>
       <input class="dinp" type="text" id="dno" placeholder="Notas: horario, referencias...">
     </div>
-    <button class="order-btn" onclick="doCheckout()">⚡ Confirmar · 10 días hábiles</button>
+
+    <!-- Payment method tabs -->
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mid);margin-bottom:8px;">💳 Método de pago</div>
+    <div class="pay-tabs">
+      <div class="pay-tab active" id="pt-card" onclick="setPayTab('card')">
+        <span class="pay-tab-ico">💳</span><span>Tarjeta</span>
+      </div>
+      <div class="pay-tab" id="pt-transfer" onclick="setPayTab('transfer')">
+        <span class="pay-tab-ico">🏦</span><span>Transferencia</span>
+      </div>
+      <div class="pay-tab" id="pt-cash" onclick="setPayTab('cash')">
+        <span class="pay-tab-ico">💵</span><span>Efectivo</span>
+      </div>
+    </div>
+
+    <!-- CARD PAYMENT -->
+    <div class="pay-section show" id="ps-card">
+      <!-- Live card preview -->
+      <div class="card-preview">
+        <div class="card-brand" id="cardBrand">💳</div>
+        <div class="card-chip"><div class="card-chip-lines"><div class="card-chip-line"></div><div class="card-chip-line"></div></div></div>
+        <div class="card-num-display" id="cardNumDisplay">•••• •••• •••• ••••</div>
+        <div class="card-bottom">
+          <div>
+            <div class="card-holder-lbl">Titular</div>
+            <div class="card-holder-name" id="cardNameDisplay">NOMBRE DEL TITULAR</div>
+          </div>
+          <div class="card-expiry-box">
+            <div class="card-expiry-lbl">Vence</div>
+            <div class="card-expiry-val" id="cardExpDisplay">MM/AA</div>
+          </div>
+        </div>
+      </div>
+      <!-- Card inputs -->
+      <div class="card-inp-full">
+        <label class="cinput-lbl">Número de tarjeta</label>
+        <input class="cinput" type="tel" id="cardNum" maxlength="19" placeholder="1234 5678 9012 3456"
+          oninput="fmtCard(this)" onchange="updateCardPreview()">
+      </div>
+      <div class="card-inp-full">
+        <label class="cinput-lbl">Nombre del titular (como aparece en la tarjeta)</label>
+        <input class="cinput" type="text" id="cardName" placeholder="JUAN PÉREZ GARCÍA"
+          oninput="updateCardPreview()" style="text-transform:uppercase;">
+      </div>
+      <div class="card-inp-grid">
+        <div>
+          <label class="cinput-lbl">Fecha de vencimiento</label>
+          <input class="cinput" type="tel" id="cardExp" maxlength="5" placeholder="MM/AA"
+            oninput="fmtExp(this)" onchange="updateCardPreview()">
+        </div>
+        <div>
+          <label class="cinput-lbl">CVV / CVC</label>
+          <input class="cinput" type="tel" id="cardCVV" maxlength="4" placeholder="•••"
+            style="-webkit-text-security:disc;">
+        </div>
+      </div>
+      <div class="secure-badge">
+        <span>🔒</span>
+        <span>Tus datos están protegidos con encriptación SSL de 256 bits. No almacenamos tu tarjeta.</span>
+      </div>
+    </div>
+
+    <!-- TRANSFER -->
+    <div class="pay-section" id="ps-transfer">
+      <div class="transfer-box">
+        <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#0c4a6e;margin-bottom:10px;">🏦 Datos para transferencia</div>
+        <div class="transfer-row">
+          <span class="transfer-lbl">Banco</span>
+          <span class="transfer-val">BBVA México</span>
+        </div>
+        <div class="transfer-row">
+          <span class="transfer-lbl">Cuenta</span>
+          <span class="transfer-val">— —</span>
+        </div>
+        <div class="transfer-row">
+          <span class="transfer-lbl">CLABE</span>
+          <span class="transfer-val" id="clabeVal">— —</span>
+          <button class="transfer-copy" onclick="copyClabe()">Copiar</button>
+        </div>
+        <div class="transfer-row">
+          <span class="transfer-lbl">A nombre de</span>
+          <span class="transfer-val">Bolt Paint S.A.</span>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#0369a1;line-height:1.5;">
+          📲 Envía tu comprobante por WhatsApp al <strong>(686) 306-9299</strong> con tu número de pedido para procesar el envío.
+        </div>
+      </div>
+    </div>
+
+    <!-- CASH -->
+    <div class="pay-section" id="ps-cash">
+      <div class="cash-box">
+        <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#92400e;margin-bottom:10px;">💵 Pago en efectivo</div>
+        <div class="cash-step">
+          <div class="cash-num">1</div>
+          <div class="cash-text">Confirma tu pedido y recibirás un número de orden por WhatsApp.</div>
+        </div>
+        <div class="cash-step">
+          <div class="cash-num">2</div>
+          <div class="cash-text">Deposita en <strong>OXXO Pay</strong> o <strong>7-Eleven</strong> con tu número de orden.</div>
+        </div>
+        <div class="cash-step">
+          <div class="cash-num">3</div>
+          <div class="cash-text">Envía el comprobante por WhatsApp al <strong>(686) 306-9299</strong>.</div>
+        </div>
+        <div class="cash-step">
+          <div class="cash-num">4</div>
+          <div class="cash-text">Tu pedido se procesa en 24h después de confirmar el pago. 🎉</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FACTURACIÓN -->
+    <div style="margin-top:12px;">
+      <div class="factura-toggle" onclick="toggleFactura()">
+        <div class="factura-toggle-lbl">
+          <span style="font-size:16px;">🧾</span>
+          <span>¿Necesitas factura?</span>
+        </div>
+        <div class="toggle-switch" id="facturaToggle"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="factura-fields" id="facturaFields">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--mid);margin-bottom:8px;">Datos de facturación</div>
+        <div style="margin-bottom:6px;">
+          <label class="cinput-lbl">RFC</label>
+          <input class="cinput" type="text" id="fRFC" placeholder="XAXX010101000" style="text-transform:uppercase;">
+        </div>
+        <div style="margin-bottom:6px;">
+          <label class="cinput-lbl">Razón social</label>
+          <input class="cinput" type="text" id="fRazon" placeholder="Mi Empresa S.A. de C.V.">
+        </div>
+        <div style="margin-bottom:6px;">
+          <label class="cinput-lbl">Correo electrónico (para recibir CFDI)</label>
+          <input class="cinput" type="email" id="fEmail" placeholder="empresa@correo.com">
+        </div>
+        <div style="margin-bottom:6px;">
+          <label class="cinput-lbl">Uso del CFDI</label>
+          <select class="cinput" id="fUso">
+            <option value="G01">G01 — Adquisición de mercancias</option>
+            <option value="G03">G03 — Gastos en general</option>
+            <option value="P01">P01 — Por definir</option>
+            <option value="I04">I04 — Equipo de computo</option>
+            <option value="D10">D10 — Pagos por servicios educativos</option>
+          </select>
+        </div>
+        <div style="font-size:10px;color:var(--mid);line-height:1.5;background:#f8fafc;border-radius:7px;padding:8px;">
+          📋 La factura se emite dentro de los 3 días hábiles siguientes a la confirmación del pago. Se enviará al correo indicado.
+        </div>
+      </div>
+    </div>
+
+    <button class="order-btn" onclick="doCheckout()" style="margin-top:12px;">⚡ Confirmar Pedido · 10 días hábiles</button>
   </div>
 </div>
 
@@ -878,24 +1082,55 @@ function doCheckout(){
   var n=document.getElementById('dn').value.trim(), t=document.getElementById('dt').value.trim(), d=document.getElementById('dd').value.trim();
   if(!n||!t||!d){ showToast('⚠️ Completa nombre, teléfono y dirección'); return; }
   if(!cart.length){ showToast('⚠️ Tu carrito está vacío'); return; }
+  if(!validatePayment()) return;
   var tot=cart.reduce(function(s,i){return s+i.pr*i.qty;},0);
   var oid='BP-'+Date.now().toString().slice(-6);
   var del=new Date(); del.setDate(del.getDate()+10);
   var ds=del.toLocaleDateString('es-MX',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  var newOrder={id:oid,nombre:n,telefono:t,direccion:d+', '+document.getElementById('dc').value,total:tot,fecha:new Date().toLocaleDateString('es-MX'),eta:ds,items:cart.slice(),status:'preparando'};
+  // Payment info
+  var payLabels={card:'Tarjeta de crédito/débito',transfer:'Transferencia bancaria',cash:'Efectivo / OXXO'};
+  var payInfo = payLabels[activePayTab]||activePayTab;
+  if(activePayTab==='card'){
+    var num=(document.getElementById('cardNum').value||'').replace(/\s/g,'');
+    payInfo = 'Tarjeta terminación •••• '+num.slice(-4);
+  }
+  // Billing info
+  var factInfo = facturaOpen ? {
+    rfc:document.getElementById('fRFC').value.trim(),
+    razon:document.getElementById('fRazon').value.trim(),
+    email:document.getElementById('fEmail').value.trim(),
+    uso:document.getElementById('fUso').value
+  } : null;
+  var newOrder={id:oid,nombre:n,telefono:t,direccion:d+', '+document.getElementById('dc').value,total:tot,fecha:new Date().toLocaleDateString('es-MX'),eta:ds,items:cart.slice(),status:'preparando',pago:payInfo,factura:factInfo};
   orders.unshift(newOrder);
   localStorage.setItem('bp_orders',JSON.stringify(orders));
   renderOrders();
+  var facturaRow = factInfo ?
+    '<div class="sdr"><span>Factura</span><strong>'+factInfo.rfc+' — '+factInfo.razon+'</strong></div>' : '';
   document.getElementById('succDet').innerHTML=
     '<div class="sdr"><span>Pedido</span><strong>'+oid+'</strong></div>'+
     '<div class="sdr"><span>Cliente</span><strong>'+n+'</strong></div>'+
     '<div class="sdr"><span>WhatsApp</span><strong>'+t+'</strong></div>'+
     '<div class="sdr"><span>Dirección</span><strong>'+d+'</strong></div>'+
+    '<div class="sdr"><span>Pago</span><strong>'+payInfo+'</strong></div>'+
+    facturaRow+
     '<div class="sdr"><span>Entrega estimada</span><strong>'+ds+'</strong></div>'+
     '<div class="sdr"><span>Total</span><strong style="color:var(--coral)">$'+tot.toLocaleString()+' MXN</strong></div>';
   closeCart(); document.getElementById('succOv').classList.add('open');
 }
-function resetAll(){ cart=[]; updCart(); document.getElementById('succOv').classList.remove('open'); ['dn','dt','dd','dno'].forEach(function(id){document.getElementById(id).value='';}); }
+function resetAll(){
+  cart=[]; updCart(); document.getElementById('succOv').classList.remove('open');
+  ['dn','dt','dd','dno'].forEach(function(id){document.getElementById(id).value='';});
+  // Reset payment
+  ['cardNum','cardName','cardExp','cardCVV'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  updateCardPreview();
+  setPayTab('card');
+  // Reset billing
+  facturaOpen=false;
+  var sw=document.getElementById('facturaToggle'); if(sw) sw.className='toggle-switch';
+  var ff=document.getElementById('facturaFields'); if(ff) ff.className='factura-fields';
+  ['fRFC','fRazon','fEmail'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+}
 
 // ═══════════════════════════════════════
 //  ORDER STATUS
@@ -1324,6 +1559,108 @@ function addManual(){
 function dlTpl(){
   var csv='nombre,color_hex,categoria,precio_litro,precio_galon,precio_cubeta,marca,linea,tipo\nBABY BLUE,#89CFF0,azul,189,756,1049,BpaintDepot,Americana,interior\nTEAL,#008080,azul,180,720,1650,BpaintDepot,Americana,interior\nBLANCO TOTAL,#F8F9FA,blanco,120,480,898,ElPerico,El Perico,interior\nVERDE CAMPO,#4A8A50,verde,150,600,1150,ElPerico,El Perico,exterior';
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='bolt_paint_plantilla.csv';a.click();
+}
+
+// ═══════════════════════════════════════
+//  PAYMENT
+// ═══════════════════════════════════════
+var activePayTab = 'card';
+var facturaOpen = false;
+
+function setPayTab(tab){
+  activePayTab = tab;
+  ['card','transfer','cash'].forEach(function(t){
+    document.getElementById('pt-'+t).className = 'pay-tab' + (t===tab?' active':'');
+    document.getElementById('ps-'+t).className = 'pay-section' + (t===tab?' show':'');
+  });
+}
+
+// Card number live formatting
+function fmtCard(inp){
+  var v = inp.value.replace(/\D/g,'').slice(0,16);
+  var parts = [];
+  for(var i=0;i<v.length;i+=4) parts.push(v.slice(i,i+4));
+  inp.value = parts.join(' ');
+  updateCardPreview();
+  // Detect brand
+  var brand = document.getElementById('cardBrand');
+  var first = v[0];
+  if(first==='4') brand.textContent='💳'; // Visa
+  else if(first==='5'||first==='2') brand.textContent='💳'; // Mastercard
+  else if(first==='3') brand.textContent='💳'; // Amex
+  else brand.textContent='💳';
+  // Brand emoji
+  if(v.startsWith('4')) brand.textContent='🔵'; // Visa blue
+  else if(v.startsWith('5')||v.startsWith('2')) brand.textContent='🟠'; // MC orange
+  else if(v.startsWith('34')||v.startsWith('37')) brand.textContent='🟢'; // Amex green
+}
+
+function fmtExp(inp){
+  var v = inp.value.replace(/\D/g,'');
+  if(v.length>=3) v = v.slice(0,2)+'/'+v.slice(2,4);
+  inp.value = v;
+  updateCardPreview();
+}
+
+function updateCardPreview(){
+  var num = (document.getElementById('cardNum').value||'').replace(/\s/g,'');
+  var display = '';
+  for(var i=0;i<16;i++){
+    if(i>0&&i%4===0) display+=' ';
+    display += (num[i]||'•');
+  }
+  document.getElementById('cardNumDisplay').textContent = display;
+  var name = (document.getElementById('cardName').value||'NOMBRE DEL TITULAR').trim().toUpperCase();
+  document.getElementById('cardNameDisplay').textContent = name||'NOMBRE DEL TITULAR';
+  var exp = document.getElementById('cardExp').value||'MM/AA';
+  document.getElementById('cardExpDisplay').textContent = exp;
+}
+
+function toggleFactura(){
+  facturaOpen = !facturaOpen;
+  var sw = document.getElementById('facturaToggle');
+  var fields = document.getElementById('facturaFields');
+  sw.className = 'toggle-switch'+(facturaOpen?' on':'');
+  fields.className = 'factura-fields'+(facturaOpen?' show':'');
+}
+
+function copyClabe(){
+  var clabe = document.getElementById('clabeVal').textContent;
+  if(navigator.clipboard && clabe !== '— —'){
+    navigator.clipboard.writeText(clabe).then(function(){ showToast('✅ CLABE copiada'); });
+  } else {
+    showToast('Configura la CLABE en el panel admin');
+  }
+}
+
+function validatePayment(){
+  if(activePayTab === 'card'){
+    var num = (document.getElementById('cardNum').value||'').replace(/\s/g,'');
+    var name = (document.getElementById('cardName').value||'').trim();
+    var exp = document.getElementById('cardExp').value||'';
+    var cvv = document.getElementById('cardCVV').value||'';
+    if(num.length < 13){ showToast('⚠️ Número de tarjeta inválido'); return false; }
+    if(name.length < 3){ showToast('⚠️ Ingresa el nombre del titular'); return false; }
+    if(exp.length < 5){ showToast('⚠️ Ingresa la fecha de vencimiento'); return false; }
+    // Validate expiry
+    var parts = exp.split('/');
+    var month = parseInt(parts[0]), year = parseInt('20'+parts[1]);
+    var now = new Date();
+    if(month<1||month>12){ showToast('⚠️ Mes de vencimiento inválido'); return false; }
+    if(year < now.getFullYear() || (year===now.getFullYear()&&month<now.getMonth()+1)){
+      showToast('⚠️ La tarjeta está vencida'); return false;
+    }
+    if(cvv.length < 3){ showToast('⚠️ Ingresa el CVV'); return false; }
+  }
+  if(facturaOpen){
+    var rfc = (document.getElementById('fRFC').value||'').trim();
+    var razon = (document.getElementById('fRazon').value||'').trim();
+    var email = (document.getElementById('fEmail').value||'').trim();
+    if(rfc.length < 12){ showToast('⚠️ RFC inválido (mínimo 12 caracteres)'); return false; }
+    if(razon.length < 3){ showToast('⚠️ Ingresa la razón social'); return false; }
+    if(!email.includes('@')){ showToast('⚠️ Correo electrónico inválido'); return false; }
+  }
+  return true;
 }
 
 // ═══════════════════════════════════════
