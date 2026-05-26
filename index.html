@@ -457,6 +457,81 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
 .badge-listo{background:rgba(34,197,94,.15);color:var(--gn);}
 .badge-entregado{background:rgba(59,130,246,.15);color:var(--bl);}
 </style>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD44dk4huRpzmbrmeLMrldBmvunh_K7o24",
+      authDomain: "bolt-paint.firebaseapp.com",
+      projectId: "bolt-paint",
+      storageBucket: "bolt-paint.firebasestorage.app",
+      messagingSenderId: "251872983332",
+      appId: "1:251872983332:web:3ab2eb0f8bf17838715bb1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    /* ── SAVE ORDER TO FIRESTORE ── */
+    window.saveOrderToFirebase = async function(order) {
+      try {
+        const docRef = await addDoc(collection(db, "pedidos"), {
+          ...order,
+          createdAt: serverTimestamp()
+        });
+        console.log("Pedido guardado:", docRef.id);
+        return docRef.id;
+      } catch(e) {
+        console.error("Error guardando pedido:", e);
+        return null;
+      }
+    };
+
+    /* ── LOAD ALL ORDERS FROM FIRESTORE ── */
+    window.loadOrdersFromFirebase = async function() {
+      try {
+        const q = query(collection(db, "pedidos"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        const orders = [];
+        snapshot.forEach(doc => {
+          orders.push({ fbId: doc.id, ...doc.data() });
+        });
+        return orders;
+      } catch(e) {
+        console.error("Error cargando pedidos:", e);
+        return [];
+      }
+    };
+
+    /* ── UPDATE ORDER STATUS IN FIRESTORE ── */
+    window.updateOrderInFirebase = async function(fbId, updates) {
+      try {
+        await updateDoc(doc(db, "pedidos", fbId), updates);
+        return true;
+      } catch(e) {
+        console.error("Error actualizando pedido:", e);
+        return false;
+      }
+    };
+
+    /* ── REAL-TIME LISTENER (admin panel) ── */
+    window.listenOrders = function(callback) {
+      const q = query(collection(db, "pedidos"), orderBy("createdAt", "desc"));
+      return onSnapshot(q, (snapshot) => {
+        const orders = [];
+        snapshot.forEach(doc => {
+          orders.push({ fbId: doc.id, ...doc.data() });
+        });
+        callback(orders);
+      });
+    };
+
+    console.log("🔥 Firebase conectado — bolt-paint Firestore listo");
+    window.FIREBASE_READY = true;
+  </script>
 </head>
 <body>
 <div class="page-pad">
@@ -1070,6 +1145,17 @@ function checkout(){
   orders.unshift(ord);
   localStorage.setItem("bpd_ord",JSON.stringify(orders));
   updCounters();
+  /* Save to Firebase cloud */
+  if(window.saveOrderToFirebase){
+    window.saveOrderToFirebase(ord).then(function(fbId){
+      if(fbId){
+        ord.fbId = fbId;
+        // Update local copy with fbId for future status updates
+        orders[0].fbId = fbId;
+        localStorage.setItem("bpd_ord",JSON.stringify(orders));
+      }
+    });
+  }
   var fRow=fact?'<div class="succ-row"><span>Factura</span><strong>'+fact.rfc+'</strong></div>':"";
   document.getElementById("succCard").innerHTML=
     '<div class="succ-row"><span>Orden</span><strong>'+oid+'</strong></div>'+
@@ -1113,6 +1199,22 @@ function downloadOrderByID(id){
 function searchOrder(){
   var q=(document.getElementById("trackInp").value||"").trim().toLowerCase();
   if(!q){toast("⚠️ Escribe tu nombre o número de pedido");return;}
+  /* If Firebase available, sync orders first */
+  if(window.loadOrdersFromFirebase){
+    document.getElementById("trackResult").innerHTML='<div style="text-align:center;padding:16px;color:var(--txt3)">🔄 Buscando...</div>';
+    window.loadOrdersFromFirebase().then(function(fbOrders){
+      if(fbOrders && fbOrders.length > 0){
+        orders = fbOrders;
+        localStorage.setItem("bpd_ord", JSON.stringify(orders));
+        updCounters();
+      }
+      doSearchOrder(q);
+    });
+    return;
+  }
+  doSearchOrder(q);
+}
+function doSearchOrder(q){
   var found=orders.filter(function(o){
     return (o.id||"").toLowerCase().indexOf(q)>=0||(o.nombre||"").toLowerCase().indexOf(q)>=0||(o.telefono||"").toLowerCase().indexOf(q)>=0;
   });
@@ -1314,11 +1416,39 @@ function openAdminFull(){
   document.getElementById("adminFullPage").style.display="block";
   document.body.style.overflow="hidden";
   document.getElementById("afpSub").textContent=new Date().toLocaleDateString("es-MX",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
-  renderAdminOrders(); afpBuildPrices(); renderAfpStats(); renderAfpHist();
+  afpBuildPrices(); renderAfpHist();
+  /* Load orders from Firebase cloud first */
+  if(window.loadOrdersFromFirebase){
+    document.getElementById("afpOrdersList").innerHTML='<div style="text-align:center;padding:30px;color:var(--txt3)">🔄 Cargando pedidos...</div>';
+    window.loadOrdersFromFirebase().then(function(fbOrders){
+      if(fbOrders && fbOrders.length > 0){
+        /* Merge: Firebase is source of truth */
+        orders = fbOrders;
+        localStorage.setItem("bpd_ord", JSON.stringify(orders));
+        updCounters();
+      }
+      renderAdminOrders(); renderAfpStats();
+      /* Start real-time listener */
+      if(window.listenOrders && !window._fbListener){
+        window._fbListener = window.listenOrders(function(fbOrds){
+          orders = fbOrds;
+          localStorage.setItem("bpd_ord", JSON.stringify(orders));
+          updCounters(); renderAdminOrders(); renderAfpStats();
+        });
+      }
+    });
+  } else {
+    renderAdminOrders(); renderAfpStats();
+  }
 }
 function closeAdminFull(){
   document.getElementById("adminFullPage").style.display="none";
   document.body.style.overflow="";
+  /* Stop real-time listener to save reads */
+  if(window._fbListener){
+    window._fbListener();
+    window._fbListener = null;
+  }
 }
 function setATab(tab,el){
   document.querySelectorAll(".afp-tab").forEach(function(b){b.className="afp-tab";});
@@ -1373,6 +1503,10 @@ function advOrder(id){
     localStorage.setItem("bpd_ord",JSON.stringify(orders));
     updCounters(); renderAdminOrders(); renderAfpStats();
     toast("✅ "+id+" → "+{validando:"Validando",listo:"Lista para entrega"}[o.status]);
+    /* Sync to Firebase */
+    if(o.fbId && window.updateOrderInFirebase){
+      window.updateOrderInFirebase(o.fbId, {status: o.status});
+    }
   }
 }
 function confirmDelivery(id){
@@ -1385,6 +1519,10 @@ function confirmDelivery(id){
   localStorage.setItem("bpd_ord",JSON.stringify(orders));
   updCounters(); renderAdminOrders(); renderAfpStats();
   toast("✅ Entrega confirmada — "+id);
+  /* Sync to Firebase */
+  if(o.fbId && window.updateOrderInFirebase){
+    window.updateOrderInFirebase(o.fbId, {status:"entregado", fechaEntrega:o.fechaEntrega});
+  }
 }
 function openODM(id){
   var o=orders.find(function(x){return x.id===id;});
