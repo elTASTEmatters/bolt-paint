@@ -432,6 +432,16 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
 .odm-delivered-box{margin:0 16px 12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:var(--r12);padding:12px;text-align:center;}
 .odm-delivered-title{font-size:12px;font-weight:700;color:var(--gn);}
 .odm-delivered-date{font-size:11px;color:rgba(34,197,94,.7);margin-top:3px;}
+
+/* MP Payment status */
+.mp-processing{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 16px;gap:12px;}
+.mp-spinner{width:40px;height:40px;border:3px solid var(--brd);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mp-status-box{border-radius:var(--r12);padding:14px;text-align:center;width:100%;}
+.mp-ok{background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);}
+.mp-fail{background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);}
+.mp-pending{background:rgba(251,191,36,.1);border:1.5px solid rgba(251,191,36,.3);}
+.mp-mode-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:var(--r99);padding:4px 10px;font-size:10px;font-weight:700;color:var(--yl);margin-bottom:10px;}
 /* Toast */
 .toast{position:fixed;bottom:calc(80px + var(--safe));left:50%;transform:translateX(-50%) translateY(40px);background:var(--sur);border:1px solid var(--brd);color:var(--txt);padding:10px 20px;border-radius:var(--r99);font-size:13px;font-weight:600;box-shadow:var(--sh2);z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
@@ -532,6 +542,8 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
     console.log("🔥 Firebase conectado — bolt-paint Firestore listo");
     window.FIREBASE_READY = true;
   </script>
+  <!-- Mercado Pago SDK -->
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
 </head>
 <body>
 <div class="page-pad">
@@ -776,24 +788,21 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
         <div class="pay-tab" id="pt-transfer" onclick="setPay('transfer')">🏦 Transf.</div>
         <div class="pay-tab" id="pt-cash" onclick="setPay('cash')">💵 Efectivo</div>
       </div>
-      <!-- Card -->
+      <!-- Card — Mercado Pago Brick -->
       <div class="pay-section show" id="ps-card">
-        <div class="card-mock">
-          <div class="card-ico" id="cardIco">💳</div>
-          <div class="card-chip"></div>
-          <div class="card-num-disp" id="cardNumDisp">•••• •••• •••• ••••</div>
-          <div class="card-bot-row">
-            <div><div class="card-lbl-sm">Titular</div><div class="card-val-sm" id="cardNameDisp">NOMBRE</div></div>
-            <div style="text-align:right"><div class="card-lbl-sm">Vence</div><div class="card-val-sm" id="cardExpDisp">MM/AA</div></div>
+        <div class="mp-mode-badge">🧪 Modo prueba — sin cobro real</div>
+        <div id="mp-card-form">
+          <!-- MP CardPayment Brick se monta aquí -->
+          <div style="background:var(--sur);border:1.5px solid var(--brd);border-radius:var(--r12);padding:14px;margin-bottom:8px;">
+            <div style="font-size:12px;color:var(--txt3);text-align:center;line-height:1.6;">
+              🔄 Cargando formulario de pago seguro...<br>
+              <span style="font-size:11px;">Powered by Mercado Pago</span>
+            </div>
           </div>
         </div>
-        <input class="f-inp" type="tel" id="cNum" maxlength="19" placeholder="Número de tarjeta" oninput="fmtCard(this)">
-        <input class="f-inp" type="text" id="cName" placeholder="Nombre del titular" oninput="updCard()" style="text-transform:uppercase">
-        <div class="f-2col">
-          <input class="f-inp" type="tel" id="cExp" maxlength="5" placeholder="MM/AA" oninput="fmtExp(this)" style="margin:0">
-          <input class="f-inp" type="tel" id="cCVV" maxlength="4" placeholder="CVV" style="margin:0;-webkit-text-security:disc">
-        </div>
-        <div class="ssl-row"><span>🔒</span><span>Encriptación SSL. No guardamos datos de tarjeta.</span></div>
+        <div id="mp-card-brick-container"></div>
+        <div id="mp-pay-status" style="display:none"></div>
+        <div class="ssl-row"><span>🔒</span><span>Pago procesado por Mercado Pago · SSL 256-bit</span></div>
       </div>
       <!-- Transfer -->
       <div class="pay-section" id="ps-transfer">
@@ -1137,12 +1146,9 @@ function updTransferTotal(){
 }
 function valPay(){
   if(payMethod==="card"){
-    var n=(document.getElementById("cNum").value||"").replace(/\s/g,"");
-    if(n.length<13){toast("⚠️ Número de tarjeta inválido");return false;}
-    if((document.getElementById("cName").value||"").trim().length<3){toast("⚠️ Escribe el nombre del titular");return false;}
-    var exp=document.getElementById("cExp").value||"";
-    if(exp.length<5){toast("⚠️ Fecha de vencimiento inválida");return false;}
-    if((document.getElementById("cCVV").value||"").length<3){toast("⚠️ CVV inválido");return false;}
+    // Mercado Pago maneja la validación del formulario de tarjeta
+    // Si MP ya procesó el pago, mpCardToken estará disponible
+    return true;
   }
   return true;
 }
@@ -1155,9 +1161,17 @@ function checkout(){
   if(!valPay()) return;
   var tot=cart.reduce(function(s,i){return s+i.pr*i.qty;},0);
   var oid="BPD-"+Date.now().toString().slice(-6);
-  var pm={card:"Tarjeta",transfer:"Transferencia",cash:"Efectivo/OXXO"};
+  var pm={card:"Tarjeta (Mercado Pago)",transfer:"Transferencia",cash:"Efectivo/OXXO"};
   var pInfo=pm[payMethod];
-  if(payMethod==="card"){var n=(document.getElementById("cNum").value||"").replace(/\s/g,"");pInfo="Tarjeta ••••"+n.slice(-4);}
+  if(payMethod==="card"){
+    // Si MP no ha procesado aún, disparar el brick submit
+    if(!window.mpCardToken){
+      toast("⚠️ Completa los datos de tu tarjeta");
+      if(window.mpBrickController) window.mpBrickController.submit();
+      return;
+    }
+    pInfo="Tarjeta ••••"+(window.mpCardLastFour||"****");
+  }
   var fact=billOpen?{rfc:(document.getElementById("fRFC").value||"").trim(),razon:(document.getElementById("fRazon").value||"").trim(),email:(document.getElementById("fEmail").value||"").trim()}:null;
   var ord={id:oid,nombre:nom,telefono:tel,direccion:dir+", "+(document.getElementById("fCiudad").value||"Mexicali"),total:tot,fecha:new Date().toLocaleDateString("es-MX"),items:cart.slice(),status:"nueva",pago:pInfo,factura:fact,notas:(document.getElementById("fNotas").value||"")};
   orders.unshift(ord);
@@ -1392,7 +1406,9 @@ function downloadOrderPDF(o){
   var items=(o.items||[]).map(function(it){
     return '<tr><td style="padding:7px 10px;border-bottom:1px solid #eee">'+it.nombre+'</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:center">'+it.qty+" x "+(it.sz==="cubeta"?"Cubeta 19L":it.sz==="litro"?"Litro 1L":"Galón")+'</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:700">$'+(it.pr*it.qty).toLocaleString()+' MXN</td></tr>';
   }).join("");
-  var doc='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+o.id+' — Bolt Paint</title><style>body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#111;font-size:13px}.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #f97316;margin-bottom:20px}h1{color:#f97316;font-size:20px;margin-bottom:4px}.brand{font-size:11px;color:#666}.oid{font-size:26px;font-weight:bold;color:#f97316}.status{display:inline-block;padding:4px 12px;border-radius:99px;font-weight:bold;font-size:11px;background:#fff5ef;color:#f97316}h2{font-size:13px;margin-top:18px;margin-bottom:7px;border-bottom:2px solid #f97316;padding-bottom:3px}.tbl{width:100%;border-collapse:collapse}.tbl th{background:#1c1c24;color:#fff;padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase}.tot{font-weight:bold;background:#fff5ef}.footer{margin-top:20px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#999;text-align:center}</style></head><body>';
+  var doc='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+o.id+' — Bolt Paint</title><style>body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#111;font-size:13px}.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #f97316;margin-bottom:20px}h1{color:#f97316;font-size:20px;margin-bottom:4px}.brand{font-size:11px;color:#666}.oid{font-size:26px;font-weight:bold;color:#f97316}.status{display:inline-block;padding:4px 12px;border-radius:99px;font-weight:bold;font-size:11px;background:#fff5ef;color:#f97316}h2{font-size:13px;margin-top:18px;margin-bottom:7px;border-bottom:2px solid #f97316;padding-bottom:3px}.tbl{width:100%;border-collapse:collapse}.tbl th{background:#1c1c24;color:#fff;padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase}.tot{font-weight:bold;background:#fff5ef}.footer{margin-top:20px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#999;text-align:center}</style>  <!-- Mercado Pago SDK -->
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
+</head><body>';
   doc+='<div class="hdr"><div><h1>🐾 Bolt Paint</h1><div class="brand">Distribuidor BPaint Depot · Mexicali & San Felipe · (686) 306-9299</div></div><div style="text-align:right"><div class="oid">'+o.id+'</div><div style="font-size:10px;color:#666;margin-top:3px">'+o.fecha+'</div><div style="margin-top:5px"><span class="status">'+(stages[o.status]||o.status)+'</span></div></div></div>';
   doc+='<h2>📍 Datos de entrega</h2><table class="tbl"><tbody>';
   doc+='<tr><td style="padding:7px 10px;border-bottom:1px solid #eee;width:35%">Cliente</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-weight:bold">'+(o.nombre||"—")+'</td></tr>';
@@ -1667,8 +1683,169 @@ function parseCSV(text){
   CAT=prods; localStorage.setItem("bpd_cat",JSON.stringify(CAT));
   renderProds(); updCounters(); toast("✅ "+CAT.length+" productos cargados");
 }
+
+/* MP Payment status */
+.mp-processing{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 16px;gap:12px;}
+.mp-spinner{width:40px;height:40px;border:3px solid var(--brd);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mp-status-box{border-radius:var(--r12);padding:14px;text-align:center;width:100%;}
+.mp-ok{background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);}
+.mp-fail{background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);}
+.mp-pending{background:rgba(251,191,36,.1);border:1.5px solid rgba(251,191,36,.3);}
+.mp-mode-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:var(--r99);padding:4px 10px;font-size:10px;font-weight:700;color:var(--yl);margin-bottom:10px;}
 /* Toast */
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2600);}
+
+
+/* ══════════════════════════════════════════════
+   MERCADO PAGO — CHECKOUT API
+   ⚠️ CONFIGURACIÓN: Pega tu PUBLIC KEY aquí cuando
+   Mercado Pago active tu cuenta de desarrollador
+══════════════════════════════════════════════ */
+var MP_PUBLIC_KEY = "TEST-de563c85-d164-4cd7-ba05-eeb0939c2d6d"; // Public Key de prueba
+var MP_MODE_TEST  = MP_PUBLIC_KEY.startsWith("TEST-");
+var mpBrickController = null;
+var mpCardToken = null;
+var mpCardLastFour = null;
+
+function initMercadoPago(){
+  if(typeof MercadoPago === "undefined"){
+    console.warn("MP SDK no cargado aún");
+    return;
+  }
+  if(!MP_PUBLIC_KEY || MP_PUBLIC_KEY.indexOf("XXXX") > -1){
+    document.getElementById("mp-card-form").innerHTML =
+      '<div style="background:rgba(251,191,36,.1);border:1.5px solid rgba(251,191,36,.3);border-radius:var(--r12);padding:14px;font-size:12px;color:var(--yl);line-height:1.6;text-align:center;">' +
+      '🔑 <strong>Pendiente activación</strong><br>En cuanto Mercado Pago active tu cuenta de desarrollador, pega tu Public Key en el código y el formulario aparecerá aquí automáticamente.</div>';
+    return;
+  }
+  var mp = new MercadoPago(MP_PUBLIC_KEY, { locale: "es-MX" });
+  var bricks = mp.bricks();
+  var tot = cart.reduce(function(s,i){return s+(i.precio*i.qty);},0);
+  document.getElementById("mp-card-form").innerHTML = "";
+  bricks.create("cardPayment", "mp-card-brick-container", {
+    initialization: { amount: tot || 1 },
+    customization: {
+      visual: {
+        style: {
+          theme: "dark",
+          customVariables: {
+            baseColor: "#f97316",
+            inputBackgroundColor: "#252529",
+            inputBorderColor: "#2e2e34",
+            inputTextColor: "#f4f4f5",
+            labelTextColor: "#a1a1aa",
+            errorTextColor: "#ef4444"
+          }
+        }
+      },
+      paymentMethods: { creditCard: "all", debitCard: "all" }
+    },
+    callbacks: {
+      onReady: function(){
+        document.getElementById("mp-card-form").style.display = "none";
+      },
+      onSubmit: function(cardData){
+        return new Promise(function(resolve, reject){
+          mpCardToken      = cardData.token;
+          mpCardLastFour   = cardData.last_four_digits || "****";
+          var statusEl     = document.getElementById("mp-pay-status");
+          statusEl.style.display = "block";
+          statusEl.innerHTML = '<div class="mp-processing"><div class="mp-spinner"></div><div style="font-size:13px;color:var(--txt2)">Procesando pago...</div></div>';
+
+          /* ── En producción aquí llamarías a tu Netlify Function ──
+             Por ahora en modo TEST: simulamos aprobación */
+          if(MP_MODE_TEST){
+            setTimeout(function(){
+              statusEl.innerHTML =
+                '<div class="mp-status-box mp-ok">' +
+                '<div style="font-size:22px;margin-bottom:6px">✅</div>' +
+                '<div style="font-size:14px;font-weight:700;color:var(--gn)">Pago aprobado (prueba)</div>' +
+                '<div style="font-size:11px;color:var(--txt3);margin-top:4px">Token: '+mpCardToken.slice(0,20)+'...</div>' +
+                '</div>';
+              // Auto-continuar con el checkout después de 1.5s
+              setTimeout(function(){
+                statusEl.style.display = "none";
+                checkout();
+              }, 1500);
+              resolve();
+            }, 1800);
+          } else {
+            /* ── PRODUCCIÓN: llamar Netlify Function ── */
+            var tot2 = cart.reduce(function(s,i){return s+(i.precio*i.qty);},0);
+            fetch("/.netlify/functions/mp-payment", {
+              method: "POST",
+              headers: {"Content-Type":"application/json"},
+              body: JSON.stringify({
+                token: mpCardToken,
+                transaction_amount: tot2,
+                description: "Bolt Paint - Pedido",
+                installments: cardData.installments || 1,
+                payment_method_id: cardData.payment_method_id,
+                payer: { email: document.getElementById("fEmail") ? document.getElementById("fEmail").value : "cliente@boltpaint.mx" }
+              })
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+              if(data.status === "approved"){
+                statusEl.innerHTML =
+                  '<div class="mp-status-box mp-ok">' +
+                  '<div style="font-size:22px;margin-bottom:6px">✅</div>' +
+                  '<div style="font-size:14px;font-weight:700;color:var(--gn)">Pago aprobado</div>' +
+                  '<div style="font-size:11px;color:var(--txt3);margin-top:4px">ID: '+data.id+'</div>' +
+                  '</div>';
+                setTimeout(function(){ statusEl.style.display="none"; checkout(); }, 1500);
+                resolve();
+              } else if(data.status === "pending"){
+                statusEl.innerHTML =
+                  '<div class="mp-status-box mp-pending">' +
+                  '<div style="font-size:22px;margin-bottom:6px">⏳</div>' +
+                  '<div style="font-size:13px;font-weight:700;color:var(--yl)">Pago pendiente</div>' +
+                  '<div style="font-size:11px;color:var(--txt3);margin-top:4px">Te notificaremos cuando se confirme.</div>' +
+                  '</div>';
+                setTimeout(function(){ statusEl.style.display="none"; checkout(); }, 2000);
+                resolve();
+              } else {
+                statusEl.innerHTML =
+                  '<div class="mp-status-box mp-fail">' +
+                  '<div style="font-size:22px;margin-bottom:6px">❌</div>' +
+                  '<div style="font-size:13px;font-weight:700;color:var(--rd)">Pago rechazado</div>' +
+                  '<div style="font-size:11px;color:var(--txt3);margin-top:4px">Verifica tus datos o intenta con otra tarjeta.</div>' +
+                  '</div>';
+                mpCardToken = null;
+                reject(new Error("rejected"));
+              }
+            })
+            .catch(function(err){
+              statusEl.innerHTML =
+                '<div class="mp-status-box mp-fail">' +
+                '<div style="font-size:22px;margin-bottom:6px">❌</div>' +
+                '<div style="font-size:13px;font-weight:700;color:var(--rd)">Error de conexión</div>' +
+                '<div style="font-size:11px;color:var(--txt3);margin-top:4px">Revisa tu conexión e intenta de nuevo.</div>' +
+                '</div>';
+              mpCardToken = null;
+              reject(err);
+            });
+          }
+        });
+      },
+      onError: function(err){
+        console.error("MP Error:", err);
+        toast("⚠️ Error en el formulario de pago");
+      }
+    }
+  }).then(function(ctrl){ mpBrickController = ctrl; });
+}
+
+/* Reiniciar MP brick cuando se abre el carrito en step 3 */
+var _origGoStep = goStep;
+function goStep(n){
+  _origGoStep(n);
+  if(n===3){
+    mpCardToken = null;
+    setTimeout(initMercadoPago, 200);
+  }
+}
 
 /* INIT */
 renderProds();
