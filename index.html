@@ -433,15 +433,13 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
 .odm-delivered-title{font-size:12px;font-weight:700;color:var(--gn);}
 .odm-delivered-date{font-size:11px;color:rgba(34,197,94,.7);margin-top:3px;}
 
-/* MP Payment status */
-.mp-processing{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 16px;gap:12px;}
-.mp-spinner{width:40px;height:40px;border:3px solid var(--brd);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite;}
+/* MP Payment */
+.mp-mode-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:var(--r99);padding:4px 10px;font-size:10px;font-weight:700;color:var(--yl);margin-bottom:10px;}
+.mp-spinner{width:36px;height:36px;border:3px solid var(--brd);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .mp-status-box{border-radius:var(--r12);padding:14px;text-align:center;width:100%;}
 .mp-ok{background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);}
 .mp-fail{background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);}
-.mp-pending{background:rgba(251,191,36,.1);border:1.5px solid rgba(251,191,36,.3);}
-.mp-mode-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:var(--r99);padding:4px 10px;font-size:10px;font-weight:700;color:var(--yl);margin-bottom:10px;}
 /* Toast */
 .toast{position:fixed;bottom:calc(80px + var(--safe));left:50%;transform:translateX(-50%) translateY(40px);background:var(--sur);border:1px solid var(--brd);color:var(--txt);padding:10px 20px;border-radius:var(--r99);font-size:13px;font-weight:600;box-shadow:var(--sh2);z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
@@ -788,16 +786,13 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
         <div class="pay-tab" id="pt-transfer" onclick="setPay('transfer')">🏦 Transf.</div>
         <div class="pay-tab" id="pt-cash" onclick="setPay('cash')">💵 Efectivo</div>
       </div>
-      <!-- Card — Mercado Pago Brick -->
+      <!-- Card — Mercado Pago Bricks -->
       <div class="pay-section show" id="ps-card">
         <div class="mp-mode-badge">🧪 Modo prueba — sin cobro real</div>
         <div id="mp-card-form">
-          <!-- MP CardPayment Brick se monta aquí -->
-          <div style="background:var(--sur);border:1.5px solid var(--brd);border-radius:var(--r12);padding:14px;margin-bottom:8px;">
-            <div style="font-size:12px;color:var(--txt3);text-align:center;line-height:1.6;">
-              🔄 Cargando formulario de pago seguro...<br>
-              <span style="font-size:11px;">Powered by Mercado Pago</span>
-            </div>
+          <div style="background:var(--sur);border:1.5px solid var(--brd);border-radius:var(--r12);padding:20px;text-align:center;">
+            <div class="mp-spinner"></div>
+            <div style="font-size:12px;color:var(--txt3);margin-top:10px;">Cargando formulario seguro...</div>
           </div>
         </div>
         <div id="mp-card-brick-container"></div>
@@ -1107,6 +1102,7 @@ function setPay(m){
     document.getElementById("ps-"+x).className="pay-section"+(x===m?" show":"");
   });
   if(m==="transfer") updTransferTotal();
+  if(m==="card"){ window.mpCardToken=null; setTimeout(initMercadoPago,200); }
 }
 function fmtCard(inp){
   var v=inp.value.replace(/[^0-9]/g,"").slice(0,16);
@@ -1145,11 +1141,7 @@ function updTransferTotal(){
   if(el) el.textContent="$"+tot.toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2})+" MXN";
 }
 function valPay(){
-  if(payMethod==="card"){
-    // Mercado Pago maneja la validación del formulario de tarjeta
-    // Si MP ya procesó el pago, mpCardToken estará disponible
-    return true;
-  }
+  // Mercado Pago maneja la validación del formulario de tarjeta
   return true;
 }
 function checkout(){
@@ -1164,12 +1156,7 @@ function checkout(){
   var pm={card:"Tarjeta (Mercado Pago)",transfer:"Transferencia",cash:"Efectivo/OXXO"};
   var pInfo=pm[payMethod];
   if(payMethod==="card"){
-    // Si MP no ha procesado aún, disparar el brick submit
-    if(!window.mpCardToken){
-      toast("⚠️ Completa los datos de tu tarjeta");
-      if(window.mpBrickController) window.mpBrickController.submit();
-      return;
-    }
+    if(!window.mpCardToken){ toast("⚠️ Completa los datos de tu tarjeta"); return; }
     pInfo="Tarjeta ••••"+(window.mpCardLastFour||"****");
   }
   var fact=billOpen?{rfc:(document.getElementById("fRFC").value||"").trim(),razon:(document.getElementById("fRazon").value||"").trim(),email:(document.getElementById("fEmail").value||"").trim()}:null;
@@ -1684,167 +1671,78 @@ function parseCSV(text){
   renderProds(); updCounters(); toast("✅ "+CAT.length+" productos cargados");
 }
 
-/* MP Payment status */
-.mp-processing{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 16px;gap:12px;}
-.mp-spinner{width:40px;height:40px;border:3px solid var(--brd);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite;}
+/* MP Payment */
+.mp-mode-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:var(--r99);padding:4px 10px;font-size:10px;font-weight:700;color:var(--yl);margin-bottom:10px;}
+.mp-spinner{width:36px;height:36px;border:3px solid var(--brd);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .mp-status-box{border-radius:var(--r12);padding:14px;text-align:center;width:100%;}
 .mp-ok{background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);}
 .mp-fail{background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);}
-.mp-pending{background:rgba(251,191,36,.1);border:1.5px solid rgba(251,191,36,.3);}
-.mp-mode-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:var(--r99);padding:4px 10px;font-size:10px;font-weight:700;color:var(--yl);margin-bottom:10px;}
 /* Toast */
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2600);}
 
 
 /* ══════════════════════════════════════════════
-   MERCADO PAGO — CHECKOUT API
-   ⚠️ CONFIGURACIÓN: Pega tu PUBLIC KEY aquí cuando
-   Mercado Pago active tu cuenta de desarrollador
+   MERCADO PAGO — CHECKOUT BRICKS
+   Public Key de prueba — reemplazar por producción cuando MP active la cuenta
 ══════════════════════════════════════════════ */
-var MP_PUBLIC_KEY = "TEST-de563c85-d164-4cd7-ba05-eeb0939c2d6d"; // Public Key de prueba
+var MP_PUBLIC_KEY = "TEST-de563c85-d164-4cd7-ba05-eeb0939c2d6d";
 var MP_MODE_TEST  = MP_PUBLIC_KEY.startsWith("TEST-");
-var mpBrickController = null;
-var mpCardToken = null;
-var mpCardLastFour = null;
+window.mpBrickController = null;
+window.mpCardToken = null;
+window.mpCardLastFour = null;
 
 function initMercadoPago(){
-  if(typeof MercadoPago === "undefined"){
-    console.warn("MP SDK no cargado aún");
-    return;
-  }
-  if(!MP_PUBLIC_KEY || MP_PUBLIC_KEY.indexOf("XXXX") > -1){
-    document.getElementById("mp-card-form").innerHTML =
-      '<div style="background:rgba(251,191,36,.1);border:1.5px solid rgba(251,191,36,.3);border-radius:var(--r12);padding:14px;font-size:12px;color:var(--yl);line-height:1.6;text-align:center;">' +
-      '🔑 <strong>Pendiente activación</strong><br>En cuanto Mercado Pago active tu cuenta de desarrollador, pega tu Public Key en el código y el formulario aparecerá aquí automáticamente.</div>';
-    return;
-  }
-  var mp = new MercadoPago(MP_PUBLIC_KEY, { locale: "es-MX" });
-  var bricks = mp.bricks();
+  if(typeof MercadoPago==="undefined"){ return; }
+  var mp = new MercadoPago(MP_PUBLIC_KEY,{locale:"es-MX"});
   var tot = cart.reduce(function(s,i){return s+(i.precio*i.qty);},0);
-  document.getElementById("mp-card-form").innerHTML = "";
-  bricks.create("cardPayment", "mp-card-brick-container", {
-    initialization: { amount: tot || 1 },
-    customization: {
-      visual: {
-        style: {
-          theme: "dark",
-          customVariables: {
-            baseColor: "#f97316",
-            inputBackgroundColor: "#252529",
-            inputBorderColor: "#2e2e34",
-            inputTextColor: "#f4f4f5",
-            labelTextColor: "#a1a1aa",
-            errorTextColor: "#ef4444"
-          }
-        }
-      },
-      paymentMethods: { creditCard: "all", debitCard: "all" }
+  document.getElementById("mp-card-form").style.display="none";
+  if(window.mpBrickController){ window.mpBrickController.unmount(); window.mpBrickController=null; }
+  mp.bricks().create("cardPayment","mp-card-brick-container",{
+    initialization:{amount:tot||1},
+    customization:{
+      visual:{style:{theme:"dark",customVariables:{baseColor:"#f97316",inputBackgroundColor:"#252529",inputBorderColor:"#2e2e34",inputTextColor:"#f4f4f5",labelTextColor:"#a1a1aa",errorTextColor:"#ef4444"}}},
+      paymentMethods:{creditCard:"all",debitCard:"all"}
     },
-    callbacks: {
-      onReady: function(){
-        document.getElementById("mp-card-form").style.display = "none";
-      },
-      onSubmit: function(cardData){
-        return new Promise(function(resolve, reject){
-          mpCardToken      = cardData.token;
-          mpCardLastFour   = cardData.last_four_digits || "****";
-          var statusEl     = document.getElementById("mp-pay-status");
-          statusEl.style.display = "block";
-          statusEl.innerHTML = '<div class="mp-processing"><div class="mp-spinner"></div><div style="font-size:13px;color:var(--txt2)">Procesando pago...</div></div>';
-
-          /* ── En producción aquí llamarías a tu Netlify Function ──
-             Por ahora en modo TEST: simulamos aprobación */
+    callbacks:{
+      onReady:function(){ document.getElementById("mp-card-form").style.display="none"; },
+      onSubmit:function(cardData){
+        return new Promise(function(resolve,reject){
+          window.mpCardToken=cardData.token;
+          window.mpCardLastFour=cardData.last_four_digits||"****";
+          var statusEl=document.getElementById("mp-pay-status");
+          statusEl.style.display="block";
+          statusEl.innerHTML='<div style="text-align:center;padding:16px"><div class="mp-spinner"></div><div style="font-size:12px;color:var(--txt3);margin-top:8px">Procesando pago...</div></div>';
           if(MP_MODE_TEST){
             setTimeout(function(){
-              statusEl.innerHTML =
-                '<div class="mp-status-box mp-ok">' +
-                '<div style="font-size:22px;margin-bottom:6px">✅</div>' +
-                '<div style="font-size:14px;font-weight:700;color:var(--gn)">Pago aprobado (prueba)</div>' +
-                '<div style="font-size:11px;color:var(--txt3);margin-top:4px">Token: '+mpCardToken.slice(0,20)+'...</div>' +
-                '</div>';
-              // Auto-continuar con el checkout después de 1.5s
-              setTimeout(function(){
-                statusEl.style.display = "none";
-                checkout();
-              }, 1500);
+              statusEl.innerHTML='<div class="mp-status-box mp-ok"><div style="font-size:20px;margin-bottom:4px">✅</div><div style="font-size:13px;font-weight:700;color:var(--gn)">Pago aprobado (prueba)</div></div>';
+              setTimeout(function(){ statusEl.style.display="none"; checkout(); },1200);
               resolve();
-            }, 1800);
+            },1800);
           } else {
-            /* ── PRODUCCIÓN: llamar Netlify Function ── */
-            var tot2 = cart.reduce(function(s,i){return s+(i.precio*i.qty);},0);
-            fetch("/.netlify/functions/mp-payment", {
-              method: "POST",
-              headers: {"Content-Type":"application/json"},
-              body: JSON.stringify({
-                token: mpCardToken,
-                transaction_amount: tot2,
-                description: "Bolt Paint - Pedido",
-                installments: cardData.installments || 1,
-                payment_method_id: cardData.payment_method_id,
-                payer: { email: document.getElementById("fEmail") ? document.getElementById("fEmail").value : "cliente@boltpaint.mx" }
-              })
-            })
-            .then(function(r){ return r.json(); })
-            .then(function(data){
-              if(data.status === "approved"){
-                statusEl.innerHTML =
-                  '<div class="mp-status-box mp-ok">' +
-                  '<div style="font-size:22px;margin-bottom:6px">✅</div>' +
-                  '<div style="font-size:14px;font-weight:700;color:var(--gn)">Pago aprobado</div>' +
-                  '<div style="font-size:11px;color:var(--txt3);margin-top:4px">ID: '+data.id+'</div>' +
-                  '</div>';
-                setTimeout(function(){ statusEl.style.display="none"; checkout(); }, 1500);
-                resolve();
-              } else if(data.status === "pending"){
-                statusEl.innerHTML =
-                  '<div class="mp-status-box mp-pending">' +
-                  '<div style="font-size:22px;margin-bottom:6px">⏳</div>' +
-                  '<div style="font-size:13px;font-weight:700;color:var(--yl)">Pago pendiente</div>' +
-                  '<div style="font-size:11px;color:var(--txt3);margin-top:4px">Te notificaremos cuando se confirme.</div>' +
-                  '</div>';
-                setTimeout(function(){ statusEl.style.display="none"; checkout(); }, 2000);
+            var tot2=cart.reduce(function(s,i){return s+(i.precio*i.qty);},0);
+            fetch("/.netlify/functions/mp-payment",{
+              method:"POST",headers:{"Content-Type":"application/json"},
+              body:JSON.stringify({token:window.mpCardToken,transaction_amount:tot2,description:"Bolt Paint - Pedido",installments:cardData.installments||1,payment_method_id:cardData.payment_method_id,payer:{email:"cliente@boltpaint.mx"}})
+            }).then(function(r){return r.json();}).then(function(data){
+              if(data.status==="approved"){
+                statusEl.innerHTML='<div class="mp-status-box mp-ok"><div style="font-size:20px;margin-bottom:4px">✅</div><div style="font-size:13px;font-weight:700;color:var(--gn)">Pago aprobado</div></div>';
+                setTimeout(function(){statusEl.style.display="none";checkout();},1200);
                 resolve();
               } else {
-                statusEl.innerHTML =
-                  '<div class="mp-status-box mp-fail">' +
-                  '<div style="font-size:22px;margin-bottom:6px">❌</div>' +
-                  '<div style="font-size:13px;font-weight:700;color:var(--rd)">Pago rechazado</div>' +
-                  '<div style="font-size:11px;color:var(--txt3);margin-top:4px">Verifica tus datos o intenta con otra tarjeta.</div>' +
-                  '</div>';
-                mpCardToken = null;
-                reject(new Error("rejected"));
+                statusEl.innerHTML='<div class="mp-status-box mp-fail"><div style="font-size:20px;margin-bottom:4px">❌</div><div style="font-size:13px;font-weight:700;color:var(--rd)">Pago rechazado — verifica tus datos</div></div>';
+                window.mpCardToken=null; reject(new Error("rejected"));
               }
-            })
-            .catch(function(err){
-              statusEl.innerHTML =
-                '<div class="mp-status-box mp-fail">' +
-                '<div style="font-size:22px;margin-bottom:6px">❌</div>' +
-                '<div style="font-size:13px;font-weight:700;color:var(--rd)">Error de conexión</div>' +
-                '<div style="font-size:11px;color:var(--txt3);margin-top:4px">Revisa tu conexión e intenta de nuevo.</div>' +
-                '</div>';
-              mpCardToken = null;
-              reject(err);
+            }).catch(function(err){
+              statusEl.innerHTML='<div class="mp-status-box mp-fail"><div style="font-size:20px;margin-bottom:4px">❌</div><div style="font-size:13px;font-weight:700;color:var(--rd)">Error de conexión</div></div>';
+              window.mpCardToken=null; reject(err);
             });
           }
         });
       },
-      onError: function(err){
-        console.error("MP Error:", err);
-        toast("⚠️ Error en el formulario de pago");
-      }
+      onError:function(err){ console.error("MP:",err); toast("⚠️ Error en formulario de pago"); }
     }
-  }).then(function(ctrl){ mpBrickController = ctrl; });
-}
-
-/* Reiniciar MP brick cuando se abre el carrito en step 3 */
-var _origGoStep = goStep;
-function goStep(n){
-  _origGoStep(n);
-  if(n===3){
-    mpCardToken = null;
-    setTimeout(initMercadoPago, 200);
-  }
+  }).then(function(ctrl){ window.mpBrickController=ctrl; });
 }
 
 /* INIT */
