@@ -800,9 +800,18 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
         <div class="transfer-box">
           <div class="transfer-title">🏦 Transferencia bancaria</div>
           <div class="t-row"><span class="t-lbl">Banco</span><span class="t-val">BBVA México</span></div>
-          <div class="t-row"><span class="t-lbl">CLABE</span><span class="t-val" id="clabeVal">Por configurar</span><button class="copy-btn" onclick="copyClabe()">Copiar</button></div>
-          <div class="t-row"><span class="t-lbl">A nombre de</span><span class="t-val">Bolt Paint</span></div>
-          <div style="margin-top:8px;font-size:11px;color:rgba(99,161,255,.7);line-height:1.5">📲 Envía comprobante por WhatsApp al (686) 306-9299</div>
+          <div class="t-row"><span class="t-lbl">Titular</span><span class="t-val">Jesus Castellanos Gonzalez</span></div>
+          <div class="t-row"><span class="t-lbl">CLABE</span><span class="t-val" id="clabeVal">012200015325932515</span><button class="copy-btn" onclick="copyClabe()">Copiar</button></div>
+          <div class="t-row"><span class="t-lbl">N° de cuenta</span><span class="t-val" id="cuentaVal">1532593251</span><button class="copy-btn" onclick="copyCuenta()">Copiar</button></div>
+          <div class="t-row"><span class="t-lbl">Monto exacto</span><span class="t-val" id="transferTotal" style="color:var(--or)">$0.00 MXN</span></div>
+          <div style="margin-top:10px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);border-radius:var(--r8);padding:9px 11px;">
+            <div style="font-size:11px;color:rgba(99,161,255,.9);line-height:1.6;">
+              <div style="margin-bottom:4px;">① Transfiere el monto exacto a la CLABE indicada.</div>
+              <div style="margin-bottom:4px;">② En el concepto escribe tu <strong style="color:var(--txt)">Número de Orden</strong>.</div>
+              <div>③ 📲 Envía comprobante por WhatsApp al <strong style="color:var(--txt)">(686) 306-9299</strong></div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--txt3);text-align:center;">⏱ Validación en 1–2 horas hábiles · casteljesus77@gmail.com</div>
         </div>
       </div>
       <!-- Cash -->
@@ -1088,6 +1097,7 @@ function setPay(m){
     document.getElementById("pt-"+x).className="pay-tab"+(x===m?" on":"");
     document.getElementById("ps-"+x).className="pay-section"+(x===m?" show":"");
   });
+  if(m==="transfer") updTransferTotal();
 }
 function fmtCard(inp){
   var v=inp.value.replace(/[^0-9]/g,"").slice(0,16);
@@ -1112,10 +1122,18 @@ function togBill(){
   document.getElementById("billTog").className="tog"+(billOpen?" on":"");
   document.getElementById("billFields").className="bill-fields"+(billOpen?" show":"");
 }
+function copyCuenta(){
+  navigator.clipboard.writeText("1532593251").catch(function(){});
+  toast("✅ Número de cuenta copiado");
+}
 function copyClabe(){
-  var v=document.getElementById("clabeVal").textContent;
-  if(navigator.clipboard&&v!=="Por configurar") navigator.clipboard.writeText(v).then(function(){toast("✅ CLABE copiada");});
-  else toast("ℹ️ Configura la CLABE en Admin");
+  navigator.clipboard.writeText("012200015325932515").catch(function(){});
+  toast("✅ CLABE copiada");
+}
+function updTransferTotal(){
+  var tot=cart.reduce(function(s,i){return s+(i.precio*i.qty);},0);
+  var el=document.getElementById("transferTotal");
+  if(el) el.textContent="$"+tot.toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2})+" MXN";
 }
 function valPay(){
   if(payMethod==="card"){
