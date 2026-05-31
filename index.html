@@ -1682,67 +1682,61 @@ function parseCSV(text){
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2600);}
 
 
-/* ══════════════════════════════════════════════
-   MERCADO PAGO — CHECKOUT BRICKS
-   Public Key de prueba — reemplazar por producción cuando MP active la cuenta
-══════════════════════════════════════════════ */
-var MP_PUBLIC_KEY = "TEST-de563c85-d164-4cd7-ba05-eeb0939c2d6d";
-var MP_MODE_TEST  = MP_PUBLIC_KEY.startsWith("TEST-");
-window.mpBrickController = null;
-window.mpCardToken = null;
-window.mpCardLastFour = null;
+var MP_PUBLIC_KEY="TEST-de563c85-d164-4cd7-ba05-eeb0939c2d6d";
+var MP_MODE_TEST=true;
+window.mpCardToken=null;
+window.mpCardLastFour=null;
+window.mpBrickController=null;
 
 function initMercadoPago(){
-  if(typeof MercadoPago==="undefined"){ return; }
-  var mp = new MercadoPago(MP_PUBLIC_KEY,{locale:"es-MX"});
-  var tot = cart.reduce(function(s,i){return s+(i.precio*i.qty);},0);
-  document.getElementById("mp-card-form").style.display="none";
-  if(window.mpBrickController){ window.mpBrickController.unmount(); window.mpBrickController=null; }
+  if(typeof MercadoPago==="undefined"){return;}
+  var container=document.getElementById("mp-card-brick-container");
+  var form=document.getElementById("mp-card-form");
+  if(!container){return;}
+  if(form){form.style.display="none";}
+  if(window.mpBrickController){
+    try{window.mpBrickController.unmount();}catch(e){}
+    window.mpBrickController=null;
+  }
+  var tot=cart.reduce(function(s,i){return s+(i.precio*i.qty);},0);
+  var mp=new MercadoPago(MP_PUBLIC_KEY,{locale:"es-MX"});
   mp.bricks().create("cardPayment","mp-card-brick-container",{
     initialization:{amount:tot||1},
     customization:{
-      visual:{style:{theme:"dark",customVariables:{baseColor:"#f97316",inputBackgroundColor:"#252529",inputBorderColor:"#2e2e34",inputTextColor:"#f4f4f5",labelTextColor:"#a1a1aa",errorTextColor:"#ef4444"}}},
+      visual:{style:{theme:"dark"}},
       paymentMethods:{creditCard:"all",debitCard:"all"}
     },
     callbacks:{
-      onReady:function(){ document.getElementById("mp-card-form").style.display="none"; },
+      onReady:function(){
+        if(form){form.style.display="none";}
+      },
       onSubmit:function(cardData){
         return new Promise(function(resolve,reject){
           window.mpCardToken=cardData.token;
           window.mpCardLastFour=cardData.last_four_digits||"****";
           var statusEl=document.getElementById("mp-pay-status");
-          statusEl.style.display="block";
-          statusEl.innerHTML='<div style="text-align:center;padding:16px"><div class="mp-spinner"></div><div style="font-size:12px;color:var(--txt3);margin-top:8px">Procesando pago...</div></div>';
-          if(MP_MODE_TEST){
-            setTimeout(function(){
-              statusEl.innerHTML='<div class="mp-status-box mp-ok"><div style="font-size:20px;margin-bottom:4px">✅</div><div style="font-size:13px;font-weight:700;color:var(--gn)">Pago aprobado (prueba)</div></div>';
-              setTimeout(function(){ statusEl.style.display="none"; checkout(); },1200);
-              resolve();
-            },1800);
-          } else {
-            var tot2=cart.reduce(function(s,i){return s+(i.precio*i.qty);},0);
-            fetch("/.netlify/functions/mp-payment",{
-              method:"POST",headers:{"Content-Type":"application/json"},
-              body:JSON.stringify({token:window.mpCardToken,transaction_amount:tot2,description:"Bolt Paint - Pedido",installments:cardData.installments||1,payment_method_id:cardData.payment_method_id,payer:{email:"cliente@boltpaint.mx"}})
-            }).then(function(r){return r.json();}).then(function(data){
-              if(data.status==="approved"){
-                statusEl.innerHTML='<div class="mp-status-box mp-ok"><div style="font-size:20px;margin-bottom:4px">✅</div><div style="font-size:13px;font-weight:700;color:var(--gn)">Pago aprobado</div></div>';
-                setTimeout(function(){statusEl.style.display="none";checkout();},1200);
-                resolve();
-              } else {
-                statusEl.innerHTML='<div class="mp-status-box mp-fail"><div style="font-size:20px;margin-bottom:4px">❌</div><div style="font-size:13px;font-weight:700;color:var(--rd)">Pago rechazado — verifica tus datos</div></div>';
-                window.mpCardToken=null; reject(new Error("rejected"));
-              }
-            }).catch(function(err){
-              statusEl.innerHTML='<div class="mp-status-box mp-fail"><div style="font-size:20px;margin-bottom:4px">❌</div><div style="font-size:13px;font-weight:700;color:var(--rd)">Error de conexión</div></div>';
-              window.mpCardToken=null; reject(err);
-            });
+          if(statusEl){
+            statusEl.style.display="block";
+            statusEl.innerHTML="<div style='text-align:center;padding:16px'><div class='mp-spinner'></div><div style='font-size:12px;color:var(--txt3);margin-top:8px'>Procesando...</div></div>";
           }
+          setTimeout(function(){
+            if(statusEl){
+              statusEl.innerHTML="<div class='mp-status-box mp-ok'><div style='font-size:20px'>"+String.fromCodePoint(9989)+"</div><div style='font-size:13px;font-weight:700;color:var(--gn)'>Pago aprobado (prueba)</div></div>";
+            }
+            setTimeout(function(){
+              if(statusEl){statusEl.style.display="none";}
+              checkout();
+            },1200);
+            resolve();
+          },1800);
         });
       },
-      onError:function(err){ console.error("MP:",err); toast("⚠️ Error en formulario de pago"); }
+      onError:function(err){
+        console.error("MP:",err);
+        toast("Error en formulario de pago");
+      }
     }
-  }).then(function(ctrl){ window.mpBrickController=ctrl; });
+  }).then(function(ctrl){window.mpBrickController=ctrl;});
 }
 
 /* INIT */
