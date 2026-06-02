@@ -2,7 +2,7 @@
 // No modifica el index.html original
 
 (function(){
-  var MP_PUBLIC_KEY = "APP_USR-5a95c423-6d2d-470d-8c68-dcec8e8b8787";
+  var MP_PUBLIC_KEY = "TEST-085e44e4-f192-4acb-9304-5c03fc24630d";
   window.mpToken = null;
   window.mpLastFour = null;
   window.mpBrick = null;
