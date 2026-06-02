@@ -1157,9 +1157,10 @@ function checkout(){
   var oid="BPD-"+Date.now().toString().slice(-6);
   var pm={card:"Tarjeta",transfer:"Transferencia",cash:"Efectivo/OXXO"};
   var pInfo=pm[payMethod];
-  if(payMethod==="card"){var n=(document.getElementById("cNum").value||"").replace(/\s/g,"");pInfo="Tarjeta ••••"+n.slice(-4);}
+  if(payMethod==="card"){var n=(window.mpLastFour||"****");pInfo="Tarjeta ••••"+n;}
   var fact=billOpen?{rfc:(document.getElementById("fRFC").value||"").trim(),razon:(document.getElementById("fRazon").value||"").trim(),email:(document.getElementById("fEmail").value||"").trim()}:null;
   var ord={id:oid,nombre:nom,telefono:tel,direccion:dir+", "+(document.getElementById("fCiudad").value||"Mexicali"),total:tot,fecha:new Date().toLocaleDateString("es-MX"),items:cart.slice(),status:"nueva",pago:pInfo,factura:fact,notas:(document.getElementById("fNotas").value||"")};
+  if(payMethod==="card" && !window.mpToken){toast("⚠️ Completa el pago con tarjeta");return;}
   orders.unshift(ord);
   localStorage.setItem("bpd_ord",JSON.stringify(orders));
   updCounters();
