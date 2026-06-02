@@ -1,6 +1,5 @@
 // Mercado Pago — script separado
 // No modifica el index.html original
-
 (function(){
   var MP_PUBLIC_KEY = "APP_USR-5a95c423-6d2d-470d-8c68-dcec8e8b8787";
   window.mpToken = null;
@@ -15,7 +14,6 @@
 
   function initMP(){
     if(typeof MercadoPago === "undefined") return;
-
     var psCard = document.getElementById("ps-card");
     if(!psCard) return;
 
@@ -41,10 +39,34 @@
           if(l) l.style.display = "none";
         },
         onSubmit: function(d){
-          return new Promise(function(ok){
+          return new Promise(function(ok, fail){
             window.mpToken = d.token;
             window.mpLastFour = d.last_four_digits || "****";
-            setTimeout(function(){ ok(); if(typeof checkout==="function") checkout(); }, 400);
+
+            var tot2 = (typeof cart !== "undefined") ? cart.reduce(function(s,i){ return s+(i.precio*i.qty); }, 0) : 1;
+
+            fetch("/.netlify/functions/mp-payment", {
+              method: "POST",
+              headers: {"Content-Type":"application/json"},
+              body: JSON.stringify({
+                token: d.token,
+                transaction_amount: tot2,
+                description: "Bolt Paint - Pedido",
+                installments: d.installments || 1,
+                payment_method_id: d.payment_method_id,
+                payer: { email: d.payer ? d.payer.email : "cliente@boltpaint.mx" }
+              })
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(res){
+              if(res.status === "approved" || res.status === "pending"){
+                ok();
+                if(typeof checkout === "function") checkout();
+              } else {
+                fail(new Error(res.status_detail || "rejected"));
+              }
+            })
+            .catch(function(e){ fail(e); });
           });
         },
         onError: function(e){ console.error("MP:", e); }
@@ -62,7 +84,6 @@
         setTimeout(initMP, 300);
       }
     };
-
     // Parchar valPay para no validar campos manuales
     window.valPay = function(){ return true; };
   });
