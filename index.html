@@ -787,12 +787,7 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
             <div style="text-align:right"><div class="card-lbl-sm">Vence</div><div class="card-val-sm" id="cardExpDisp">MM/AA</div></div>
           </div>
         </div>
-        <input class="f-inp" type="tel" id="cNum" maxlength="19" placeholder="Número de tarjeta" oninput="fmtCard(this)">
-        <input class="f-inp" type="text" id="cName" placeholder="Nombre del titular" oninput="updCard()" style="text-transform:uppercase">
-        <div class="f-2col">
-          <input class="f-inp" type="tel" id="cExp" maxlength="5" placeholder="MM/AA" oninput="fmtExp(this)" style="margin:0">
-          <input class="f-inp" type="tel" id="cCVV" maxlength="4" placeholder="CVV" style="margin:0;-webkit-text-security:disc">
-        </div>
+        <div id="mp-brick-container"></div>
         <div class="ssl-row"><span>🔒</span><span>Encriptación SSL. No guardamos datos de tarjeta.</span></div>
       </div>
       <!-- Transfer -->
