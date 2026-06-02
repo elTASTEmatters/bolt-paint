@@ -1,7 +1,7 @@
 // Mercado Pago — script separado
 // No modifica el index.html original
 (function(){
-  var MP_PUBLIC_KEY = "APP_USR-5a95c423-6d2d-470d-8c68-dcec8e8b8787";
+  var MP_PUBLIC_KEY = "APP_USR-203cf0c4-bb9f-4efe-a0a4-d5dc36e187af";
   window.mpToken = null;
   window.mpLastFour = null;
   window.mpBrick = null;
