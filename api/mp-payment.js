@@ -1,43 +1,22 @@
-exports.handler = async function(event, context) {
-
-  // Solo aceptar POST
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed" }) };
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
   }
-
-  // CORS headers
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json"
-  };
-
-  // Preflight
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 200, headers, body: "" };
+  
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const body = JSON.parse(event.body);
-    const {
-      token,
-      transaction_amount,
-      description,
-      installments,
-      payment_method_id,
-      payer
-    } = body;
+    const { token, transaction_amount, description, installments, payment_method_id, payer } = req.body;
 
-    // Validar campos requeridos
     if (!token || !transaction_amount || !payment_method_id) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: "Faltan datos requeridos" })
-      };
+      return res.status(400).json({ error: "Faltan datos requeridos" });
     }
 
-    // Llamar a la API de MercadoPago
     const mpResponse = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
       headers: {
@@ -51,32 +30,20 @@ exports.handler = async function(event, context) {
         description: description || "Bolt Paint - Pedido",
         installments: installments || 1,
         payment_method_id,
-        payer: {
-          email: payer?.email || "cliente@boltpaint.mx"
-        }
+        payer: { email: payer?.email || "cliente@boltpaint.mx" }
       })
     });
 
     const data = await mpResponse.json();
-
-    // Regresar solo lo necesario al frontend
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        status: data.status,
-        status_detail: data.status_detail,
-        id: data.id,
-        transaction_amount: data.transaction_amount
-      })
-    };
+    return res.status(200).json({
+      status: data.status,
+      status_detail: data.status_detail,
+      id: data.id,
+      transaction_amount: data.transaction_amount
+    });
 
   } catch (err) {
     console.error("MP Payment error:", err);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: "Error interno del servidor" })
-    };
+    return res.status(500).json({ error: "Error interno del servidor" });
   }
-};
+}
