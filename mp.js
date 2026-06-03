@@ -8,12 +8,12 @@
     window.valPay = function(){ return true; };
 
     window.checkout = function(){
-      var tot = (typeof cart !== "undefined") ? cart.reduce(function(s,i){ return s+(i.precio*i.qty); }, 0) : 100;
+      var tot = (typeof cart !== "undefined") ? cart.reduce(function(s,i){ return s+(i.pr*i.qty); }, 0) : 100;
       var items = (typeof cart !== "undefined" && cart.length > 0) ? cart.map(function(i){
         return {
           title: String(i.nombre || "Producto Bolt Paint"),
           quantity: Number(i.qty) || 1,
-          unit_price: Number(i.precio) || 100,
+          unit_price: Number(i.pr) || 100,
           currency_id: "MXN"
         };
       }) : [{ title: "Bolt Paint - Pedido", quantity: 1, unit_price: 100, currency_id: "MXN" }];
