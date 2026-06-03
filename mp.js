@@ -45,7 +45,7 @@
 
             var tot2 = (typeof cart !== "undefined") ? cart.reduce(function(s,i){ return s+(i.precio*i.qty); }, 0) : 1;
 
-            fetch("https://bolt-paint-5n2zvz10w-boltpaint.vercel.app/api/mp-payment", {
+            fetch("https://bolt-paint.vercel.app/api/mp-payment", {
               method: "POST",
               headers: {"Content-Type":"application/json"},
               body: JSON.stringify({
