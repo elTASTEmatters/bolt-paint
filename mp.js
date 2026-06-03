@@ -7,17 +7,16 @@
     };
     window.valPay = function(){ return true; };
 
-    var originalCheckout = window.checkout;
     window.checkout = function(){
       var tot = (typeof cart !== "undefined") ? cart.reduce(function(s,i){ return s+(i.precio*i.qty); }, 0) : 100;
-      var items = (typeof cart !== "undefined") ? cart.map(function(i){
+      var items = (typeof cart !== "undefined" && cart.length > 0) ? cart.map(function(i){
         return {
-          title: i.nombre || "Producto Bolt Paint",
-          quantity: i.qty || 1,
-          unit_price: i.precio || tot,
+          title: String(i.nombre || "Producto Bolt Paint"),
+          quantity: Number(i.qty) || 1,
+          unit_price: Number(i.precio) || 100,
           currency_id: "MXN"
         };
-      }) : [{ title: "Bolt Paint - Pedido", quantity: 1, unit_price: tot, currency_id: "MXN" }];
+      }) : [{ title: "Bolt Paint - Pedido", quantity: 1, unit_price: 100, currency_id: "MXN" }];
 
       fetch("https://bolt-paint.vercel.app/api/mp-preference", {
         method: "POST",
