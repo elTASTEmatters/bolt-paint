@@ -28,7 +28,7 @@
     var tot = (typeof cart !== "undefined") ? cart.reduce(function(s,i){ return s+(i.precio*i.qty); }, 0) : 1;
 
     new MercadoPago(MP_PUBLIC_KEY, {locale:"es-MX"}).bricks().create("cardPayment","mp-brick-container",{
-      initialization: { amount: tot||1, installments: 1 },
+      initialization: { amount: tot||100, installments: 1 },
       customization: {
         visual: { style: { theme: "dark" } },
         paymentMethods: { creditCard: "all", debitCard: "all" }
