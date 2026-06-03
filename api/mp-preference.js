@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { items, payer, back_urls } = req.body;
+    const { items, payer } = req.body;
 
     const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
@@ -17,10 +17,12 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         items,
         payer,
+        notification_url: "https://bolt-paint.vercel.app/api/mp-webhook",
+        external_reference: "BOLTPAINT-" + Date.now(),
         back_urls: {
-          success: back_urls?.success || "https://eltastematters.github.io/bolt-paint/",
-          failure: back_urls?.failure || "https://eltastematters.github.io/bolt-paint/",
-          pending: back_urls?.pending || "https://eltastematters.github.io/bolt-paint/"
+          success: "https://eltastematters.github.io/bolt-paint/",
+          failure: "https://eltastematters.github.io/bolt-paint/",
+          pending: "https://eltastematters.github.io/bolt-paint/"
         },
         auto_return: "approved"
       })
