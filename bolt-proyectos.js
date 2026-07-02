@@ -220,6 +220,8 @@
     '<aside class="bp-sum"><h4>Resumen de cotización</h4><div id="bpSumLines"><div class="bp-empty">Aún no agregas nada.</div></div>'+
     '<div class="bp-total"><span class="bp-lbl" style="color:var(--muted);font-size:13px">Total estimado</span><span class="bp-t" id="bpTotal">$0</span></div>'+
     '<div class="bp-note" id="bpSpNote" style="display:none"></div>'+
+    '<div class="bp-f" style="margin-top:12px"><label>Nombre / empresa</label><input id="bpCliente" type="text" placeholder="Para tu cotización" style="width:100%"></div>'+
+    '<div class="bp-f" style="margin-top:8px"><label>WhatsApp / teléfono</label><input id="bpTel" type="text" placeholder="Para darte seguimiento" style="width:100%"></div>'+
     '<div class="bp-cta"><button class="bp-btn bp-solid" onclick="bpProposal()">📝 Solicitar cotización + PDF</button>'+
     '<a class="bp-btn bp-wa" id="bpWaBtn" href="#" target="_blank" onclick="return bpWhats()">💬 Enviar por WhatsApp</a></div>'+
     '<div class="bp-hint">La cotización genera una pre-propuesta. El pago con tarjeta/OXXO/SPEI se habilita al confirmar.</div></aside>'+
@@ -354,11 +356,42 @@
   function bpFolio(){var s='BP-',ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(var i=0;i<6;i++)s+=ch[Math.floor(Math.random()*ch.length)];return s}
   function bpItems(c){var it=[];if(c.pintura>0){var d=[];if(c.cub)d.push(c.cub+' cub');if(c.gal)d.push(c.gal+' gal');if(c.lit)d.push(c.lit+' L');it.push(['Pintura',money(c.pintura),d.join(' + ')])}if(c.aplOn&&c.aplicacion>0)it.push(['Aplicación',money(c.aplicacion),c.aplArea+' m²']);if(c.resan>0)it.push(['Resanación',money(c.resan),'']);if(c.aislamiento>0)it.push(['Aislamiento',money(c.aislamiento),c.aisArea+' m²']);var dd=c.dPint+c.dApl+c.dAis;if(dd>0)it.push(['Descuento plan','−'+money(dd),'']);return it}
   var lastFolio=null;
+  function bpItemsNum(c){
+    var it=[];
+    if(c.pintura>0){var d=[];if(c.cub)d.push(c.cub+' cub');if(c.gal)d.push(c.gal+' gal');if(c.lit)d.push(c.lit+' L');it.push({nombre:'Pintura ('+d.join(' + ')+')',qty:1,pr:Math.round(c.pintura)})}
+    if(c.aplOn&&c.aplicacion>0)it.push({nombre:'Aplicación · '+c.aplArea+' m²',qty:1,pr:Math.round(c.aplicacion)});
+    if(c.resan>0)it.push({nombre:'Resanación',qty:1,pr:Math.round(c.resan)});
+    if(c.aislamiento>0)it.push({nombre:'Aislamiento · '+c.aisArea+' m²',qty:1,pr:Math.round(c.aislamiento)});
+    var dd=c.dPint+c.dApl+c.dAis;if(dd>0)it.push({nombre:'Descuento plan',qty:1,pr:-Math.round(dd)});
+    return it;
+  }
+  function bpBuildPedido(folio,c,planN){
+    var name=(document.getElementById('bpCliente')&&document.getElementById('bpCliente').value.trim())||'(Cotización de proyecto)';
+    var tel=(document.getElementById('bpTel')&&document.getElementById('bpTel').value.trim())||'';
+    return {
+      id:folio, tipo:'cotizacion', origen:'proyecto', modo:state.mode,
+      nombre:name, telefono:tel,
+      direccion:'Cotización '+(state.mode==='comercial'?'Comercial/Oficinas':'Industrial'),
+      total:Math.round(c.total), fecha:new Date().toLocaleDateString('es-MX'),
+      items:bpItemsNum(c), status:'nueva', pago:'Cotización (por definir)',
+      plan:planN,
+      paints:state.paints.slice(),
+      igualaciones:state.igualaciones.slice(),
+      resanacionComentarios:(document.getElementById('bpResCom')&&document.getElementById('bpResCom').value.trim())||'',
+      notas:'Cotización de proyecto '+state.mode
+    };
+  }
   window.bpProposal=function(){
     var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega al menos una pintura o servicio.');return}
     var folio=bpFolio();lastFolio=folio;
     var fecha=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
     var planN={ninguno:'Sin plan',basico:'Básico Anual',corporativo:'Corporativo',premium:'Premium'}[state.plan];
+    // Guardar en Firestore (colección pedidos) para que aparezca en el admin
+    if(window.saveOrderToFirebase){
+      window.saveOrderToFirebase(bpBuildPedido(folio,c,planN)).then(function(fbId){
+        if(fbId){bpToast('Cotización '+folio+' enviada ✓')}else{bpToast('Cotización creada (no se pudo guardar en la nube; envíala por WhatsApp).')}
+      });
+    }
     var rows=bpItems(c).map(function(it){return '<div class="bp-rit"><div class="bp-l1"><span>'+it[0]+'</span><span>'+it[1]+'</span></div>'+(it[2]?'<div class="bp-l2">'+it[2]+'</div>':'')+'</div>'}).join('');
     var igu=state.igualaciones.length?'<hr><div class="bp-rr bp-s"><b>Igualaciones (por cotizar)</b></div>'+state.igualaciones.map(function(s){return '<div class="bp-rr bp-s"><span>• '+s.name+'</span><span>'+s.type+'</span></div>'}).join(''):'';
     var waHref=bpWaLink(folio,c);
@@ -372,6 +405,11 @@
       '<div class="bp-rfoot">Sujeta a inspección y validación. Vigencia 15 días.<br>¡Gracias por elegir Bolt Paint!<br>WhatsApp: 686 262 5119</div></div>';
     document.getElementById('bpModal').classList.add('bp-open');
   };
+  function bpToast(msg){
+    var t=document.getElementById('bpToast');
+    if(!t){t=document.createElement('div');t.id='bpToast';t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#16181d;color:#fff;border:1px solid #2a2f37;border-radius:12px;padding:13px 18px;font-family:Archivo,system-ui,sans-serif;font-size:14px;z-index:800;box-shadow:0 18px 40px rgba(0,0,0,.5);max-width:92vw';document.body.appendChild(t)}
+    t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0'},4000);
+  }
   window.bpCloseModal=function(){document.getElementById('bpModal').classList.remove('bp-open')};
 
   function bpWaLink(folio,c){
