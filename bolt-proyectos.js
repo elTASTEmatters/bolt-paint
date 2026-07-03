@@ -381,29 +381,41 @@
       notas:'Cotización de proyecto '+state.mode
     };
   }
+  function bpPlanName(){return {ninguno:'Sin plan',basico:'Básico Anual',corporativo:'Corporativo',premium:'Premium'}[state.plan]}
+  function bpSaveKey(c){try{return JSON.stringify({m:state.mode,p:state.paints,r:state.res,pl:state.plan,ap:document.getElementById('bpAplOn').checked,aa:document.getElementById('bpAplArea').value,ig:state.igualaciones,cl:(document.getElementById('bpCliente')||{}).value,te:(document.getElementById('bpTel')||{}).value,t:c.total})}catch(e){return Math.random()+''}}
+  function bpEnsureSaved(c,cb){
+    var key=bpSaveKey(c);
+    if(state.savedKey===key&&state.savedFolio){cb(state.savedFolio);return}
+    var folio=bpFolio();
+    var pedido=bpBuildPedido(folio,c,bpPlanName());
+    try{pedido=JSON.parse(JSON.stringify(pedido))}catch(e){}
+    if(window.saveOrderToFirebase){
+      window.saveOrderToFirebase(pedido).then(function(fbId){
+        if(fbId){state.savedKey=key;state.savedFolio=folio;bpToast('Cotización '+folio+' enviada ✓ (ya aparece en tu admin)')}
+        else{bpToast('⚠️ No se pudo guardar en la nube. Revisa tu conexión o envíala por WhatsApp.')}
+      }).catch(function(err){console.error('bolt-proyectos guardado:',err);bpToast('⚠️ Error al guardar: '+((err&&err.message)||err))});
+    }else{bpToast('⚠️ Firebase no está listo aún; recarga la página e intenta de nuevo.')}
+    cb(folio);
+  }
   window.bpProposal=function(){
     var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega al menos una pintura o servicio.');return}
-    var folio=bpFolio();lastFolio=folio;
     var fecha=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
-    var planN={ninguno:'Sin plan',basico:'Básico Anual',corporativo:'Corporativo',premium:'Premium'}[state.plan];
-    // Guardar en Firestore (colección pedidos) para que aparezca en el admin
-    if(window.saveOrderToFirebase){
-      window.saveOrderToFirebase(bpBuildPedido(folio,c,planN)).then(function(fbId){
-        if(fbId){bpToast('Cotización '+folio+' enviada ✓')}else{bpToast('Cotización creada (no se pudo guardar en la nube; envíala por WhatsApp).')}
-      });
-    }
-    var rows=bpItems(c).map(function(it){return '<div class="bp-rit"><div class="bp-l1"><span>'+it[0]+'</span><span>'+it[1]+'</span></div>'+(it[2]?'<div class="bp-l2">'+it[2]+'</div>':'')+'</div>'}).join('');
-    var igu=state.igualaciones.length?'<hr><div class="bp-rr bp-s"><b>Igualaciones (por cotizar)</b></div>'+state.igualaciones.map(function(s){return '<div class="bp-rr bp-s"><span>• '+s.name+'</span><span>'+s.type+'</span></div>'}).join(''):'';
-    var waHref=bpWaLink(folio,c);
-    document.getElementById('bpModalInner').innerHTML='<div class="bp-rc">'+
-      '<div class="bp-rbar"><button class="bp-pdf" onclick="window.print()">⬇️ Descargar PDF</button><a class="bp-wag" href="'+waHref+'" target="_blank">💬 WhatsApp</a><button onclick="bpCloseModal()">✕</button></div>'+
-      '<div class="bp-rch"><div class="bp-rlogo">BOLT <em>⚡</em> PAINT</div><div class="bp-rsub">Distribuidor oficial BPaint Depot<br>Mexicali &amp; San Felipe, B.C.</div><div class="bp-rtype">PRE-PROPUESTA · NO FISCAL</div></div>'+
-      '<hr><div class="bp-rr bp-s"><span>Folio</span><span>'+folio+'</span></div><div class="bp-rr bp-s"><span>Fecha</span><span>'+fecha+'</span></div>'+
-      '<div class="bp-rr bp-s"><span>Proyecto</span><span>'+(state.mode==='comercial'?'Comercial/Oficinas':'Industrial')+'</span></div><div class="bp-rr bp-s"><span>Plan</span><span>'+planN+'</span></div>'+
-      '<hr>'+rows+igu+'<hr><div class="bp-rtot"><span>TOTAL EST.</span><b>'+money(c.total)+'</b></div>'+
-      '<div class="bp-rr bp-s" style="margin-top:6px"><span>Pago</span><span>Tarjeta · OXXO · SPEI</span></div>'+
-      '<div class="bp-rfoot">Sujeta a inspección y validación. Vigencia 15 días.<br>¡Gracias por elegir Bolt Paint!<br>WhatsApp: 686 262 5119</div></div>';
-    document.getElementById('bpModal').classList.add('bp-open');
+    var planN=bpPlanName();
+    bpEnsureSaved(c,function(folio){
+      lastFolio=folio;
+      var rows=bpItems(c).map(function(it){return '<div class="bp-rit"><div class="bp-l1"><span>'+it[0]+'</span><span>'+it[1]+'</span></div>'+(it[2]?'<div class="bp-l2">'+it[2]+'</div>':'')+'</div>'}).join('');
+      var igu=state.igualaciones.length?'<hr><div class="bp-rr bp-s"><b>Igualaciones (por cotizar)</b></div>'+state.igualaciones.map(function(s){return '<div class="bp-rr bp-s"><span>• '+s.name+'</span><span>'+s.type+'</span></div>'}).join(''):'';
+      var waHref=bpWaLink(folio,c);
+      document.getElementById('bpModalInner').innerHTML='<div class="bp-rc">'+
+        '<div class="bp-rbar"><button class="bp-pdf" onclick="window.print()">⬇️ Descargar PDF</button><a class="bp-wag" href="'+waHref+'" target="_blank">💬 WhatsApp</a><button onclick="bpCloseModal()">✕</button></div>'+
+        '<div class="bp-rch"><div class="bp-rlogo">BOLT <em>⚡</em> PAINT</div><div class="bp-rsub">Distribuidor oficial BPaint Depot<br>Mexicali &amp; San Felipe, B.C.</div><div class="bp-rtype">PRE-PROPUESTA · NO FISCAL</div></div>'+
+        '<hr><div class="bp-rr bp-s"><span>Folio</span><span>'+folio+'</span></div><div class="bp-rr bp-s"><span>Fecha</span><span>'+fecha+'</span></div>'+
+        '<div class="bp-rr bp-s"><span>Proyecto</span><span>'+(state.mode==='comercial'?'Comercial/Oficinas':'Industrial')+'</span></div><div class="bp-rr bp-s"><span>Plan</span><span>'+planN+'</span></div>'+
+        '<hr>'+rows+igu+'<hr><div class="bp-rtot"><span>TOTAL EST.</span><b>'+money(c.total)+'</b></div>'+
+        '<div class="bp-rr bp-s" style="margin-top:6px"><span>Pago</span><span>Tarjeta · OXXO · SPEI</span></div>'+
+        '<div class="bp-rfoot">Sujeta a inspección y validación. Vigencia 15 días.<br>¡Gracias por elegir Bolt Paint!<br>WhatsApp: 686 262 5119</div></div>';
+      document.getElementById('bpModal').classList.add('bp-open');
+    });
   };
   function bpToast(msg){
     var t=document.getElementById('bpToast');
@@ -420,7 +432,7 @@
     lines.push('(Sujeto a inspección)');
     return 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(lines.join('\n'));
   }
-  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega algo a la cotización primero.');return false}document.getElementById('bpWaBtn').href=bpWaLink(lastFolio||bpFolio(),c);return true};
+  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega algo a la cotización primero.');return false}bpEnsureSaved(c,function(folio){document.getElementById('bpWaBtn').href=bpWaLink(folio,c)});return true};
 
   // auto-montaje (estilos + overlay oculto) al cargar, para que los botones del hero tengan estilo
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',mount);}else{mount();}
