@@ -14,7 +14,7 @@
 
   // ===== Precios de servicio (referencia · editar aquí o vía admin más adelante) =====
   var PRECIOS_SERVICIOS = {
-    aplicacion:{comercial:45, industrial:38},
+    aplicacion:{comercial:50, industrial:50},
     aislamiento:65,
     resanacion:[
       {k:'grietas',n:'Grietas y fisuras',p:120},
@@ -173,7 +173,7 @@
     '<label class="bp-tog"><input type="checkbox" id="bpAplOn" onchange="bpRecompute()"> Incluir servicio de aplicación</label>'+
     '<label class="bp-tog"><input type="checkbox" id="bpAplCalc" onchange="bpUpdateAplArea()"> Usar los m² de la calculadora (<span id="bpAreaTot">0</span> m²)</label>'+
     '<div class="bp-row"><div class="bp-f"><label>Área (m²)</label><input type="number" id="bpAplArea" value="120" min="0" oninput="bpRecompute()"></div>'+
-    '<div class="bp-f"><label>$/m²</label><input type="number" id="bpAplRate" value="45" min="0" oninput="bpRecompute()"></div></div>'+
+    '<div class="bp-f"><label>$/m² (fijo)</label><input type="number" id="bpAplRate" value="50" min="0" readonly tabindex="-1" style="opacity:.65;cursor:not-allowed"></div></div>'+
     '<div class="bp-out">Subtotal: <b id="bpAplOut">$0</b></div></div>'+
 
     // C
