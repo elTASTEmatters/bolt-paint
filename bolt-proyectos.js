@@ -220,11 +220,11 @@
     '<aside class="bp-sum"><h4>Resumen de cotización</h4><div id="bpSumLines"><div class="bp-empty">Aún no agregas nada.</div></div>'+
     '<div class="bp-total"><span class="bp-lbl" style="color:var(--muted);font-size:13px">Total estimado</span><span class="bp-t" id="bpTotal">$0</span></div>'+
     '<div class="bp-note" id="bpSpNote" style="display:none"></div>'+
-    '<div class="bp-f" style="margin-top:12px"><label>Nombre / empresa</label><input id="bpCliente" type="text" placeholder="Para tu cotización" style="width:100%"></div>'+
-    '<div class="bp-f" style="margin-top:8px"><label>WhatsApp / teléfono</label><input id="bpTel" type="text" placeholder="Para darte seguimiento" style="width:100%"></div>'+
+    '<div class="bp-f" style="margin-top:12px"><label>Nombre / empresa <span style="color:var(--acc)">*</span></label><input id="bpCliente" type="text" placeholder="Requerido" style="width:100%"></div>'+
+    '<div class="bp-f" style="margin-top:8px"><label>WhatsApp / teléfono <span style="color:var(--acc)">*</span></label><input id="bpTel" type="tel" inputmode="tel" placeholder="Requerido · 10 dígitos" style="width:100%"></div>'+
     '<div class="bp-cta"><button class="bp-btn bp-solid" onclick="bpProposal()">📝 Solicitar cotización + PDF</button>'+
     '<a class="bp-btn bp-wa" id="bpWaBtn" href="#" target="_blank" onclick="return bpWhats()">💬 Enviar por WhatsApp</a></div>'+
-    '<div class="bp-hint">La cotización genera una pre-propuesta. El pago con tarjeta/OXXO/SPEI se habilita al confirmar.</div></aside>'+
+    '<div class="bp-hint">Nombre y WhatsApp son obligatorios. El pago con tarjeta/OXXO/SPEI se habilita al confirmar.</div></aside>'+
 
     '</div></div></div>'+
   '<div id="bpModal" onclick="if(event.target===this)bpCloseModal()"><div id="bpModalInner"></div></div>';
@@ -381,6 +381,15 @@
       notas:'Cotización de proyecto '+state.mode
     };
   }
+  function bpValidateContact(){
+    var nEl=document.getElementById('bpCliente'),tEl=document.getElementById('bpTel');
+    var n=(nEl&&nEl.value.trim())||'',t=(tEl&&tEl.value.trim())||'';
+    if(n.length<3){bpToast('⚠️ Escribe tu nombre o empresa para la cotización.');if(nEl){nEl.focus();nEl.style.borderColor='#e11d48'}return false}
+    var digits=t.replace(/\D/g,'');
+    if(digits.length<10){bpToast('⚠️ Escribe un WhatsApp/teléfono válido (10 dígitos).');if(tEl){tEl.focus();tEl.style.borderColor='#e11d48'}return false}
+    if(nEl)nEl.style.borderColor='';if(tEl)tEl.style.borderColor='';
+    return true;
+  }
   function bpPlanName(){return {ninguno:'Sin plan',basico:'Básico Anual',corporativo:'Corporativo',premium:'Premium'}[state.plan]}
   function bpSaveKey(c){try{return JSON.stringify({m:state.mode,p:state.paints,r:state.res,pl:state.plan,ap:document.getElementById('bpAplOn').checked,aa:document.getElementById('bpAplArea').value,ig:state.igualaciones,cl:(document.getElementById('bpCliente')||{}).value,te:(document.getElementById('bpTel')||{}).value,t:c.total})}catch(e){return Math.random()+''}}
   function bpEnsureSaved(c,cb){
@@ -399,6 +408,7 @@
   }
   window.bpProposal=function(){
     var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega al menos una pintura o servicio.');return}
+    if(!bpValidateContact())return;
     var fecha=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
     var planN=bpPlanName();
     bpEnsureSaved(c,function(folio){
@@ -432,7 +442,7 @@
     lines.push('(Sujeto a inspección)');
     return 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(lines.join('\n'));
   }
-  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega algo a la cotización primero.');return false}bpEnsureSaved(c,function(folio){document.getElementById('bpWaBtn').href=bpWaLink(folio,c)});return true};
+  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega algo a la cotización primero.');return false}if(!bpValidateContact())return false;bpEnsureSaved(c,function(folio){document.getElementById('bpWaBtn').href=bpWaLink(folio,c)});return true};
 
   // auto-montaje (estilos + overlay oculto) al cargar, para que los botones del hero tengan estilo
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',mount);}else{mount();}
