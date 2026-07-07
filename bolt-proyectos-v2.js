@@ -224,7 +224,7 @@
     '<div class="bp-f" style="margin-top:8px"><label>WhatsApp / teléfono <span style="color:var(--acc)">*</span></label><input id="bpTel" type="tel" inputmode="tel" placeholder="Requerido · 10 dígitos" style="width:100%"></div>'+
     '<div class="bp-cta"><button class="bp-btn bp-solid" onclick="bpProposal()">📝 Solicitar cotización + PDF</button>'+
     '<a class="bp-btn bp-wa" id="bpWaBtn" href="#" target="_blank" onclick="return bpWhats()">💬 Enviar por WhatsApp</a></div>'+
-    '<div class="bp-hint">Nombre y WhatsApp son obligatorios. El pago con tarjeta/OXXO/SPEI se habilita al confirmar.</div></aside>'+
+    '<div class="bp-hint">Nombre y WhatsApp son obligatorios. Los precios son estimados y pueden variar según la visita de inspección en sitio. El pago con tarjeta/OXXO/SPEI se habilita al confirmar.</div></aside>'+
 
     '</div></div></div>'+
   '<div id="bpModal" onclick="if(event.target===this)bpCloseModal()"><div id="bpModalInner"></div></div>';
@@ -423,6 +423,7 @@
         '<div class="bp-rr bp-s"><span>Proyecto</span><span>'+(state.mode==='comercial'?'Comercial/Oficinas':'Industrial')+'</span></div><div class="bp-rr bp-s"><span>Plan</span><span>'+planN+'</span></div>'+
         '<hr>'+rows+igu+'<hr><div class="bp-rtot"><span>TOTAL EST.</span><b>'+money(c.total)+'</b></div>'+
         '<div class="bp-rr bp-s" style="margin-top:6px"><span>Pago</span><span>Tarjeta · OXXO · SPEI</span></div>'+
+        '<div style="margin-top:10px;font-size:11px;line-height:1.45;border:1px dashed #bbb;border-radius:8px;padding:8px 10px;color:#333"><b>Aviso importante:</b> Los precios de esta cotización son <b>estimados</b> y pueden variar de acuerdo con la <b>visita de inspección</b> que realicemos en el sitio.</div>'+
         '<div class="bp-rfoot">Sujeta a inspección y validación. Vigencia 15 días.<br>¡Gracias por elegir Bolt Paint!<br>WhatsApp: 686 262 5119</div></div>';
       document.getElementById('bpModal').classList.add('bp-open');
     });
@@ -439,7 +440,7 @@
     bpItems(c).forEach(function(it){lines.push('• '+it[0]+(it[2]?' ('+it[2]+')':'')+': '+it[1])});
     lines.push('Total estimado: '+money(c.total));
     if(state.igualaciones.length)lines.push('Igualaciones: '+state.igualaciones.map(function(s){return s.name}).join(', '));
-    lines.push('(Sujeto a inspección)');
+    lines.push('Nota: precios estimados; pueden variar según la visita de inspección en sitio.');
     return 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(lines.join('\n'));
   }
   window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega algo a la cotización primero.');return false}if(!bpValidateContact())return false;bpEnsureSaved(c,function(folio){document.getElementById('bpWaBtn').href=bpWaLink(folio,c)});return true};
