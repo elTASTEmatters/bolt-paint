@@ -553,6 +553,13 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
 .hero .bp-entry .bp-strip{position:absolute!important;left:0!important;right:0!important;bottom:0!important;height:4px!important}
 .hero .bp-entry.bp-com .bp-strip{background:linear-gradient(90deg,#2F6FE0,#F47A00)!important}
 .hero .bp-entry.bp-ind .bp-strip{background:linear-gradient(90deg,#3C7BC0,#9AA3AF,#F47A00)!important}
+.hero .bp-entry.bp-imp{grid-column:1/-1!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;padding:14px 20px 18px!important}
+.hero .bp-entry.bp-imp .bp-imp-txt{display:block!important;min-width:0!important}
+.hero .bp-entry.bp-imp .bp-tag{color:#ffd48a!important}
+.hero .bp-entry.bp-imp .bp-ep{margin:6px 0 0!important}
+.hero .bp-entry.bp-imp .bp-go{margin:0!important;padding:0!important;flex-shrink:0!important;white-space:nowrap!important}
+.hero .bp-entry.bp-imp .bp-strip{background:linear-gradient(90deg,#F47A00,#FBBF24)!important}
+@media(max-width:560px){.hero .bp-entry.bp-imp{flex-direction:column!important;align-items:flex-start!important}.hero .bp-entry.bp-imp .bp-go{margin-top:10px!important}}
 @media(max-width:1024px){.hero .bp-hero-projects{width:min(62%,640px)!important}}
 @media(max-width:820px){.hero{flex-wrap:wrap!important}.hero .bp-hero-projects{position:static!important;transform:none!important;top:auto!important;right:auto!important;width:100%!important;margin:14px 0 0!important}}
 @media(max-width:560px){.hero .bp-hero-projects{grid-template-columns:1fr!important}}
@@ -612,6 +619,7 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
     <span class="bp-hp-label">⚡ Proyectos a tu medida</span>
     <button class="bp-entry bp-com" onclick="bpOpen('comercial')"><span class="bp-tag">Proyectos</span><span class="bp-et">Comercial y Oficinas</span><span class="bp-ep">Acabados profesionales y duraderos, con mantenimiento garantizado para espacios corporativos.</span><span class="bp-go">Entrar a la sección →</span><span class="bp-strip"></span></button>
     <button class="bp-entry bp-ind" onclick="bpOpen('industrial')"><span class="bp-tag">Proyectos</span><span class="bp-et">Industrial <b>Naves industriales</b></span><span class="bp-ep">Protección y durabilidad de grandes superficies, con soluciones de alto rendimiento.</span><span class="bp-go">Entrar a la sección →</span><span class="bp-strip"></span></button>
+    <button class="bp-entry bp-imp" onclick="bpOpen('impermeabilizacion')"><span class="bp-imp-txt"><span class="bp-tag">Proyectos</span><span class="bp-et">Impermeabilización <b>Techos y losas</b></span><span class="bp-ep">Impermeabilizante acrílico fibratado: protege de humedad, goteras y calor.</span></span><span class="bp-go">Entrar a la sección →</span><span class="bp-strip"></span></button>
   </div>
 </section>
 
@@ -738,6 +746,80 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
   <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
     <a href="ficha-tecnica-PT0030.pdf" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--or),#c2410c);color:#fff;border:none;border-radius:var(--r12);padding:13px 22px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;box-shadow:0 4px 20px rgba(249,115,22,.3);">📄 Descargar hoja técnica (PDF)</a>
     <span style="font-size:12px;color:var(--txt3);">Ficha PT0030 · BPaint Satin</span>
+  </div>
+</section>
+
+<!-- IMPERMEABILIZANTE -->
+<section class="sec" id="impermeabilizante">
+  <div class="sec-hd">
+    <div class="sec-title">💧 Impermeabilizante</div>
+    <span class="sec-link" onclick="window.open('ficha-tecnica-IMP001.pdf','_blank')">Ver ficha técnica →</span>
+  </div>
+  <p style="font-size:14px;color:var(--txt2);line-height:1.55;max-width:640px;margin-bottom:18px;">
+    <b style="color:var(--txt)">Impermeabilizante acrílico fibratado base agua</b> (IMPERMASTER · No. IMP001), elaborado con resinas acrílicas y fibras sintéticas. Impermeabilidad y elasticidad para techos y losas: resiste movimientos normales de la construcción evitando filtraciones de humedad, y retarda la corrosión en superficies metálicas debidamente preparadas. Para cualquier tipo de clima.
+  </p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;">
+    <div style="background:var(--bg3);border:1.5px solid var(--brd);border-radius:var(--r16);padding:14px 15px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:5px;">🪣 Tipo de resina</div>
+      <div style="font-size:15px;font-weight:800;color:var(--txt);">100% Acrílica</div>
+    </div>
+    <div style="background:var(--bg3);border:1.5px solid var(--brd);border-radius:var(--r16);padding:14px 15px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:5px;">✨ Acabado</div>
+      <div style="font-size:15px;font-weight:800;color:var(--txt);">Satinado</div>
+    </div>
+    <div style="background:var(--bg3);border:1.5px solid var(--brd);border-radius:var(--r16);padding:14px 15px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:5px;">🛢 Rendimiento (19 L)</div>
+      <div style="font-size:15px;font-weight:800;color:var(--or2);">16–18 m² con tela</div>
+      <div style="font-size:11px;font-weight:600;color:var(--txt3);">20 m² sin tela de refuerzo</div>
+    </div>
+    <div style="background:var(--bg3);border:1.5px solid var(--brd);border-radius:var(--r16);padding:14px 15px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:5px;">🤸 Elongación</div>
+      <div style="font-size:15px;font-weight:800;color:var(--txt);">&gt; 200%</div>
+    </div>
+    <div style="background:var(--bg3);border:1.5px solid var(--brd);border-radius:var(--r16);padding:14px 15px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:5px;">⏱ Secado al tacto</div>
+      <div style="font-size:15px;font-weight:800;color:var(--txt);">2–3 horas</div>
+    </div>
+    <div style="background:var(--bg3);border:1.5px solid var(--brd);border-radius:var(--r16);padding:14px 15px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:5px;">🎨 Recubrimiento</div>
+      <div style="font-size:15px;font-weight:800;color:var(--txt);">6–24 horas</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;">
+    <span style="font-size:11px;font-weight:600;color:var(--yl);background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:var(--r99);padding:5px 12px;">💧 Protege de humedad y goteras</span>
+    <span style="font-size:11px;font-weight:600;color:var(--txt);background:var(--sur);border:1px solid var(--brd);border-radius:var(--r99);padding:5px 12px;">🌡 Reduce la transmisión de calor (blanco)</span>
+    <span style="font-size:11px;font-weight:600;color:var(--txt);background:var(--sur);border:1px solid var(--brd);border-radius:var(--r99);padding:5px 12px;">☀️ Buena reflectividad a rayos UV (blanco)</span>
+    <span style="font-size:11px;font-weight:600;color:var(--txt);background:var(--sur);border:1px solid var(--brd);border-radius:var(--r99);padding:5px 12px;">🖌 Fácil de aplicar</span>
+    <span style="font-size:11px;font-weight:600;color:var(--gn);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:var(--r99);padding:5px 12px;">🌿 Bajo VOC</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:16px;">
+    <div style="background:var(--bg2);border:1.5px solid var(--brd);border-radius:var(--r16);padding:14px 16px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:6px;">Colores disponibles</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:13px;font-weight:600;color:var(--txt2);">
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;border-radius:5px;background:#F4F4F2;border:1px solid var(--brd);display:inline-block;"></span>Blanco</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;border-radius:5px;background:#8D9298;display:inline-block;"></span>Gris</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:16px;height:16px;border-radius:5px;background:#B8562A;display:inline-block;"></span>Terracota</span>
+      </div>
+    </div>
+    <div style="background:var(--bg2);border:1.5px solid var(--brd);border-radius:var(--r16);padding:14px 16px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:6px;">Presentaciones</div>
+      <div style="font-size:13px;font-weight:600;color:var(--txt2);">🪣 Cubeta (19 L) · 🛢 Galón (3.785 L)</div>
+      <div style="font-size:11px;color:var(--txt3);margin-top:4px;">Lista de precios próximamente · solicita tu cotización</div>
+    </div>
+  </div>
+
+  <div style="background:var(--bg2);border:1.5px solid var(--brd);border-radius:var(--r16);padding:14px 16px;margin-bottom:16px;">
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:6px;">Usos recomendados</div>
+    <div style="font-size:13px;font-weight:500;color:var(--txt2);">Techos y losas de viviendas, oficinas, escuelas y edificios comerciales · Concreto · Lámina galvanizada · Fibrocemento · Ladrillo · Ductos. Se recomienda tela de refuerzo para garantizar el recubrimiento.</div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+    <a href="ficha-tecnica-IMP001.pdf" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--or),#c2410c);color:#fff;border:none;border-radius:var(--r12);padding:13px 22px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;box-shadow:0 4px 20px rgba(249,115,22,.3);">📄 Descargar ficha técnica (PDF)</a>
+    <button onclick="bpOpen('impermeabilizacion')" style="display:inline-flex;align-items:center;gap:8px;background:var(--sur);color:var(--txt);border:1.5px solid var(--brd);border-radius:var(--r12);padding:13px 22px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">🧮 Cotizar impermeabilización →</button>
+    <span style="font-size:12px;color:var(--txt3);">Ficha IMP001 · Impermeabilizante Acrílico Fibratado</span>
   </div>
 </section>
 

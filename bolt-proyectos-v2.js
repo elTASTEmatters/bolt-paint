@@ -14,7 +14,10 @@
 
   // ===== Precios de servicio (referencia · editar aquí o vía admin más adelante) =====
   var PRECIOS_SERVICIOS = {
-    aplicacion:{comercial:50, industrial:50},
+    aplicacion:{comercial:50, industrial:50, impermeabilizacion:50}, // impermeabilizacion: $/m² de referencia — actualizar con la lista de precios
+    // Impermeabilizante acrílico fibratado (Ficha IMP001).
+    // galon/cubeta en $: 0 = "por cotizar" (actualizar cuando llegue la lista de precios).
+    impermeabilizante:{galon:0, cubeta:0, cap_cubeta:19, cap_galon:3.785, rend_con_tela:17, rend_sin_tela:20},
     aislamiento:65,
     resanacion:[
       {k:'grietas',n:'Grietas y fisuras',p:120},
@@ -36,13 +39,16 @@
     comercial:{eye:'Comercial y Oficinas',rate:PRECIOS_SERVICIOS.aplicacion.comercial,doc:'oficinas y espacios comerciales',
       lead:'Acabados profesionales, duraderos y con mantenimiento garantizado para espacios corporativos.'},
     industrial:{eye:'Naves Industriales',rate:PRECIOS_SERVICIOS.aplicacion.industrial,doc:'naves industriales y superficies de alto rendimiento',
-      lead:'Protección y durabilidad de grandes superficies, con soluciones personalizadas de alto rendimiento.'}
+      lead:'Protección y durabilidad de grandes superficies, con soluciones personalizadas de alto rendimiento.'},
+    impermeabilizacion:{eye:'Impermeabilización',rate:PRECIOS_SERVICIOS.aplicacion.impermeabilizacion,doc:'techos y losas',
+      lead:'Impermeabilizante acrílico fibratado (Ficha IMP001) para techos y losas: protección contra humedad, goteras y calor, con o sin tela de refuerzo.'}
   };
+  function bpModeName(){return state.mode==='comercial'?'Comercial/Oficinas':(state.mode==='industrial'?'Industrial':'Impermeabilización')}
 
   var money=function(n){return '$'+Math.round(n).toLocaleString('es-MX')};
   function DPcat(){return (window.DP||[]).map(function(p){return {n:p.nombre,h:p.hex,c:p.cat,litro:p.litro,galon:p.galon,cubeta:p.cubeta}})}
 
-  var state={mode:'comercial',color:0,search:'',cat:'Todos',paints:[],res:{},plan:'ninguno',planInterest:false,igType:'Vinílica',igualaciones:[]};
+  var state={mode:'comercial',color:0,search:'',cat:'Todos',paints:[],res:{},plan:'ninguno',planInterest:false,igType:'Vinílica',igualaciones:[],imps:[],impColor:'Blanco'};
   PRECIOS_SERVICIOS.resanacion.forEach(function(r){state.res[r.k]=0});
 
   // ===== CSS (scoped .bp-) =====
@@ -145,7 +151,7 @@
   '<div class="bp-vars">'+
   '<div class="bp-top">'+
     '<div class="bp-b">Bolt <em>⚡</em> Paint · Proyectos</div>'+
-    '<div class="bp-seg"><button id="bpTcom" aria-pressed="true" onclick="bpOpen(\'comercial\')">Comercial y Oficinas</button><button id="bpTind" aria-pressed="false" onclick="bpOpen(\'industrial\')">Industrial</button></div>'+
+    '<div class="bp-seg"><button id="bpTcom" aria-pressed="true" onclick="bpOpen(\'comercial\')">Comercial y Oficinas</button><button id="bpTind" aria-pressed="false" onclick="bpOpen(\'industrial\')">Industrial</button><button id="bpTimp" aria-pressed="false" onclick="bpOpen(\'impermeabilizacion\')">Impermeabilización</button></div>'+
     '<button class="bp-close" onclick="bpClose()">✕ Volver a la tienda</button>'+
   '</div>'+
   '<div class="bp-wrap">'+
@@ -153,7 +159,7 @@
     '<div class="bp-builder"><div class="bp-steps">'+
 
     // A
-    '<div class="bp-step"><div class="bp-sh"><span class="bp-idx">A</span><h3>Selección y compra de pintura <span class="bp-ref">precio de línea</span></h3></div>'+
+    '<div class="bp-step" id="bpStepPaint"><div class="bp-sh"><span class="bp-idx">A</span><h3>Selección y compra de pintura <span class="bp-ref">precio de línea</span></h3></div>'+
     '<p class="bp-desc">Busca tu color; la calculadora te dice cuántas cubetas, galones y litros necesitas. Puedes agregar varios tonos.</p>'+
     '<div class="bp-srch">🔎 <input id="bpSearch" placeholder="Buscar color por nombre…" oninput="bpOnSearch(this.value)"></div>'+
     '<div class="bp-cats" id="bpCats"></div>'+
@@ -166,6 +172,20 @@
     '<div class="bp-prev" id="bpPrev"></div>'+
     '<div style="margin-top:12px"><button class="bp-add" onclick="bpAddPaint()">+ Agregar este tono</button></div></div>'+
     '<div class="bp-list" id="bpPaintList"></div></div>'+
+
+    // A-IMP (solo modo impermeabilización)
+    '<div class="bp-step" id="bpStepImp" style="display:none"><div class="bp-sh"><span class="bp-idx">A</span><h3>Impermeabilizante acrílico fibratado <span class="bp-ref">Ficha IMP001</span></h3></div>'+
+    '<p class="bp-desc">Elige color y sistema; la calculadora estima cuántas cubetas (19 L) y galones necesitas para tu techo o losa. El precio del material se confirma con la lista de precios.</p>'+
+    '<div class="bp-f" style="margin-top:12px"><label>Color</label><div class="bp-segb" id="bpImpColorSeg">'+
+      '<button data-c="Blanco" aria-pressed="true" onclick="bpImpSetColor(\'Blanco\')">⬜ Blanco</button>'+
+      '<button data-c="Gris" aria-pressed="false" onclick="bpImpSetColor(\'Gris\')">🩶 Gris</button>'+
+      '<button data-c="Terracota" aria-pressed="false" onclick="bpImpSetColor(\'Terracota\')">🟧 Terracota</button></div></div>'+
+    '<label class="bp-tog"><input type="checkbox" id="bpImpTela" checked onchange="bpImpPrev()"> Con tela de refuerzo (recomendado · rinde 16–18 m² por cubeta)</label>'+
+    '<div class="bp-calc"><div style="font-weight:800;font-size:13px;margin-bottom:6px">🧮 Calculadora de impermeabilizante</div>'+
+    '<div class="bp-row"><div class="bp-f"><label>Área de techo / losa (m²)</label><input type="number" id="bpImpArea" value="80" min="0" oninput="bpImpPrev()"></div></div>'+
+    '<div class="bp-prev" id="bpImpPrevBox"></div>'+
+    '<div style="margin-top:12px"><button class="bp-add" onclick="bpAddImp()">+ Agregar impermeabilizante</button></div></div>'+
+    '<div class="bp-list" id="bpImpList"></div></div>'+
 
     // B
     '<div class="bp-step"><div class="bp-sh"><span class="bp-idx">B</span><h3>Servicio de aplicación <span class="bp-ref">precio ref.</span></h3></div>'+
@@ -185,7 +205,7 @@
     '<div class="bp-out">Subtotal: <b id="bpResOut">$0</b> · <span id="bpResCount">0</span> reparaciones</div></div>'+
 
     // D
-    '<div class="bp-step"><div class="bp-sh"><span class="bp-idx">D</span><h3>Planes de mantenimiento</h3></div>'+
+    '<div class="bp-step" id="bpStepPlan"><div class="bp-sh"><span class="bp-idx">D</span><h3>Planes de mantenimiento</h3></div>'+
     '<p class="bp-desc">¿Te interesa un plan con póliza de pintura? Se suma a la cotización.</p>'+
     '<label class="bp-tog"><input type="checkbox" id="bpPlanInt" onchange="bpTogglePlan()"> Sí, me interesa un plan</label>'+
     '<div class="bp-pw" id="bpPw"><div class="bp-plans" id="bpPlans"></div>'+
@@ -195,7 +215,7 @@
     '<div class="bp-out">Subtotal: <b id="bpAisOut">$0</b></div></div></div></div>'+
 
     // E
-    '<div class="bp-step"><div class="bp-sh"><span class="bp-idx">E</span><h3>Solicitud / igualación de pintura especial</h3></div>'+
+    '<div class="bp-step" id="bpStepIg"><div class="bp-sh"><span class="bp-idx">E</span><h3>Solicitud / igualación de pintura especial</h3></div>'+
     '<p class="bp-desc">Solicita la igualación de uno o más tonos. Entre más datos, mejor iguala BPaint Depot.</p>'+
     '<div class="bp-calc"><div class="bp-g2">'+
     '<div class="bp-f bp-full"><label>Nombre del tono</label><input type="text" id="bpIgName" placeholder="Ej. Azul Corporativo BP-Steel" style="width:100%"></div>'+
@@ -248,6 +268,12 @@
     document.getElementById('bpAplRate').value=t.rate;
     document.getElementById('bpTcom').setAttribute('aria-pressed',mode==='comercial');
     document.getElementById('bpTind').setAttribute('aria-pressed',mode==='industrial');
+    var timp=document.getElementById('bpTimp');if(timp)timp.setAttribute('aria-pressed',mode==='impermeabilizacion');
+    var esImp=mode==='impermeabilizacion';
+    var sp=document.getElementById('bpStepPaint');if(sp)sp.style.display=esImp?'none':'';
+    var si=document.getElementById('bpStepImp');if(si)si.style.display=esImp?'':'none';
+    var spl=document.getElementById('bpStepPlan');if(spl)spl.style.display=esImp?'none':'';
+    var sig=document.getElementById('bpStepIg');if(sig)sig.style.display=esImp?'none':'';
     document.body.style.overflow='hidden';
     state.colors=DPcat();if(state.color>=state.colors.length)state.color=0;
     bpBuildCats();bpBuildSws();bpRecompute();
@@ -288,7 +314,48 @@
   window.bpAddPaint=function(){var r=bpCurrentCalc();if(r.cost<=0){alert('Indica un área mayor a 0.');return}state.paints.push({n:r.col.n,h:r.col.h,area:r.area,cub:r.b.cub,gal:r.b.gal,lit:r.b.lit,cost:r.cost});bpRenderPaints();bpRecompute()};
   window.bpRemovePaint=function(i){state.paints.splice(i,1);bpRenderPaints();bpRecompute()};
   function bpRenderPaints(){var el=document.getElementById('bpPaintList');el.innerHTML='';state.paints.forEach(function(p,i){var det=[];if(p.cub)det.push(p.cub+' cub');if(p.gal)det.push(p.gal+' gal');if(p.lit)det.push(p.lit+' L');el.innerHTML+='<div class="bp-li"><span><span class="bp-dot" style="background:'+p.h+'"></span>'+p.n+' <small>· '+p.area+' m² · '+det.join(' + ')+'</small></span><span style="display:flex;gap:12px;align-items:center"><b>'+money(p.cost)+'</b><button onclick="bpRemovePaint('+i+')">✕</button></span></div>'})}
-  function bpAreaTot(){return state.paints.reduce(function(a,p){return a+p.area},0)}
+  function bpAreaTot(){return state.paints.reduce(function(a,p){return a+p.area},0)+state.imps.reduce(function(a,p){return a+p.area},0)}
+
+  // ===== A-IMP (impermeabilizante) =====
+  var IMP_HEX={Blanco:'#F4F4F2',Gris:'#8D9298',Terracota:'#B8562A'};
+  window.bpImpSetColor=function(c){state.impColor=c;document.querySelectorAll('#bpImpColorSeg button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.c===c)});bpImpPrev()};
+  function bpImpPricePending(){var P=PRECIOS_SERVICIOS.impermeabilizante;return !(P.cubeta>0||P.galon>0)}
+  function bpImpCurrent(){
+    var P=PRECIOS_SERVICIOS.impermeabilizante;
+    var areaEl=document.getElementById('bpImpArea');
+    var area=areaEl?(+areaEl.value||0):0;
+    var telaEl=document.getElementById('bpImpTela');
+    var tela=telaEl?telaEl.checked:true;
+    var rend=tela?P.rend_con_tela:P.rend_sin_tela;      // m² por cubeta de 19 L
+    var litros=area*(P.cap_cubeta/rend);                 // litros necesarios
+    var cub=Math.floor(litros/P.cap_cubeta),rem=litros-cub*P.cap_cubeta;
+    var gal=rem>1e-6?Math.ceil(rem/P.cap_galon-1e-6):0;
+    if(gal>=5){cub+=1;gal=0}
+    var cost=cub*P.cubeta+gal*P.galon;
+    return {color:state.impColor,hex:IMP_HEX[state.impColor]||'#ccc',area:area,tela:tela,cub:cub,gal:gal,cost:cost,litros:litros};
+  }
+  window.bpImpPrev=function(){
+    var box=document.getElementById('bpImpPrevBox');if(!box)return;
+    var r=bpImpCurrent();
+    var costTxt=bpImpPricePending()?'<b>por cotizar</b> (precio de lista próximamente)':'<b>'+money(r.cost)+'</b>';
+    box.innerHTML='<span class="bp-dot" style="background:'+r.hex+'"></span><b>'+r.color+'</b> · '+r.area+' m² · '+(r.tela?'con':'sin')+' tela de refuerzo ≈ <b>'+Math.ceil(r.litros)+' L</b><br>Preselección: <b>'+r.cub+'</b> cubeta(s) 19 L · <b>'+r.gal+'</b> galón(es) → '+costTxt;
+  };
+  window.bpAddImp=function(){
+    var r=bpImpCurrent();
+    if(r.area<=0){alert('Indica un área mayor a 0.');return}
+    if(r.cub<=0&&r.gal<=0){alert('El área es muy pequeña; ajusta los m².');return}
+    state.imps.push({color:r.color,hex:r.hex,area:r.area,tela:r.tela,cub:r.cub,gal:r.gal,cost:r.cost});
+    bpRenderImps();bpRecompute();
+  };
+  window.bpRemoveImp=function(i){state.imps.splice(i,1);bpRenderImps();bpRecompute()};
+  function bpRenderImps(){
+    var el=document.getElementById('bpImpList');if(!el)return;el.innerHTML='';
+    state.imps.forEach(function(p,i){
+      var det=[];if(p.cub)det.push(p.cub+' cub');if(p.gal)det.push(p.gal+' gal');
+      var pr=p.cost>0?money(p.cost):'Por cotizar';
+      el.innerHTML+='<div class="bp-li"><span><span class="bp-dot" style="background:'+p.hex+'"></span>Impermeabilizante '+p.color+' <small>· '+p.area+' m² · '+det.join(' + ')+' · '+(p.tela?'con tela':'sin tela')+'</small></span><span style="display:flex;gap:12px;align-items:center"><b>'+pr+'</b><button onclick="bpRemoveImp('+i+')">✕</button></span></div>';
+    });
+  }
 
   // ===== B =====
   window.bpUpdateAplArea=function(){var use=document.getElementById('bpAplCalc').checked,inp=document.getElementById('bpAplArea');if(use){inp.value=bpAreaTot();inp.disabled=true}else{inp.disabled=false}bpRecompute()};
@@ -328,11 +395,14 @@
     var aisArea=+document.getElementById('bpAisArea').value||0,aisRate=+document.getElementById('bpAisRate').value||0;var aislamiento=state.plan==='premium'?aisArea*aisRate:0;
     var pl=PRECIOS_SERVICIOS.planes[state.plan]||{dP:0,dA:0,dI:0};
     var dPint=pintura*pl.dP,dApl=aplicacion*pl.dA,dAis=aislamiento*pl.dI;
-    var total=pintura+aplicacion+resan+aislamiento-dPint-dApl-dAis;
-    return {pintura:pintura,cub:cub,gal:gal,lit:lit,aplOn:aplOn,aplicacion:aplicacion,aplArea:aplArea,resan:resan,aislamiento:aislamiento,aisArea:aisArea,dPint:dPint,dApl:dApl,dAis:dAis,total:total};
+    var impCost=state.imps.reduce(function(a,p){return a+p.cost},0);
+    var impCub=state.imps.reduce(function(a,p){return a+p.cub},0),impGal=state.imps.reduce(function(a,p){return a+p.gal},0);
+    var impArea=state.imps.reduce(function(a,p){return a+p.area},0);
+    var total=pintura+impCost+aplicacion+resan+aislamiento-dPint-dApl-dAis;
+    return {pintura:pintura,cub:cub,gal:gal,lit:lit,aplOn:aplOn,aplicacion:aplicacion,aplArea:aplArea,resan:resan,aislamiento:aislamiento,aisArea:aisArea,dPint:dPint,dApl:dApl,dAis:dAis,impCost:impCost,impCub:impCub,impGal:impGal,impArea:impArea,total:total};
   }
   window.bpRecompute=function(){
-    bpCalcPrev();document.getElementById('bpAreaTot').textContent=bpAreaTot();
+    bpCalcPrev();if(window.bpImpPrev)bpImpPrev();document.getElementById('bpAreaTot').textContent=bpAreaTot();
     if(document.getElementById('bpAplCalc').checked)document.getElementById('bpAplArea').value=bpAreaTot();
     var c=bpCalcAll();
     document.getElementById('bpAplOut').textContent=money(c.aplicacion);
@@ -341,6 +411,7 @@
     var rc=PRECIOS_SERVICIOS.resanacion.reduce(function(a,r){return a+state.res[r.k]},0);document.getElementById('bpResCount').textContent=rc;
     var L=[];
     if(c.pintura>0){var det=[];if(c.cub)det.push(c.cub+' cub');if(c.gal)det.push(c.gal+' gal');if(c.lit)det.push(c.lit+' L');L.push(['Pintura · '+det.join(' + '),money(c.pintura),false])}
+    if(state.imps.length){var di=[];if(c.impCub)di.push(c.impCub+' cub');if(c.impGal)di.push(c.impGal+' gal');L.push(['Impermeabilizante · '+di.join(' + '),c.impCost>0?money(c.impCost):'Por cotizar',false])}
     if(c.aplOn&&c.aplicacion>0)L.push(['Aplicación · '+c.aplArea+' m²',money(c.aplicacion),false]);
     if(c.resan>0)L.push(['Resanación · '+rc+' rep.',money(c.resan),false]);
     if(c.aislamiento>0)L.push(['Aislamiento · '+c.aisArea+' m²',money(c.aislamiento),false]);
@@ -354,11 +425,12 @@
 
   // ===== salida =====
   function bpFolio(){var s='BP-',ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(var i=0;i<6;i++)s+=ch[Math.floor(Math.random()*ch.length)];return s}
-  function bpItems(c){var it=[];if(c.pintura>0){var d=[];if(c.cub)d.push(c.cub+' cub');if(c.gal)d.push(c.gal+' gal');if(c.lit)d.push(c.lit+' L');it.push(['Pintura',money(c.pintura),d.join(' + ')])}if(c.aplOn&&c.aplicacion>0)it.push(['Aplicación',money(c.aplicacion),c.aplArea+' m²']);if(c.resan>0)it.push(['Resanación',money(c.resan),'']);if(c.aislamiento>0)it.push(['Aislamiento',money(c.aislamiento),c.aisArea+' m²']);var dd=c.dPint+c.dApl+c.dAis;if(dd>0)it.push(['Descuento plan','−'+money(dd),'']);return it}
+  function bpItems(c){var it=[];if(c.pintura>0){var d=[];if(c.cub)d.push(c.cub+' cub');if(c.gal)d.push(c.gal+' gal');if(c.lit)d.push(c.lit+' L');it.push(['Pintura',money(c.pintura),d.join(' + ')])}if(state.imps.length){var di=[];if(c.impCub)di.push(c.impCub+' cub');if(c.impGal)di.push(c.impGal+' gal');it.push(['Impermeabilizante',c.impCost>0?money(c.impCost):'Por cotizar',di.join(' + ')+' · '+c.impArea+' m²'])}if(c.aplOn&&c.aplicacion>0)it.push(['Aplicación',money(c.aplicacion),c.aplArea+' m²']);if(c.resan>0)it.push(['Resanación',money(c.resan),'']);if(c.aislamiento>0)it.push(['Aislamiento',money(c.aislamiento),c.aisArea+' m²']);var dd=c.dPint+c.dApl+c.dAis;if(dd>0)it.push(['Descuento plan','−'+money(dd),'']);return it}
   var lastFolio=null;
   function bpItemsNum(c){
     var it=[];
     if(c.pintura>0){var d=[];if(c.cub)d.push(c.cub+' cub');if(c.gal)d.push(c.gal+' gal');if(c.lit)d.push(c.lit+' L');it.push({nombre:'Pintura ('+d.join(' + ')+')',qty:1,pr:Math.round(c.pintura)})}
+    if(state.imps.length){var di=[];if(c.impCub)di.push(c.impCub+' cub');if(c.impGal)di.push(c.impGal+' gal');it.push({nombre:'Impermeabilizante ('+di.join(' + ')+' · '+c.impArea+' m²)'+(c.impCost>0?'':' — por cotizar'),qty:1,pr:Math.round(c.impCost)})}
     if(c.aplOn&&c.aplicacion>0)it.push({nombre:'Aplicación · '+c.aplArea+' m²',qty:1,pr:Math.round(c.aplicacion)});
     if(c.resan>0)it.push({nombre:'Resanación',qty:1,pr:Math.round(c.resan)});
     if(c.aislamiento>0)it.push({nombre:'Aislamiento · '+c.aisArea+' m²',qty:1,pr:Math.round(c.aislamiento)});
@@ -371,11 +443,12 @@
     return {
       id:folio, tipo:'cotizacion', origen:'proyecto', modo:state.mode,
       nombre:name, telefono:tel,
-      direccion:'Cotización '+(state.mode==='comercial'?'Comercial/Oficinas':'Industrial'),
+      direccion:'Cotización '+bpModeName(),
       total:Math.round(c.total), fecha:new Date().toLocaleDateString('es-MX'),
       items:bpItemsNum(c), status:'nueva', pago:'Cotización (por definir)',
       plan:planN,
       paints:state.paints.slice(),
+      impermeabilizantes:state.imps.slice(),
       igualaciones:state.igualaciones.slice(),
       resanacionComentarios:(document.getElementById('bpResCom')&&document.getElementById('bpResCom').value.trim())||'',
       notas:'Cotización de proyecto '+state.mode
@@ -391,7 +464,7 @@
     return true;
   }
   function bpPlanName(){return {ninguno:'Sin plan',basico:'Básico Anual',corporativo:'Corporativo',premium:'Premium'}[state.plan]}
-  function bpSaveKey(c){try{return JSON.stringify({m:state.mode,p:state.paints,r:state.res,pl:state.plan,ap:document.getElementById('bpAplOn').checked,aa:document.getElementById('bpAplArea').value,ig:state.igualaciones,cl:(document.getElementById('bpCliente')||{}).value,te:(document.getElementById('bpTel')||{}).value,t:c.total})}catch(e){return Math.random()+''}}
+  function bpSaveKey(c){try{return JSON.stringify({m:state.mode,p:state.paints,im:state.imps,r:state.res,pl:state.plan,ap:document.getElementById('bpAplOn').checked,aa:document.getElementById('bpAplArea').value,ig:state.igualaciones,cl:(document.getElementById('bpCliente')||{}).value,te:(document.getElementById('bpTel')||{}).value,t:c.total})}catch(e){return Math.random()+''}}
   function bpEnsureSaved(c,cb){
     var key=bpSaveKey(c);
     if(state.savedKey===key&&state.savedFolio){cb(state.savedFolio);return}
@@ -407,7 +480,7 @@
     cb(folio);
   }
   window.bpProposal=function(){
-    var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega al menos una pintura o servicio.');return}
+    var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length&&!state.imps.length){alert('Agrega al menos una pintura, impermeabilizante o servicio.');return}
     if(!bpValidateContact())return;
     var fecha=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
     var planN=bpPlanName();
@@ -420,10 +493,10 @@
         '<div class="bp-rbar"><button class="bp-pdf" onclick="window.print()">⬇️ Descargar PDF</button><a class="bp-wag" href="'+waHref+'" target="_blank">💬 WhatsApp</a><button onclick="bpCloseModal()">✕</button></div>'+
         '<div class="bp-rch"><div class="bp-rlogo">BOLT <em>⚡</em> PAINT</div><div class="bp-rsub">Distribuidor oficial BPaint Depot<br>Mexicali &amp; San Felipe, B.C.</div><div class="bp-rtype">PRE-PROPUESTA · NO FISCAL</div></div>'+
         '<hr><div class="bp-rr bp-s"><span>Folio</span><span>'+folio+'</span></div><div class="bp-rr bp-s"><span>Fecha</span><span>'+fecha+'</span></div>'+
-        '<div class="bp-rr bp-s"><span>Proyecto</span><span>'+(state.mode==='comercial'?'Comercial/Oficinas':'Industrial')+'</span></div><div class="bp-rr bp-s"><span>Plan</span><span>'+planN+'</span></div>'+
+        '<div class="bp-rr bp-s"><span>Proyecto</span><span>'+bpModeName()+'</span></div><div class="bp-rr bp-s"><span>Plan</span><span>'+planN+'</span></div>'+
         '<hr>'+rows+igu+'<hr><div class="bp-rtot"><span>TOTAL EST.</span><b>'+money(c.total)+'</b></div>'+
         '<div class="bp-rr bp-s" style="margin-top:6px"><span>Pago</span><span>Tarjeta · OXXO · SPEI</span></div>'+
-        '<div style="margin-top:10px;font-size:11px;line-height:1.45;border:1px dashed #bbb;border-radius:8px;padding:8px 10px;color:#333"><b>Aviso importante:</b> Los precios de esta cotización son <b>estimados</b> y pueden variar de acuerdo con la <b>visita de inspección</b> que realicemos en el sitio.</div>'+
+        '<div style="margin-top:10px;font-size:11px;line-height:1.45;border:1px dashed #bbb;border-radius:8px;padding:8px 10px;color:#333"><b>Aviso importante:</b> Los precios de esta cotización son <b>estimados</b> y pueden variar de acuerdo con la <b>visita de inspección</b> que realicemos en el sitio.'+((state.imps.length&&c.impCost<=0)?' El material impermeabilizante marcado <b>"por cotizar"</b> no está incluido en el total; te confirmaremos su precio con la lista vigente.':'')+'</div>'+
         '<div class="bp-rfoot">Sujeta a inspección y validación. Vigencia 15 días.<br>¡Gracias por elegir Bolt Paint!<br>WhatsApp: 686 262 5119</div></div>';
       document.getElementById('bpModal').classList.add('bp-open');
     });
@@ -436,14 +509,15 @@
   window.bpCloseModal=function(){document.getElementById('bpModal').classList.remove('bp-open')};
 
   function bpWaLink(folio,c){
-    var lines=['*Bolt Paint · Solicitud de cotización*','Folio: '+folio,'Proyecto: '+(state.mode==='comercial'?'Comercial/Oficinas':'Industrial')];
+    var lines=['*Bolt Paint · Solicitud de cotización*','Folio: '+folio,'Proyecto: '+bpModeName()];
     bpItems(c).forEach(function(it){lines.push('• '+it[0]+(it[2]?' ('+it[2]+')':'')+': '+it[1])});
     lines.push('Total estimado: '+money(c.total));
     if(state.igualaciones.length)lines.push('Igualaciones: '+state.igualaciones.map(function(s){return s.name}).join(', '));
+    if(state.imps.length&&c.impCost<=0)lines.push('Impermeabilizante: precio de material por confirmar (no incluido en el total).');
     lines.push('Nota: precios estimados; pueden variar según la visita de inspección en sitio.');
     return 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(lines.join('\n'));
   }
-  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length){alert('Agrega algo a la cotización primero.');return false}if(!bpValidateContact())return false;bpEnsureSaved(c,function(folio){document.getElementById('bpWaBtn').href=bpWaLink(folio,c)});return true};
+  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length&&!state.imps.length){alert('Agrega algo a la cotización primero.');return false}if(!bpValidateContact())return false;bpEnsureSaved(c,function(folio){document.getElementById('bpWaBtn').href=bpWaLink(folio,c)});return true};
 
   // auto-montaje (estilos + overlay oculto) al cargar, para que los botones del hero tengan estilo
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',mount);}else{mount();}
