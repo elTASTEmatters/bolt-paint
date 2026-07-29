@@ -15,9 +15,10 @@
   // ===== Precios de servicio (referencia · editar aquí o vía admin más adelante) =====
   var PRECIOS_SERVICIOS = {
     aplicacion:{comercial:50, industrial:50, impermeabilizacion:50}, // impermeabilizacion: $/m² de referencia — actualizar con la lista de precios
-    // Impermeabilizante acrílico fibratado (Ficha IMP001).
-    // galon/cubeta en $: 0 = "por cotizar" (actualizar cuando llegue la lista de precios).
-    impermeabilizante:{galon:0, cubeta:0, cap_cubeta:19, cap_galon:3.785, rend_con_tela:17, rend_sin_tela:20},
+    // Impermeabilizante acrílico fibratado (Ficha IMP001/002/003 · Blanco/Gris/Terracota).
+    // cubeta 19 L: $1,109 (plantilla master RENATO 29-jul-2026). galon:0 = SIN presentación de galón por ahora
+    // (si en el futuro hay galón, poner aquí su precio y la calculadora lo vuelve a combinar sola).
+    impermeabilizante:{galon:0, cubeta:1109, cap_cubeta:19, cap_galon:3.785, rend_con_tela:17, rend_sin_tela:20},
     aislamiento:65,
     resanacion:[
       {k:'grietas',n:'Grietas y fisuras',p:120},
@@ -175,7 +176,7 @@
 
     // A-IMP (solo modo impermeabilización)
     '<div class="bp-step" id="bpStepImp" style="display:none"><div class="bp-sh"><span class="bp-idx">A</span><h3>Impermeabilizante acrílico fibratado <span class="bp-ref">Ficha IMP001</span></h3></div>'+
-    '<p class="bp-desc">Elige color y sistema; la calculadora estima cuántas cubetas (19 L) y galones necesitas para tu techo o losa. El precio del material se confirma con la lista de precios.</p>'+
+    '<p class="bp-desc">Elige color y sistema; la calculadora estima cuántas cubetas de 19 L necesitas para tu techo o losa. Disponible en cubeta de 19 L ('+money(PRECIOS_SERVICIOS.impermeabilizante.cubeta)+' c/u) en Blanco, Gris y Terracota.</p>'+
     '<div class="bp-f" style="margin-top:12px"><label>Color</label><div class="bp-segb" id="bpImpColorSeg">'+
       '<button data-c="Blanco" aria-pressed="true" onclick="bpImpSetColor(\'Blanco\')">⬜ Blanco</button>'+
       '<button data-c="Gris" aria-pressed="false" onclick="bpImpSetColor(\'Gris\')">🩶 Gris</button>'+
@@ -328,9 +329,14 @@
     var tela=telaEl?telaEl.checked:true;
     var rend=tela?P.rend_con_tela:P.rend_sin_tela;      // m² por cubeta de 19 L
     var litros=area*(P.cap_cubeta/rend);                 // litros necesarios
-    var cub=Math.floor(litros/P.cap_cubeta),rem=litros-cub*P.cap_cubeta;
-    var gal=rem>1e-6?Math.ceil(rem/P.cap_galon-1e-6):0;
-    if(gal>=5){cub+=1;gal=0}
+    var cub,gal;
+    if(P.galon>0){ // hay presentación de galón: combinar cubetas + galones
+      cub=Math.floor(litros/P.cap_cubeta);var rem=litros-cub*P.cap_cubeta;
+      gal=rem>1e-6?Math.ceil(rem/P.cap_galon-1e-6):0;
+      if(gal>=5){cub+=1;gal=0}
+    }else{ // solo presentación de cubeta 19 L: redondear hacia arriba
+      cub=litros>1e-6?Math.ceil(litros/P.cap_cubeta-1e-6):0;gal=0;
+    }
     var cost=cub*P.cubeta+gal*P.galon;
     return {color:state.impColor,hex:IMP_HEX[state.impColor]||'#ccc',area:area,tela:tela,cub:cub,gal:gal,cost:cost,litros:litros};
   }
@@ -338,7 +344,8 @@
     var box=document.getElementById('bpImpPrevBox');if(!box)return;
     var r=bpImpCurrent();
     var costTxt=bpImpPricePending()?'<b>por cotizar</b> (precio de lista próximamente)':'<b>'+money(r.cost)+'</b>';
-    box.innerHTML='<span class="bp-dot" style="background:'+r.hex+'"></span><b>'+r.color+'</b> · '+r.area+' m² · '+(r.tela?'con':'sin')+' tela de refuerzo ≈ <b>'+Math.ceil(r.litros)+' L</b><br>Preselección: <b>'+r.cub+'</b> cubeta(s) 19 L · <b>'+r.gal+'</b> galón(es) → '+costTxt;
+    var detTxt='<b>'+r.cub+'</b> cubeta(s) 19 L'+(r.gal?' · <b>'+r.gal+'</b> galón(es)':'');
+    box.innerHTML='<span class="bp-dot" style="background:'+r.hex+'"></span><b>'+r.color+'</b> · '+r.area+' m² · '+(r.tela?'con':'sin')+' tela de refuerzo ≈ <b>'+Math.ceil(r.litros)+' L</b><br>Preselección: '+detTxt+' → '+costTxt;
   };
   window.bpAddImp=function(){
     var r=bpImpCurrent();
