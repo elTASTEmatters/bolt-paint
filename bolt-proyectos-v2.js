@@ -47,7 +47,7 @@
   function bpModeName(){return state.mode==='comercial'?'Comercial/Oficinas':(state.mode==='industrial'?'Industrial':'Impermeabilización')}
 
   var money=function(n){return '$'+Math.round(n).toLocaleString('es-MX')};
-  function DPcat(){return (window.DP||[]).map(function(p){return {n:p.nombre,h:p.hex,c:p.cat,litro:p.litro,galon:p.galon,cubeta:p.cubeta}})}
+  function DPcat(){return (window.DP||[]).filter(function(p){return (p.linea||'')!=='IMPERMEABILIZANTE'}).map(function(p){return {n:p.nombre,h:p.hex,c:p.cat,litro:p.litro,galon:p.galon,cubeta:p.cubeta}})}
 
   var state={mode:'comercial',color:0,search:'',cat:'Todos',paints:[],res:{},plan:'ninguno',planInterest:false,igType:'Vinílica',igualaciones:[],imps:[],impColor:'Blanco'};
   PRECIOS_SERVICIOS.resanacion.forEach(function(r){state.res[r.k]=0});
