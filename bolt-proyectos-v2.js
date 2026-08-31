@@ -36,6 +36,9 @@
   };
   var WA_NUMBER='526862625119';
 
+  // ===== Garantías del servicio (basadas en fichas técnicas IMP001 / PT0030) =====
+  var GARANTIAS={impTela:'5 años',impSinTela:'3 años',pintura:'1 año'};
+
   var MODE_TXT={
     comercial:{eye:'Comercial y Oficinas',rate:PRECIOS_SERVICIOS.aplicacion.comercial,doc:'oficinas y espacios comerciales',
       lead:'Acabados profesionales, duraderos y con mantenimiento garantizado para espacios corporativos.'},
@@ -145,6 +148,20 @@
   '.bp-rc .bp-rfoot{text-align:center;font-size:11px;color:#555;margin-top:11px}.bp-rc .bp-rbar{display:flex;gap:10px;justify-content:center;margin-bottom:12px;flex-wrap:wrap}'+
   '.bp-rc .bp-rbar button,.bp-rc .bp-rbar a{font-family:"Archivo",sans-serif;font-weight:700;font-size:12px;border-radius:8px;padding:8px 12px;cursor:pointer;border:1px solid #ddd;background:#fff;color:#111;text-decoration:none}'+
   '.bp-rc .bp-rbar .bp-pdf{background:#F47A00;border-color:#F47A00;color:#1a0f00}.bp-rc .bp-rbar .bp-wag{background:#25d366;border-color:#25d366;color:#fff}'+
+  // presupuesto / pre-orden: checklist, validación de resanes y carta de garantía
+  '.bp-rc .bp-sec{font-weight:700;font-size:11px;letter-spacing:.8px;text-transform:uppercase;margin:12px 0 5px;color:#F47A00}'+
+  '.bp-rc .bp-ck{display:flex;gap:7px;align-items:flex-start;margin:4px 0;font-size:11.5px;page-break-inside:avoid}'+
+  '.bp-rc .bp-ckb{width:12px;height:12px;border:1.5px solid #333;border-radius:3px;flex:none;margin-top:1px}'+
+  '.bp-rc .bp-ck small{display:block;color:#777;font-size:10px}'+
+  '.bp-rc table.bp-tv{width:100%;border-collapse:collapse;font-size:10.5px;margin-top:4px;page-break-inside:avoid}'+
+  '.bp-rc .bp-tv th,.bp-rc .bp-tv td{border:1px solid #ddd;padding:4px 5px;text-align:left;vertical-align:top}'+
+  '.bp-rc .bp-tv th{background:#faf8f4;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px}'+
+  '.bp-rc .bp-gar{margin-top:12px;border:2px solid #F47A00;border-radius:10px;padding:12px;background:#FFFBF6;page-break-inside:avoid}'+
+  '.bp-rc .bp-gar h5{margin:0 0 5px;font-family:"Syne","Archivo",sans-serif;font-size:13px;letter-spacing:.3px}'+
+  '.bp-rc .bp-gar p,.bp-rc .bp-gar li{font-size:10.5px;line-height:1.5;margin:4px 0;color:#222}'+
+  '.bp-rc .bp-gar ul{margin:3px 0;padding-left:15px}'+
+  '.bp-rc .bp-sello{margin-top:12px;display:flex;justify-content:space-between;gap:10px}'+
+  '.bp-rc .bp-firma{border-top:1px solid #333;padding-top:3px;font-size:9.5px;color:#555;width:46%;text-align:center}'+
   '@media print{body>*{visibility:hidden!important}#bpModal,#bpModal *{visibility:visible!important}#bpModal{position:absolute;background:#fff;padding:0}.bp-rbar{display:none!important}.bp-rc{box-shadow:none}}';
 
   // ===== overlay HTML =====
@@ -245,7 +262,7 @@
     '<div class="bp-f" style="margin-top:8px"><label>WhatsApp / teléfono <span style="color:var(--acc)">*</span></label><input id="bpTel" type="tel" inputmode="tel" placeholder="Requerido · 10 dígitos" style="width:100%"></div>'+
     '<div class="bp-cta"><button class="bp-btn bp-solid" onclick="bpProposal()">📝 Solicitar cotización + PDF</button>'+
     '<a class="bp-btn bp-wa" id="bpWaBtn" href="#" target="_blank" onclick="return bpWhats()">💬 Enviar por WhatsApp</a></div>'+
-    '<div class="bp-hint">Nombre y WhatsApp son obligatorios. Los precios son estimados y pueden variar según la visita de inspección en sitio. El pago con tarjeta/OXXO/SPEI se habilita al confirmar.</div></aside>'+
+    '<div class="bp-hint">Nombre y WhatsApp son obligatorios. Al enviar por WhatsApp se descarga el PDF del presupuesto para adjuntarlo al chat. Los precios son estimados y pueden variar según la visita de inspección en sitio. El pago con tarjeta/OXXO/SPEI se habilita al confirmar.</div></aside>'+
 
     '</div></div></div>'+
   '<div id="bpModal" onclick="if(event.target===this)bpCloseModal()"><div id="bpModalInner"></div></div>';
@@ -486,6 +503,82 @@
     }else{bpToast('⚠️ Firebase no está listo aún; recarga la página e intenta de nuevo.')}
     cb(folio);
   }
+  function bpEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+  // ---- Sección 2: checklist de validación de área ----
+  function bpChecklistHTML(c){
+    var areaDecl=bpAreaTot()||c.aplArea||0;
+    var items=[
+      ['Medición real del área (m²)','declarado: '+areaDecl+' m² · medido en sitio: ____ m²'],
+      ['Tipo de superficie','concreto · lámina galvanizada · fibrocemento · ladrillo · yeso/tablaroca · otro'],
+      ['Estado general de la superficie','limpia y firme · con recubrimiento anterior · requiere lavado/raspado'],
+      ['Pendientes y desagües funcionando','sin encharcamientos permanentes (techos y losas)'],
+      ['Humedad atrapada o filtraciones activas','requiere secado antes de aplicar'],
+      ['Accesos y altura de trabajo','escalera · andamio · equipo de seguridad'],
+      ['Instalaciones en el área','tinacos, minisplits, ductos, mobiliario a proteger o mover'],
+      ['Clima previsto para la aplicación','sin lluvia en las siguientes 24 h · temperatura mayor a 10 °C']
+    ];
+    return '<hr><div class="bp-sec">2 · Checklist de validación de área</div>'+
+      '<div class="bp-rr bp-s"><span>Se completa en la visita de inspección; confirma m² y condiciones reales.</span></div>'+
+      items.map(function(it){return '<div class="bp-ck"><span class="bp-ckb"></span><span>'+it[0]+'<small>'+it[1]+'</small></span></div>'}).join('');
+  }
+
+  // ---- Sección 3: validación de áreas a mejorar / resanar ----
+  function bpResValHTML(c){
+    var com=(document.getElementById('bpResCom')||{value:''}).value.trim();
+    var rows=PRECIOS_SERVICIOS.resanacion.map(function(r){
+      var n=state.res[r.k]||0;
+      return '<tr><td>'+r.n+'</td><td>'+(n?n+' (cliente)':'—')+'</td><td>__ por validar</td><td style="text-align:right;white-space:nowrap">'+money(r.p)+' c/u</td></tr>';
+    }).join('');
+    return '<div class="bp-sec">3 · Validación de áreas a mejorar / resanar</div>'+
+      '<div class="bp-rr bp-s"><span>Lo declarado se valida en la inspección; el costo final del servicio se ajusta con esta tabla.</span></div>'+
+      '<table class="bp-tv"><tr><th>Concepto</th><th>Declarado</th><th>En sitio</th><th>$ ref.</th></tr>'+rows+'</table>'+
+      (com?'<div class="bp-rr bp-s" style="margin-top:5px"><span><b>Comentarios del cliente:</b> '+bpEsc(com)+'</span></div>':'')+
+      '<div style="margin-top:8px;font-size:10.5px;line-height:1.45;border:1px dashed #bbb;border-radius:8px;padding:7px 9px;color:#333"><b>Aviso:</b> los precios de este presupuesto son <b>estimados</b> y pueden variar según la visita de inspección en sitio. El costo del servicio se confirma al llenar y firmar esta validación.'+((state.imps.length&&c.impCost<=0)?' El material impermeabilizante marcado <b>"por cotizar"</b> no está incluido en el total; te confirmaremos su precio con la lista vigente.':'')+'</div>';
+  }
+
+  // ---- Carta de garantía del servicio (fichas IMP001 / PT0030) ----
+  function bpGarantiaHTML(c){
+    var li='';
+    if(state.imps.length){
+      li+='<li><b>Impermeabilización (Ficha IMP001 · IMPERMASTER):</b> impermeabilizante acrílico fibratado, elongación &gt; 200 %, rendimiento 16–18 m²/cubeta con tela de refuerzo. Garantía de <b>'+GARANTIAS.impTela+' con tela de refuerzo</b> · <b>'+GARANTIAS.impSinTela+' sin tela</b>, contra filtraciones de humedad y desprendimiento del recubrimiento.</li>';
+    }
+    if(state.paints.length){
+      li+='<li><b>Pintura (Ficha PT0030 · BPaint Satin):</b> 100 % acrílica base agua, lavable y tallable, resistente a humedad y abrasión. Garantía de <b>'+GARANTIAS.pintura+'</b> contra desprendimiento, caleo y desvanecimiento prematuro en aplicación a 2 manos.</li>';
+    }
+    if(!li&&c.aplicacion>0){
+      li+='<li><b>Servicio de aplicación:</b> mano de obra garantizada por <b>'+GARANTIAS.pintura+'</b> contra defectos de aplicación, utilizando materiales que cumplan la ficha técnica del fabricante.</li>';
+    }
+    if(!li)return '';
+    return '<div class="bp-gar"><h5>🛡 CARTA DE GARANTÍA <em style="color:#F47A00;font-style:normal">DEL SERVICIO</em></h5>'+
+      '<p><b>Bolt Paint</b> garantiza el servicio de aplicación amparado por este folio, con base en las especificaciones técnicas de los productos utilizados:</p><ul>'+li+'</ul>'+
+      '<p><b>Condiciones de validez:</b></p><ul>'+
+      '<li>Superficie preparada y resanes ejecutados según las secciones 2 y 3 de este documento.</li>'+
+      '<li>Aplicación realizada por personal de Bolt Paint respetando los tiempos de secado de ficha técnica (IMP001: 2–3 h al tacto, recubrimiento 6–24 h · PT0030: repintado a 2 h).</li>'+
+      '<li>No cubre daños estructurales, movimientos de construcción que excedan la elongación del producto, granizo severo, ni modificaciones posteriores hechas por terceros.</li></ul>'+
+      '<div class="bp-sello"><div class="bp-firma">Bolt Paint · Responsable del servicio</div><div class="bp-firma">Cliente · Conformidad</div></div></div>';
+  }
+
+  // ---- Documento completo: PRESUPUESTO · PRE-ORDEN DE COMPRA ----
+  function bpDocHTML(folio,c,fecha,planN){
+    var rows=bpItems(c).map(function(it){return '<div class="bp-rit"><div class="bp-l1"><span>'+it[0]+'</span><span>'+it[1]+'</span></div>'+(it[2]?'<div class="bp-l2">'+it[2]+'</div>':'')+'</div>'}).join('');
+    var igu=state.igualaciones.length?'<div class="bp-rr bp-s" style="margin-top:6px"><b>Igualaciones (por cotizar)</b></div>'+state.igualaciones.map(function(s){return '<div class="bp-rr bp-s"><span>• '+bpEsc(s.name)+'</span><span>'+bpEsc(s.type)+'</span></div>'}).join(''):'';
+    var name=((document.getElementById('bpCliente')||{}).value||'').trim();
+    var tel=((document.getElementById('bpTel')||{}).value||'').trim();
+    return ''+
+      '<div class="bp-rch"><div class="bp-rlogo">BOLT <em>⚡</em> PAINT</div><div class="bp-rsub">Distribuidor oficial BPaint Depot<br>Mexicali &amp; San Felipe, B.C.</div><div class="bp-rtype">PRESUPUESTO · PRE-ORDEN DE COMPRA</div><div style="font-size:10px;color:#777;margin-top:4px">Documento no fiscal · sujeto a validación en sitio</div></div>'+
+      '<hr><div class="bp-rr bp-s"><span>Folio</span><span>'+folio+'</span></div><div class="bp-rr bp-s"><span>Fecha</span><span>'+fecha+'</span></div>'+
+      '<div class="bp-rr bp-s"><span>Proyecto</span><span>'+bpModeName()+'</span></div><div class="bp-rr bp-s"><span>Plan</span><span>'+planN+'</span></div>'+
+      (name?'<div class="bp-rr bp-s"><span>Cliente</span><span>'+bpEsc(name)+'</span></div>':'')+
+      (tel?'<div class="bp-rr bp-s"><span>WhatsApp cliente</span><span>'+bpEsc(tel)+'</span></div>':'')+
+      '<div class="bp-rr bp-s"><span>Vigencia</span><span>15 días</span></div>'+
+      '<div class="bp-sec">1 · Partidas del presupuesto</div>'+rows+igu+
+      '<hr><div class="bp-rtot"><span>TOTAL EST.</span><b>'+money(c.total)+'</b></div>'+
+      '<div class="bp-rr bp-s" style="margin-top:6px"><span>Pago al confirmar</span><span>Tarjeta · OXXO · SPEI</span></div>'+
+      bpChecklistHTML(c)+bpResValHTML(c)+bpGarantiaHTML(c)+
+      '<div class="bp-rfoot">Pre-orden sujeta a inspección y validación en sitio · Vigencia 15 días.<br>¡Gracias por elegir Bolt Paint!<br>WhatsApp: 686 262 5119</div>';
+  }
+
   window.bpProposal=function(){
     var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length&&!state.imps.length){alert('Agrega al menos una pintura, impermeabilizante o servicio.');return}
     if(!bpValidateContact())return;
@@ -493,21 +586,63 @@
     var planN=bpPlanName();
     bpEnsureSaved(c,function(folio){
       lastFolio=folio;
-      var rows=bpItems(c).map(function(it){return '<div class="bp-rit"><div class="bp-l1"><span>'+it[0]+'</span><span>'+it[1]+'</span></div>'+(it[2]?'<div class="bp-l2">'+it[2]+'</div>':'')+'</div>'}).join('');
-      var igu=state.igualaciones.length?'<hr><div class="bp-rr bp-s"><b>Igualaciones (por cotizar)</b></div>'+state.igualaciones.map(function(s){return '<div class="bp-rr bp-s"><span>• '+s.name+'</span><span>'+s.type+'</span></div>'}).join(''):'';
       var waHref=bpWaLink(folio,c);
       document.getElementById('bpModalInner').innerHTML='<div class="bp-rc">'+
-        '<div class="bp-rbar"><button class="bp-pdf" onclick="window.print()">⬇️ Descargar PDF</button><a class="bp-wag" href="'+waHref+'" target="_blank">💬 WhatsApp</a><button onclick="bpCloseModal()">✕</button></div>'+
-        '<div class="bp-rch"><div class="bp-rlogo">BOLT <em>⚡</em> PAINT</div><div class="bp-rsub">Distribuidor oficial BPaint Depot<br>Mexicali &amp; San Felipe, B.C.</div><div class="bp-rtype">PRE-PROPUESTA · NO FISCAL</div></div>'+
-        '<hr><div class="bp-rr bp-s"><span>Folio</span><span>'+folio+'</span></div><div class="bp-rr bp-s"><span>Fecha</span><span>'+fecha+'</span></div>'+
-        '<div class="bp-rr bp-s"><span>Proyecto</span><span>'+bpModeName()+'</span></div><div class="bp-rr bp-s"><span>Plan</span><span>'+planN+'</span></div>'+
-        '<hr>'+rows+igu+'<hr><div class="bp-rtot"><span>TOTAL EST.</span><b>'+money(c.total)+'</b></div>'+
-        '<div class="bp-rr bp-s" style="margin-top:6px"><span>Pago</span><span>Tarjeta · OXXO · SPEI</span></div>'+
-        '<div style="margin-top:10px;font-size:11px;line-height:1.45;border:1px dashed #bbb;border-radius:8px;padding:8px 10px;color:#333"><b>Aviso importante:</b> Los precios de esta cotización son <b>estimados</b> y pueden variar de acuerdo con la <b>visita de inspección</b> que realicemos en el sitio.'+((state.imps.length&&c.impCost<=0)?' El material impermeabilizante marcado <b>"por cotizar"</b> no está incluido en el total; te confirmaremos su precio con la lista vigente.':'')+'</div>'+
-        '<div class="bp-rfoot">Sujeta a inspección y validación. Vigencia 15 días.<br>¡Gracias por elegir Bolt Paint!<br>WhatsApp: 686 262 5119</div></div>';
+        '<div class="bp-rbar"><button class="bp-pdf" onclick="bpPdf()">⬇️ Descargar PDF</button><a class="bp-wag" href="'+waHref+'" target="_blank" onclick="bpPdf()">💬 WhatsApp</a><button onclick="bpCloseModal()">✕</button></div>'+
+        bpDocHTML(folio,c,fecha,planN)+'</div>';
       document.getElementById('bpModal').classList.add('bp-open');
     });
   };
+
+  // ---- PDF (html2pdf con fallback a imprimir) ----
+  var PDF_LIB='html2pdf.bundle.min.js'; // vendoreado en el repo (html2pdf.js 0.10.1)
+  function bpLoadPdfLib(cb){
+    if(window.html2pdf){cb(true);return}
+    if(bpLoadPdfLib._q){bpLoadPdfLib._q.push(cb);return}
+    bpLoadPdfLib._q=[cb];
+    var s=document.createElement('script');s.src=PDF_LIB;
+    s.onload=function(){var q=bpLoadPdfLib._q;bpLoadPdfLib._q=null;q.forEach(function(f){f(!!window.html2pdf)})};
+    s.onerror=function(){var q=bpLoadPdfLib._q;bpLoadPdfLib._q=null;q.forEach(function(f){f(false)})};
+    document.head.appendChild(s);
+  }
+  function bpPdfFromEl(el,folio,done,noPrintFallback){
+    bpLoadPdfLib(function(ok){
+      if(!ok||!window.html2pdf){
+        if(noPrintFallback){bpToast('⚠️ No se pudo generar el PDF automático; usa "Solicitar cotización + PDF".')}else{window.print()}
+        if(done)done(false);return;
+      }
+      var n=el.cloneNode(true);var bar=n.querySelector('.bp-rbar');if(bar)bar.remove();
+      n.style.boxShadow='none';
+      window.html2pdf().set({
+        margin:[10,12,12,12],
+        filename:'Presupuesto-'+folio+'.pdf',
+        image:{type:'jpeg',quality:0.95},
+        html2canvas:{scale:2,useCORS:true},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+        pagebreak:{mode:['css','legacy']}
+      }).from(n).save().then(function(){
+        bpToast('📎 PDF descargado: Presupuesto-'+folio+'.pdf — adjúntalo en el chat de WhatsApp');
+        if(done)done(true);
+      }).catch(function(e){
+        console.error('bpPdf:',e);
+        if(noPrintFallback){bpToast('⚠️ No se pudo generar el PDF automático; usa "Solicitar cotización + PDF".')}else{window.print()}
+        if(done)done(false);
+      });
+    });
+  }
+  window.bpPdf=function(){
+    var el=document.querySelector('#bpModalInner .bp-rc');
+    if(!el){window.print();return}
+    bpPdfFromEl(el,lastFolio||'BoltPaint');
+  };
+  function bpPdfSilent(folio,c){
+    var fecha=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
+    var host=document.createElement('div');
+    host.style.cssText='position:absolute;left:-10000px;top:0;width:440px;background:#fff';
+    host.innerHTML='<div class="bp-rc" style="box-shadow:none">'+bpDocHTML(folio,c,fecha,bpPlanName())+'</div>';
+    document.body.appendChild(host);
+    bpPdfFromEl(host.firstChild,folio,function(){try{host.remove()}catch(e){}},true);
+  }
   function bpToast(msg){
     var t=document.getElementById('bpToast');
     if(!t){t=document.createElement('div');t.id='bpToast';t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#16181d;color:#fff;border:1px solid #2a2f37;border-radius:12px;padding:13px 18px;font-family:Archivo,system-ui,sans-serif;font-size:14px;z-index:800;box-shadow:0 18px 40px rgba(0,0,0,.5);max-width:92vw';document.body.appendChild(t)}
@@ -516,15 +651,22 @@
   window.bpCloseModal=function(){document.getElementById('bpModal').classList.remove('bp-open')};
 
   function bpWaLink(folio,c){
-    var lines=['*Bolt Paint · Solicitud de cotización*','Folio: '+folio,'Proyecto: '+bpModeName()];
+    var name=((document.getElementById('bpCliente')||{}).value||'').trim();
+    var tel=((document.getElementById('bpTel')||{}).value||'').trim();
+    var lines=['*Bolt Paint · PRESUPUESTO / PRE-ORDEN DE COMPRA*','Folio: '+folio,'Proyecto: '+bpModeName()];
+    if(name)lines.push('Cliente: '+name+(tel?' · '+tel:''));
     bpItems(c).forEach(function(it){lines.push('• '+it[0]+(it[2]?' ('+it[2]+')':'')+': '+it[1])});
     lines.push('Total estimado: '+money(c.total));
     if(state.igualaciones.length)lines.push('Igualaciones: '+state.igualaciones.map(function(s){return s.name}).join(', '));
     if(state.imps.length&&c.impCost<=0)lines.push('Impermeabilizante: precio de material por confirmar (no incluido en el total).');
+    lines.push('✅ Checklist de validación de área: pendiente (visita de inspección)');
+    lines.push('🔧 Resanes por validar en sitio para confirmar el costo del servicio');
+    lines.push('🛡 Incluye carta de garantía del servicio'+(state.imps.length?' ('+GARANTIAS.impTela+' con tela / '+GARANTIAS.impSinTela+' sin tela)':''));
+    lines.push('📎 Adjunta a este chat el PDF descargado: Presupuesto-'+folio+'.pdf');
     lines.push('Nota: precios estimados; pueden variar según la visita de inspección en sitio.');
     return 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(lines.join('\n'));
   }
-  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length&&!state.imps.length){alert('Agrega algo a la cotización primero.');return false}if(!bpValidateContact())return false;bpEnsureSaved(c,function(folio){document.getElementById('bpWaBtn').href=bpWaLink(folio,c)});return true};
+  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length&&!state.imps.length){alert('Agrega algo a la cotización primero.');return false}if(!bpValidateContact())return false;bpEnsureSaved(c,function(folio){lastFolio=folio;document.getElementById('bpWaBtn').href=bpWaLink(folio,c);bpPdfSilent(folio,c)});return true};
 
   // auto-montaje (estilos + overlay oculto) al cargar, para que los botones del hero tengan estilo
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',mount);}else{mount();}
