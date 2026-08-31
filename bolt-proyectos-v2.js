@@ -38,6 +38,10 @@
 
   // ===== Garantías del servicio (basadas en fichas técnicas IMP001 / PT0030) =====
   var GARANTIAS={impTela:'5 años',impSinTela:'3 años',pintura:'1 año'};
+  // i18n: T() traduce al inglés cuando el visitante eligió EN (i18n-en.js); si no, devuelve el texto tal cual
+  function T(s){return (window.bpI18n&&window.bpI18n.lang==='en')?window.bpI18n.t(s):s}
+  function bpLocale(){return window.bpI18n?window.bpI18n.locale():'es-MX'}
+  function bpAlert(m){alert(T(m))}
 
   var MODE_TXT={
     comercial:{eye:'Comercial y Oficinas',rate:PRECIOS_SERVICIOS.aplicacion.comercial,doc:'oficinas y espacios comerciales',
@@ -329,7 +333,7 @@
     var r=bpCurrentCalc();
     document.getElementById('bpPrev').innerHTML='<span class="bp-dot" style="background:'+r.col.h+'"></span><b>'+r.col.n+'</b> · '+r.area+' m² × '+r.coats+' manos ≈ <b>'+r.L+' L</b><br>Preselección: <b>'+r.b.cub+'</b> cubeta(s) · <b>'+r.b.gal+'</b> galón(es) · <b>'+r.b.lit+'</b> litro(s) (cubre ~'+r.provided+' L) → <b>'+money(r.cost)+'</b>';
   };
-  window.bpAddPaint=function(){var r=bpCurrentCalc();if(r.cost<=0){alert('Indica un área mayor a 0.');return}state.paints.push({n:r.col.n,h:r.col.h,area:r.area,cub:r.b.cub,gal:r.b.gal,lit:r.b.lit,cost:r.cost});bpRenderPaints();bpRecompute()};
+  window.bpAddPaint=function(){var r=bpCurrentCalc();if(r.cost<=0){bpAlert('Indica un área mayor a 0.');return}state.paints.push({n:r.col.n,h:r.col.h,area:r.area,cub:r.b.cub,gal:r.b.gal,lit:r.b.lit,cost:r.cost});bpRenderPaints();bpRecompute()};
   window.bpRemovePaint=function(i){state.paints.splice(i,1);bpRenderPaints();bpRecompute()};
   function bpRenderPaints(){var el=document.getElementById('bpPaintList');el.innerHTML='';state.paints.forEach(function(p,i){var det=[];if(p.cub)det.push(p.cub+' cub');if(p.gal)det.push(p.gal+' gal');if(p.lit)det.push(p.lit+' L');el.innerHTML+='<div class="bp-li"><span><span class="bp-dot" style="background:'+p.h+'"></span>'+p.n+' <small>· '+p.area+' m² · '+det.join(' + ')+'</small></span><span style="display:flex;gap:12px;align-items:center"><b>'+money(p.cost)+'</b><button onclick="bpRemovePaint('+i+')">✕</button></span></div>'})}
   function bpAreaTot(){return state.paints.reduce(function(a,p){return a+p.area},0)+state.imps.reduce(function(a,p){return a+p.area},0)}
@@ -366,8 +370,8 @@
   };
   window.bpAddImp=function(){
     var r=bpImpCurrent();
-    if(r.area<=0){alert('Indica un área mayor a 0.');return}
-    if(r.cub<=0&&r.gal<=0){alert('El área es muy pequeña; ajusta los m².');return}
+    if(r.area<=0){bpAlert('Indica un área mayor a 0.');return}
+    if(r.cub<=0&&r.gal<=0){bpAlert('El área es muy pequeña; ajusta los m².');return}
     state.imps.push({color:r.color,hex:r.hex,area:r.area,tela:r.tela,cub:r.cub,gal:r.gal,cost:r.cost});
     bpRenderImps();bpRecompute();
   };
@@ -477,7 +481,7 @@
       resanacionComentarios:(document.getElementById('bpResCom')&&document.getElementById('bpResCom').value.trim())||'',
       notas:'Cotización de proyecto '+state.mode,
       // Documento completo (presupuesto/pre-orden) para regenerar el MISMO PDF desde el panel admin
-      docHTML:bpDocHTML(folio,c,new Date().toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'}),planN)
+      docHTML:(function(){var d=bpDocHTML(folio,c,new Date().toLocaleDateString(bpLocale(),{day:'numeric',month:'short',year:'numeric'}),planN);return window.bpI18n?window.bpI18n.html(d):d})()
     };
   }
   function bpValidateContact(){
@@ -582,9 +586,9 @@
   }
 
   window.bpProposal=function(){
-    var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length&&!state.imps.length){alert('Agrega al menos una pintura, impermeabilizante o servicio.');return}
+    var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length&&!state.imps.length){bpAlert('Agrega al menos una pintura, impermeabilizante o servicio.');return}
     if(!bpValidateContact())return;
-    var fecha=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
+    var fecha=new Date().toLocaleDateString(bpLocale(),{day:'numeric',month:'short',year:'numeric'});
     var planN=bpPlanName();
     bpEnsureSaved(c,function(folio){
       lastFolio=folio;
@@ -592,6 +596,7 @@
       document.getElementById('bpModalInner').innerHTML='<div class="bp-rc">'+
         '<div class="bp-rbar"><button class="bp-pdf" onclick="bpPdf()">⬇️ Descargar PDF</button><a class="bp-wag" href="'+waHref+'" target="_blank" onclick="bpPdf()">💬 WhatsApp</a><button onclick="bpCloseModal()">✕</button></div>'+
         bpDocHTML(folio,c,fecha,planN)+'</div>';
+      if(window.bpI18n)window.bpI18n.apply(document.getElementById('bpModalInner'));
       document.getElementById('bpModal').classList.add('bp-open');
     });
   };
@@ -614,19 +619,27 @@
         if(done)done(false);return;
       }
       var n=el.cloneNode(true);var bar=n.querySelector('.bp-rbar');if(bar)bar.remove();
-      n.style.boxShadow='none';
+      n.style.boxShadow='none';n.style.margin='0';
+      // Render desde un contenedor propio en la parte superior del documento (fuera de pantalla):
+      // si se renderiza dentro del modal fijo con la página desplazada, html2canvas recorta/deja en blanco.
+      var stage=document.createElement('div');
+      stage.setAttribute('data-i18n-skip','1');
+      stage.style.cssText='position:absolute;left:-10000px;top:0;width:440px;background:#fff;z-index:-1';
+      stage.appendChild(n);document.body.appendChild(stage);
+      var cleanup=function(){try{stage.remove()}catch(e){}};
       window.html2pdf().set({
         margin:[10,12,12,12],
         filename:'Presupuesto-'+folio+'.pdf',
         image:{type:'jpeg',quality:0.95},
-        html2canvas:{scale:2,useCORS:true},
+        html2canvas:{scale:2,useCORS:true,scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},
         jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
         pagebreak:{mode:['css','legacy']}
       }).from(n).save().then(function(){
+        cleanup();
         bpToast('📎 PDF descargado: Presupuesto-'+folio+'.pdf — adjúntalo en el chat de WhatsApp');
         if(done)done(true);
       }).catch(function(e){
-        console.error('bpPdf:',e);
+        cleanup();console.error('bpPdf:',e);
         if(noPrintFallback){bpToast('⚠️ No se pudo generar el PDF automático; usa "Solicitar cotización + PDF".')}else{window.print()}
         if(done)done(false);
       });
@@ -638,37 +651,38 @@
     bpPdfFromEl(el,lastFolio||'BoltPaint');
   };
   function bpPdfSilent(folio,c){
-    var fecha=new Date().toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
+    var fecha=new Date().toLocaleDateString(bpLocale(),{day:'numeric',month:'short',year:'numeric'});
     var host=document.createElement('div');
     host.style.cssText='position:absolute;left:-10000px;top:0;width:440px;background:#fff';
     host.innerHTML='<div class="bp-rc" style="box-shadow:none">'+bpDocHTML(folio,c,fecha,bpPlanName())+'</div>';
     document.body.appendChild(host);
+    if(window.bpI18n)window.bpI18n.apply(host);
     bpPdfFromEl(host.firstChild,folio,function(){try{host.remove()}catch(e){}},true);
   }
   function bpToast(msg){
     var t=document.getElementById('bpToast');
     if(!t){t=document.createElement('div');t.id='bpToast';t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#16181d;color:#fff;border:1px solid #2a2f37;border-radius:12px;padding:13px 18px;font-family:Archivo,system-ui,sans-serif;font-size:14px;z-index:800;box-shadow:0 18px 40px rgba(0,0,0,.5);max-width:92vw';document.body.appendChild(t)}
-    t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0'},4000);
+    t.textContent=T(msg);t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(function(){t.style.opacity='0'},4000);
   }
   window.bpCloseModal=function(){document.getElementById('bpModal').classList.remove('bp-open')};
 
   function bpWaLink(folio,c){
     var name=((document.getElementById('bpCliente')||{}).value||'').trim();
     var tel=((document.getElementById('bpTel')||{}).value||'').trim();
-    var lines=['*Bolt Paint · PRESUPUESTO / PRE-ORDEN DE COMPRA*','Folio: '+folio,'Proyecto: '+bpModeName()];
-    if(name)lines.push('Cliente: '+name+(tel?' · '+tel:''));
-    bpItems(c).forEach(function(it){lines.push('• '+it[0]+(it[2]?' ('+it[2]+')':'')+': '+it[1])});
-    lines.push('Total estimado: '+money(c.total));
-    if(state.igualaciones.length)lines.push('Igualaciones: '+state.igualaciones.map(function(s){return s.name}).join(', '));
-    if(state.imps.length&&c.impCost<=0)lines.push('Impermeabilizante: precio de material por confirmar (no incluido en el total).');
-    lines.push('✅ Checklist de validación de área: pendiente (visita de inspección)');
-    lines.push('🔧 Resanes por validar en sitio para confirmar el costo del servicio');
-    lines.push('🛡 Incluye carta de garantía del servicio'+(state.imps.length?' ('+GARANTIAS.impTela+' con tela / '+GARANTIAS.impSinTela+' sin tela)':''));
-    lines.push('📎 Adjunta a este chat el PDF descargado: Presupuesto-'+folio+'.pdf');
-    lines.push('Nota: precios estimados; pueden variar según la visita de inspección en sitio.');
+    var lines=[T('*Bolt Paint · PRESUPUESTO / PRE-ORDEN DE COMPRA*'),T('Folio')+': '+folio,T('Proyecto')+': '+T(bpModeName())];
+    if(name)lines.push(T('Cliente')+': '+name+(tel?' · '+tel:''));
+    bpItems(c).forEach(function(it){lines.push('• '+T(it[0])+(it[2]?' ('+T(it[2])+')':'')+': '+T(it[1]))});
+    lines.push(T('Total estimado')+': '+money(c.total));
+    if(state.igualaciones.length)lines.push(T('Igualaciones')+': '+state.igualaciones.map(function(s){return s.name}).join(', '));
+    if(state.imps.length&&c.impCost<=0)lines.push(T('Impermeabilizante: precio de material por confirmar (no incluido en el total).'));
+    lines.push(T('✅ Checklist de validación de área: pendiente (visita de inspección)'));
+    lines.push(T('🔧 Resanes por validar en sitio para confirmar el costo del servicio'));
+    lines.push(T('🛡 Incluye carta de garantía del servicio')+(state.imps.length?' ('+T(GARANTIAS.impTela)+' '+T('con tela')+' / '+T(GARANTIAS.impSinTela)+' '+T('sin tela')+')':''));
+    lines.push(T('📎 Adjunta a este chat el PDF descargado:')+' Presupuesto-'+folio+'.pdf');
+    lines.push(T('Nota: precios estimados; pueden variar según la visita de inspección en sitio.'));
     return 'https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(lines.join('\n'));
   }
-  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length&&!state.imps.length){alert('Agrega algo a la cotización primero.');return false}if(!bpValidateContact())return false;bpEnsureSaved(c,function(folio){lastFolio=folio;document.getElementById('bpWaBtn').href=bpWaLink(folio,c);bpPdfSilent(folio,c)});return true};
+  window.bpWhats=function(){var c=bpCalcAll();if(c.total<=0&&!state.igualaciones.length&&!state.imps.length){bpAlert('Agrega algo a la cotización primero.');return false}if(!bpValidateContact())return false;bpEnsureSaved(c,function(folio){lastFolio=folio;document.getElementById('bpWaBtn').href=bpWaLink(folio,c);bpPdfSilent(folio,c)});return true};
 
   // auto-montaje (estilos + overlay oculto) al cargar, para que los botones del hero tengan estilo
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',mount);}else{mount();}

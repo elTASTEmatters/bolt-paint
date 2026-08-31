@@ -42,12 +42,13 @@
               : '';
 
             // Mensaje WhatsApp prellenado
+            var _T = window.bpT || String;
             var waMsg = encodeURIComponent(
-              "Hola Bolt Paint, acabo de realizar mi pedido:\n" +
-              "Orden: " + ord.id + "\n" +
-              "Total: $" + ord.total.toLocaleString() + " MXN\n" +
-              "Dirección: " + ord.direccion + "\n" +
-              "Pago: Tarjeta MP confirmado"
+              _T("Hola Bolt Paint, acabo de realizar mi pedido:") + "\n" +
+              _T("Orden: " + ord.id) + "\n" +
+              _T("Total: $" + ord.total.toLocaleString() + " MXN") + "\n" +
+              _T("Dirección: " + ord.direccion) + "\n" +
+              _T("Pago: Tarjeta MP confirmado")
             );
             var waUrl = "https://wa.me/526862625119?text=" + waMsg;
 
@@ -77,12 +78,12 @@
 
       } else if(mpStatus === "failure"){
         setTimeout(function(){
-          alert("El pago no fue procesado. Intenta de nuevo.");
+          alert((window.bpT||String)("El pago no fue procesado. Intenta de nuevo."));
         }, 500);
 
       } else if(mpStatus === "pending"){
         setTimeout(function(){
-          alert("Tu pago está pendiente de confirmación. Te notificaremos por WhatsApp.");
+          alert((window.bpT||String)("Tu pago está pendiente de confirmación. Te notificaremos por WhatsApp."));
         }, 500);
       }
     }
@@ -143,12 +144,12 @@
         if(data.init_point){
           window.location.href = data.init_point;
         } else {
-          alert("Error al procesar el pago. Intenta de nuevo.");
+          alert((window.bpT||String)("Error al procesar el pago. Intenta de nuevo."));
         }
       })
       .catch(function(e){
         console.error("MP Error:", e);
-        alert("Error de conexión. Intenta de nuevo.");
+        alert((window.bpT||String)("Error de conexión. Intenta de nuevo."));
       });
     };
   });

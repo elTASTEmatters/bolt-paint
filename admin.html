@@ -461,7 +461,7 @@ function openModal(fbId){
 function downloadPresupuesto(o){
   if(!o||!o.docHTML){toast('Esta orden no tiene presupuesto guardado (solo cotizaciones nuevas de Proyectos)','del');return;}
   const host=document.createElement('div');
-  host.style.cssText='position:absolute;left:-10000px;top:0;width:440px;background:#fff';
+  host.style.cssText='position:absolute;left:-10000px;top:0;width:440px;background:#fff;z-index:-1';
   host.innerHTML='<div class="bp-rc">'+o.docHTML+'</div>';
   document.body.appendChild(host);
   const run=()=>{
@@ -469,7 +469,7 @@ function downloadPresupuesto(o){
       margin:[10,12,12,12],
       filename:'Presupuesto-'+(o.id||'orden')+'.pdf',
       image:{type:'jpeg',quality:0.95},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
       pagebreak:{mode:['css','legacy']}
     }).from(host.firstChild).save()

@@ -1527,7 +1527,7 @@ function runComp(){
     h+='<div class="cri-top">';
     h+='<div class="cri-swatch" style="background:'+p.hex+'"></div>';
     h+='<span class="cri-badge '+(isWin?"b-win":"b-alt")+'">'+(isWin?"🏆 Mejor precio":"🎨 Bolt Paint")+'</span>';
-    h+='<span class="cri-name">#'+p.num+' '+p.nombre+'</span>';
+    h+='<span class="cri-name">#'+(p.num||String(p.id).replace(/^p0*/,''))+' '+p.nombre+'</span>';
     h+='</div>';
     h+='<div class="cri-row">';
     h+='<div class="cri-price">$'+p[tipo].toLocaleString()+'<span style="font-size:10px;color:var(--txt3);font-weight:400"> MXN</span></div>';
@@ -1540,7 +1540,7 @@ function runComp(){
   document.getElementById("compResults").innerHTML=h;
   var tip=document.getElementById("compTip");
   if(top.length&&precio-top[0][tipo]>0){
-    tip.innerHTML="🐾 Con <strong>#"+top[0].num+" "+top[0].nombre+"</strong> ahorras <strong>$"+(precio-top[0][tipo]).toLocaleString()+" MXN</strong> "+tl[tipo]+". 🚚 Entrega a tu domicilio · Mexicali & San Felipe.";
+    tip.innerHTML="🐾 Con <strong>#"+(top[0].num||String(top[0].id).replace(/^p0*/,""))+" "+top[0].nombre+"</strong> ahorras <strong>$"+(precio-top[0][tipo]).toLocaleString()+" MXN</strong> "+tl[tipo]+". 🚚 Entrega a tu domicilio · Mexicali & San Felipe.";
     tip.classList.add("show");
   } else {tip.classList.remove("show");}
 }
@@ -1576,6 +1576,7 @@ function downloadOrderPDF(o){
   doc+=items;
   doc+='<tr class="tot"><td colspan="2" style="padding:10px">TOTAL</td><td style="padding:10px;text-align:right;font-size:15px;color:#f97316">$'+o.total.toLocaleString()+' MXN</td></tr>';
   doc+='</tbody></table><div class="footer">Bolt Paint — Distribuidora BPaint Depot · Gracias por su preferencia</div></body></html>';
+  if(window.bpI18n&&window.bpI18n.lang==="en"){var _p=doc.split("<body>");if(_p.length===2){_p[1]=window.bpI18n.html(_p[1]);doc=_p.join("<body>").replace('lang="es"','lang="en"');}}
   var w=window.open("","_blank","width=800,height=600");
   if(w){w.document.write(doc);w.document.close();setTimeout(function(){w.print();},500);}
   else{toast("⚠️ Activa ventanas emergentes para el PDF");}
@@ -1703,7 +1704,7 @@ function confirmDelivery(id){
   var o=orders.find(function(x){return x.id===id;});
   if(!o) return;
   var msg="¿Confirmar entrega de "+id+" a "+o.nombre+"? Se registrará la fecha y hora.";
-  if(!confirm(msg)) return;
+  if(!confirm(window.bpT?window.bpT(msg):msg)) return;
   o.status="entregado";
   o.fechaEntrega=new Date().toLocaleString("es-MX");
   localStorage.setItem("bpd_ord",JSON.stringify(orders));
@@ -1840,12 +1841,13 @@ function parseCSV(text){
   renderProds(); updCounters(); toast("✅ "+CAT.length+" productos cargados");
 }
 /* Toast */
-function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2600);}
+function toast(msg){var t=document.getElementById("toast");t.textContent=(window.bpT?window.bpT(msg):msg);t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2600);}
 
 /* INIT */
 renderProds();
 updCounters();
 </script>
+<script src="i18n-en.js"></script>
 <script src="mp.js"></script>
 <script src="bolt-proyectos-v2.js"></script></body>
 </html>
