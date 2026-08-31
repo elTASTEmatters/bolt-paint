@@ -475,7 +475,9 @@
       impermeabilizantes:state.imps.slice(),
       igualaciones:state.igualaciones.slice(),
       resanacionComentarios:(document.getElementById('bpResCom')&&document.getElementById('bpResCom').value.trim())||'',
-      notas:'Cotización de proyecto '+state.mode
+      notas:'Cotización de proyecto '+state.mode,
+      // Documento completo (presupuesto/pre-orden) para regenerar el MISMO PDF desde el panel admin
+      docHTML:bpDocHTML(folio,c,new Date().toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'}),planN)
     };
   }
   function bpValidateContact(){

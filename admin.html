@@ -133,6 +133,28 @@
   .demo-flag{text-align:center;color:var(--txt3);font-size:12px;margin-top:30px}
   .demo-flag b{color:var(--accent)}
   .loading{padding:60px;text-align:center;color:var(--txt3)}
+  /* ===== Presupuesto/pre-orden guardado con la cotización (mismo documento que ve el cliente) ===== */
+  .bp-rc{background:#fff;color:#111;max-width:420px;width:100%;border-radius:12px;padding:24px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5}
+  .bp-rc .bp-rch{text-align:center;margin-bottom:8px}.bp-rc .bp-rlogo{font-family:'Syne',sans-serif;font-weight:800;font-size:24px}.bp-rc .bp-rlogo em{color:#F47A00;font-style:normal}
+  .bp-rc .bp-rsub{font-size:11px;color:#555}.bp-rc .bp-rtype{margin-top:8px;font-weight:600;letter-spacing:1px;background:#111;color:#fff;display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px}
+  .bp-rc hr{border:none;border-top:1px dashed #999;margin:11px 0}
+  .bp-rc .bp-rr{display:flex;justify-content:space-between;gap:10px}.bp-rc .bp-rr.bp-s{font-size:11px;color:#555}
+  .bp-rc .bp-rit{margin:5px 0}.bp-rc .bp-rit .bp-l1{display:flex;justify-content:space-between;font-weight:600}.bp-rc .bp-rit .bp-l2{font-size:11px;color:#666}
+  .bp-rc .bp-rtot{display:flex;justify-content:space-between;font-family:'Syne',sans-serif;font-weight:800;font-size:21px;margin-top:6px}.bp-rc .bp-rtot b{color:#F47A00}
+  .bp-rc .bp-rfoot{text-align:center;font-size:11px;color:#555;margin-top:11px}
+  .bp-rc .bp-sec{font-weight:700;font-size:11px;letter-spacing:.8px;text-transform:uppercase;margin:12px 0 5px;color:#F47A00}
+  .bp-rc .bp-ck{display:flex;gap:7px;align-items:flex-start;margin:4px 0;font-size:11.5px;page-break-inside:avoid}
+  .bp-rc .bp-ckb{width:12px;height:12px;border:1.5px solid #333;border-radius:3px;flex:none;margin-top:1px}
+  .bp-rc .bp-ck small{display:block;color:#777;font-size:10px}
+  .bp-rc table.bp-tv{width:100%;min-width:0;border-collapse:collapse;font-size:10.5px;margin-top:4px;page-break-inside:avoid}
+  .bp-rc .bp-tv th,.bp-rc .bp-tv td{border:1px solid #ddd;padding:4px 5px;text-align:left;vertical-align:top;color:#111;background:#fff}
+  .bp-rc .bp-tv th{background:#faf8f4;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px}
+  .bp-rc .bp-gar{margin-top:12px;border:2px solid #F47A00;border-radius:10px;padding:12px;background:#FFFBF6;page-break-inside:avoid}
+  .bp-rc .bp-gar h5{margin:0 0 5px;font-family:'Syne',sans-serif;font-size:13px}
+  .bp-rc .bp-gar p,.bp-rc .bp-gar li{font-size:10.5px;line-height:1.5;margin:4px 0;color:#222}
+  .bp-rc .bp-gar ul{margin:3px 0;padding-left:15px}
+  .bp-rc .bp-sello{margin-top:12px;display:flex;justify-content:space-between;gap:10px}
+  .bp-rc .bp-firma{border-top:1px solid #333;padding-top:3px;font-size:9.5px;color:#555;width:46%;text-align:center}
 </style>
 </head>
 <body>
@@ -349,6 +371,7 @@ function renderRows(){
     const st=o.status||'nueva';const s=STATUS[st]||STATUS.nueva;
     const opts=Object.keys(STATUS).map(k=>`<option value="${k}" ${k===st?'selected':''}>${STATUS[k].l}</option>`).join('');
     const restoreBtn=`<button class="mini rest" data-act="restore" data-id="${o.fbId}" title="Restaurar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>`;
+    const docBtn=o.docHTML?`<button class="mini" data-act="doc" data-id="${o.fbId}" title="Descargar presupuesto PDF"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></button>`:'';
     const delBtn=`<button class="mini del" data-act="${showArch?'purge':'archive'}" data-id="${o.fbId}" title="${showArch?'Borrar definitivo':'Archivar'}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>`;
     return `<tr data-id="${o.fbId}" class="${o.archivado?'arch':''}">
       <td><input type="checkbox" class="rowcheck" ${selected.has(o.fbId)?'checked':''}></td>
@@ -364,7 +387,7 @@ function renderRows(){
       <td><div class="row-actions">
         <button class="mini" data-act="view" data-id="${o.fbId}" title="Ver detalle"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
         <button class="mini" data-act="wa" data-id="${o.fbId}" title="WhatsApp"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.2-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg></button>
-        ${o.archivado?restoreBtn:''}${delBtn}
+        ${docBtn}${o.archivado?restoreBtn:''}${delBtn}
       </div></td>
     </tr>`;
   }).join('');
@@ -418,6 +441,7 @@ function openModal(fbId){
       <div class="modal-actions">
         <a class="wa" href="${waLink(o)}" target="_blank" style="text-decoration:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.2-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg>WhatsApp al cliente</a>
         <button data-act="pdf" data-id="${o.fbId}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Comprobante</button>
+        ${o.docHTML?`<button data-act="doc" data-id="${o.fbId}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Presupuesto PDF</button>`:''}
         <button class="del" data-act="archive" data-id="${o.fbId}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Archivar</button>
       </div>
     </div>
@@ -428,8 +452,34 @@ function openModal(fbId){
   document.getElementById('mbox').addEventListener('click',e=>{
     const b=e.target.closest('button,a');if(!b||!b.dataset.act)return;
     if(b.dataset.act==='pdf'){printOrder(o);}
+    if(b.dataset.act==='doc'){downloadPresupuesto(o);}
     if(b.dataset.act==='archive'){archive(o.fbId,true);close();}
   });
+}
+
+// Descarga el MISMO presupuesto/pre-orden PDF que recibió el cliente (documento guardado con la cotización)
+function downloadPresupuesto(o){
+  if(!o||!o.docHTML){toast('Esta orden no tiene presupuesto guardado (solo cotizaciones nuevas de Proyectos)','del');return;}
+  const host=document.createElement('div');
+  host.style.cssText='position:absolute;left:-10000px;top:0;width:440px;background:#fff';
+  host.innerHTML='<div class="bp-rc">'+o.docHTML+'</div>';
+  document.body.appendChild(host);
+  const run=()=>{
+    window.html2pdf().set({
+      margin:[10,12,12,12],
+      filename:'Presupuesto-'+(o.id||'orden')+'.pdf',
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy']}
+    }).from(host.firstChild).save()
+      .then(()=>{host.remove();toast('Presupuesto-'+(o.id||'')+'.pdf descargado','ok');})
+      .catch(e=>{host.remove();toast('No se pudo generar el PDF','del');console.error(e);});
+  };
+  if(window.html2pdf){run();return;}
+  const s=document.createElement('script');s.src='html2pdf.bundle.min.js';
+  s.onload=run;s.onerror=()=>{host.remove();toast('No se pudo cargar el generador de PDF','del');};
+  document.head.appendChild(s);
 }
 
 function printOrder(o){
@@ -486,6 +536,7 @@ document.getElementById('rows').addEventListener('click',e=>{
   if(btn&&btn.dataset.act){
     const id=btn.dataset.id,act=btn.dataset.act;
     if(act==='view')openModal(id);
+    else if(act==='doc'){const o=findOrder(id);if(o)downloadPresupuesto(o);}
     else if(act==='wa'){const o=findOrder(id);if(o)window.open(waLink(o),'_blank');}
     else if(act==='archive')archive(id,true);
     else if(act==='restore')archive(id,false);
