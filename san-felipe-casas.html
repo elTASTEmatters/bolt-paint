@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>San Felipe Casas · Bolt Paint</title>
+<meta name="description" content="Sube la foto de tu casa, prueba combinaciones de colores Bolt Paint, calcula cubetas e impermeabilizante y recibe tu cotización.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e0e0f; --bg2:#161618; --bg3:#1e1e22; --sur:#252529; --brd:#2e2e34; --brd2:#3a3a42;
+    --or:#f97316; --or2:#fb923c; --yl:#fbbf24; --gn:#22c55e; --rd:#ef4444; --bl:#3b82f6;
+    --txt:#f4f4f5; --txt2:#c3c3c9; --txt3:#8b8b93; --wh:#fff;
+    --r8:8px; --r12:12px; --r16:16px;
+    --font-d:"Syne","Archivo Black",sans-serif; --font-b:"Plus Jakarta Sans","Segoe UI",sans-serif; --font-m:ui-monospace,"SF Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{color-scheme:dark}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--font-b);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit}
+  input,select{font:inherit}
+  h1,h2,h3{margin:0;font-family:var(--font-d);text-wrap:balance}
+  a{color:var(--or2)}
+  .nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:rgba(14,14,15,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--brd)}
+  .nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--wh)}
+  .nav-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--or),var(--yl));display:grid;place-items:center;font-size:18px}
+  .nav-name{font-family:var(--font-d);font-size:19px;font-weight:800;letter-spacing:-.3px}
+  .nav-name small{display:block;font-family:var(--font-b);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);font-weight:700}
+  .nav-links{display:flex;gap:6px;flex-wrap:wrap}
+  .nav-links a{font-size:12px;font-weight:700;color:var(--txt2);text-decoration:none;padding:7px 10px;border-radius:99px;border:1px solid transparent}
+  .nav-links a:hover{border-color:var(--brd2);color:var(--wh)}
+  .nav-wa{background:var(--or);color:#fff!important;border-color:var(--or)!important}
+
+  .wrap{max-width:1380px;margin:0 auto;padding:22px 20px 60px}
+  .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:stretch;margin-bottom:22px}
+  .hero-txt{padding:26px 26px 22px;border-radius:var(--r16);background:radial-gradient(120% 140% at 0% 0%,rgba(249,115,22,.22),transparent 55%),var(--bg2);border:1px solid var(--brd);display:flex;flex-direction:column;gap:12px}
+  .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:#7dd3fc}
+  .hero h1{font-size:clamp(26px,3.2vw,40px);font-weight:800;line-height:1.02;text-transform:uppercase;color:var(--wh)}
+  .hero h1 b{display:block;font-size:.42em;letter-spacing:2px;color:var(--yl);font-weight:700;margin-top:6px}
+  .hero p{margin:0;color:var(--txt2);max-width:60ch}
+  .hero-steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .hero-steps span{font-size:12px;font-weight:700;padding:6px 10px;border-radius:99px;border:1px solid var(--brd2);color:var(--txt2)}
+  .hero-steps span.now{border-color:var(--or);color:var(--wh);background:rgba(249,115,22,.15)} .hero-steps span.done{border-color:var(--gn);color:var(--gn)}
+  .hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto}
+  /* el mosaico tal como se verá en la portada */
+  .tile-wrap{padding:18px;border-radius:var(--r16);border:1px dashed var(--brd2);background:var(--bg2);display:flex;flex-direction:column;gap:10px}
+  .tile-wrap .lbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--txt3)}
+  .bp-entry{position:relative;overflow:hidden;display:flex;flex-direction:column;width:100%;text-align:left;cursor:pointer;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:18px 20px 22px;color:#fff;background:rgba(12,14,18,.62);text-decoration:none;transition:transform .2s,border-color .2s;flex:1}
+  .bp-entry:hover{border-color:#F47A00;transform:translateY(-2px)}
+  .bp-entry .bp-tag{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:#7dd3fc;margin:0 0 6px}
+  .bp-entry .bp-et{display:block;font-family:var(--font-d);font-weight:800;font-size:clamp(19px,1.7vw,24px);line-height:1.02;text-transform:uppercase;color:#fff}
+  .bp-entry .bp-et b{display:block;font-size:.5em;font-weight:700;letter-spacing:1px;color:#c3ccd6;margin-top:4px}
+  .bp-entry .bp-ep{display:block;color:#c3c3c9;font-size:12.5px;line-height:1.45;margin:10px 0 0}
+  .bp-entry .bp-go{display:inline-block;margin-top:auto;padding-top:12px;font-weight:700;color:#F47A00;font-size:13px}
+  .bp-entry .bp-strip{position:absolute;left:0;right:0;bottom:0;height:4px;background:linear-gradient(90deg,#0EA5E9,#FBBF24,#F47A00)}
+  .tile-wrap .tile-bg{background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='200'><rect width='400' height='200' fill='%23123a5c'/><rect y='120' width='400' height='80' fill='%23b08a55'/><rect x='60' y='60' width='120' height='80' fill='%23e8c99a'/><rect x='200' y='40' width='140' height='100' fill='%23d4b483'/><rect x='95' y='90' width='26' height='50' fill='%235c3317'/><rect x='230' y='70' width='30' height='30' fill='%231c1c1c'/><rect x='290' y='70' width='30' height='30' fill='%231c1c1c'/></svg>") center/cover;border-radius:16px}
+
+  .sec{margin-top:26px}
+  .sec-hd{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .sec-title{font-family:var(--font-d);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.3px}
+  .sec-title small{display:block;font-family:var(--font-b);font-size:12px;text-transform:none;letter-spacing:0;color:var(--txt3);font-weight:600;margin-top:2px}
+  .grid{display:grid;grid-template-columns:280px minmax(0,1fr) 300px;gap:16px;align-items:start}
+  .stack{display:flex;flex-direction:column;gap:14px}
+  .panel{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r12)}
+  .panel-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;border-bottom:1px solid var(--brd)}
+  .panel-h h2{font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-family:var(--font-b)}
+  .panel-b{padding:12px 14px;display:flex;flex-direction:column;gap:12px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:var(--r8);border:1px solid var(--brd2);background:var(--bg3);cursor:pointer;font-weight:700;font-size:13px;transition:background .12s,border-color .12s;text-decoration:none;color:var(--txt)}
+  .btn:hover{background:var(--sur);border-color:var(--txt3)}
+  .btn.primary{background:var(--or);border-color:var(--or);color:#fff}
+  .btn.primary:hover{background:var(--or2)}
+  .btn.wa{background:#22c55e;border-color:#22c55e;color:#062b14}
+  .btn.block{width:100%} .btn.sm{padding:7px 10px;font-size:12px}
+  .btn.on{background:rgba(249,115,22,.18);border-color:var(--or)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn:focus-visible,.pal:focus-visible,.zone:focus-visible,.sw:focus-visible,.pick button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--yl);outline-offset:2px}
+  .row{display:flex;gap:8px;flex-wrap:wrap} .row>*{flex:1}
+  .hint{font-size:12px;color:var(--txt3);margin:0}
+  .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+  .check input{accent-color:var(--or);margin:0;width:16px;height:16px}
+  label.field{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--txt3)}
+  label.field .lv{display:flex;justify-content:space-between;align-items:baseline}
+  label.field .lv b{font-family:var(--font-m);font-weight:500;color:var(--txt);text-transform:none;letter-spacing:0}
+  .inp{width:100%;padding:9px 11px;border-radius:var(--r8);border:1px solid var(--brd2);background:var(--bg3);color:var(--txt);font-size:15px;font-weight:600;letter-spacing:0;text-transform:none}
+  .inp:focus{border-color:var(--or)}
+  select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--txt3) 50%),linear-gradient(135deg,var(--txt3) 50%,transparent 50%);background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:30px}
+  input[type=range]{width:100%;accent-color:var(--or);margin:0}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .fields.f3{grid-template-columns:1fr 1fr 1fr}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;padding:8px 6px;border-radius:var(--r8);border:1px solid var(--brd2);background:var(--bg3);cursor:pointer;font-weight:700;font-size:12px;color:var(--txt2)}
+  .seg button[aria-pressed=true]{background:rgba(249,115,22,.18);border-color:var(--or);color:var(--wh)}
+  .engine{font-family:var(--font-m);font-size:11px;padding:6px 10px;border:1px solid var(--brd2);border-radius:6px;color:var(--txt2);display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .engine i{width:8px;height:8px;border-radius:50%;background:var(--txt3)}
+  .engine.ok i{background:var(--gn)} .engine.warn i{background:var(--or)} .engine.load i{background:var(--yl);animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.3}}
+  .steps{display:flex;gap:6px;font-family:var(--font-m);font-size:11px;color:var(--txt3);flex-wrap:wrap}
+  .steps span{padding:3px 8px;border-radius:99px;border:1px solid var(--brd)}
+  .steps span.done{border-color:var(--gn);color:var(--gn)} .steps span.now{border-color:var(--or);background:rgba(249,115,22,.15);color:var(--txt)}
+
+  .zones{display:flex;flex-direction:column;gap:4px}
+  .zone{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:10px;padding:6px 8px;border:1px solid transparent;border-radius:var(--r8);cursor:pointer;background:transparent;text-align:left;width:100%}
+  .zone:hover{background:var(--bg3)}
+  .zone.on{border-color:var(--or);background:rgba(249,115,22,.12)}
+  .zone.locked{cursor:default}
+  .zone .dot{width:30px;height:30px;border-radius:7px;border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex:none}
+  .zone .dot svg{width:16px;height:16px;stroke:var(--txt3);fill:none;stroke-width:2}
+  .zone .nm{font-weight:700;line-height:1.2;font-size:13px}
+  .zone .nm small{display:block;font-size:11px;color:var(--txt3);font-weight:500}
+  .zone .cov{font-family:var(--font-m);font-size:11px;color:var(--txt3);font-variant-numeric:tabular-nums;text-align:right}
+  .zone .cov b{display:block;width:10px;height:10px;border-radius:2px;margin-left:auto;margin-bottom:2px}
+
+  .stage{position:relative;background:var(--bg3);border-radius:var(--r12) var(--r12) 0 0;display:flex;align-items:center;justify-content:center;min-height:320px;overflow:hidden;
+    background-image:linear-gradient(45deg,var(--sur) 25%,transparent 25%,transparent 75%,var(--sur) 75%),linear-gradient(45deg,var(--sur) 25%,transparent 25%,transparent 75%,var(--sur) 75%);background-size:20px 20px;background-position:0 0,10px 10px}
+  .stage-inner{position:relative;line-height:0;max-width:100%}
+  #view{display:block;max-width:100%;height:auto;max-height:70vh;touch-action:manipulation;user-select:none}
+  #view.fix{cursor:crosshair}
+  #overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .busy{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(10,10,12,.6);color:#fff;font-family:var(--font-d);font-weight:700;font-size:16px;backdrop-filter:blur(2px)}
+  .busy.show{display:flex}
+  .busy .bar{width:220px;height:6px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden;border:0;padding:0}
+  .busy .bar i{display:block;height:100%;width:30%;background:var(--or);animation:slide 1.1s infinite}
+  @keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(340%)}}
+  .drop{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(249,115,22,.2);border:3px dashed var(--or);font-weight:800;font-family:var(--font-d);font-size:18px}
+  .stage.dragging .drop{display:flex}
+  .bar{display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid var(--brd);flex-wrap:wrap}
+  .bar .cmp{flex:1;min-width:180px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--txt2);font-weight:700}
+  .bar .cmp input{flex:1}
+  .status{font-family:var(--font-m);font-size:11px;color:var(--txt3);padding:0 14px 10px}
+  .pick{position:absolute;z-index:5;background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--r8);box-shadow:0 12px 30px rgba(0,0,0,.5);padding:8px;display:none;flex-direction:column;gap:4px;min-width:190px}
+  .pick.show{display:flex}
+  .pick .t{font-size:11px;color:var(--txt3);font-family:var(--font-m);padding:2px 6px 4px}
+  .pick button{display:flex;align-items:center;gap:8px;padding:6px 8px;border:0;background:transparent;border-radius:4px;cursor:pointer;text-align:left;width:100%;font-size:13px}
+  .pick button:hover{background:var(--bg3)}
+  .pick button i{width:12px;height:12px;border-radius:3px;flex:none}
+
+  .pals{display:flex;flex-direction:column;gap:6px}
+  .pal{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:8px;border:1px solid var(--brd);border-radius:var(--r8);background:var(--bg3);cursor:pointer;text-align:left;width:100%}
+  .pal:hover{border-color:var(--txt3)}
+  .pal.on{border-color:var(--or);box-shadow:0 0 0 2px rgba(249,115,22,.25)}
+  .pal .nm{font-weight:700;font-size:13px}
+  .pal .nm small{display:block;color:var(--txt3);font-size:11px;font-weight:500}
+  .pal .chips{display:flex;height:26px;width:118px;border-radius:5px;overflow:hidden;border:1px solid rgba(255,255,255,.15)}
+  .pal .chips i{flex:1} .pal .chips i:first-child{flex:2.4}
+  .sws{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+  .sw{aspect-ratio:1;border-radius:5px;border:1px solid rgba(255,255,255,.18);cursor:pointer;padding:0;position:relative}
+  .sw:hover{transform:scale(1.1);z-index:1}
+  .sw.on{outline:2px solid var(--yl);outline-offset:1px}
+  .swname{font-size:12px;color:var(--txt2);min-height:18px}
+  .swname b{color:var(--wh)} .swname code{font-family:var(--font-m);font-size:11px;color:var(--txt3)}
+  .summary{display:flex;flex-direction:column;gap:6px}
+  .summary .li{display:grid;grid-template-columns:18px 1fr auto;gap:8px;align-items:center;font-size:13px}
+  .summary .li i{width:18px;height:18px;border-radius:4px;border:1px solid rgba(255,255,255,.15)}
+  .summary .li small{display:block;color:var(--txt3);font-size:11px}
+  .summary .li code{font-family:var(--font-m);font-size:11px;color:var(--txt3)}
+  .tips{font-size:12px;color:var(--txt2);margin:0;padding-left:16px} .tips li{margin-bottom:3px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--wh);color:var(--bg);padding:10px 16px;border-radius:var(--r8);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 12px 30px rgba(0,0,0,.5);max-width:90vw;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  details summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--txt2)}
+
+  /* calculadoras */
+  .calc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start}
+  .res{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .res div{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r8);padding:8px 6px;text-align:center}
+  .res b{display:block;font-family:var(--font-d);font-size:20px;color:var(--yl);font-variant-numeric:tabular-nums}
+  .res span{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--txt3)}
+  .callout{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:var(--r8);padding:9px 12px;display:flex;gap:10px;align-items:center}
+  .callout .k{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--txt3)} .callout .v{font-size:14px;font-weight:800;color:var(--or2)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 6px;border-bottom:1px solid var(--brd);text-align:left;vertical-align:top}
+  th{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--txt3);font-weight:700}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr.tot td{font-weight:800;border-top:2px solid var(--brd2);border-bottom:0;font-size:15px}
+  tr.tot td.n{color:var(--yl)}
+  .sw-i{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid rgba(255,255,255,.2);vertical-align:-1px;margin-right:6px}
+  .warr{font-size:12px;color:var(--txt2);background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r8);padding:10px 12px}
+  .warr b{color:var(--gn)}
+  /* comparador */
+  .cmp-res{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .cri{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r8);padding:10px;display:flex;flex-direction:column;gap:6px}
+  .cri.win{border-color:var(--gn)} .cri.cur{border-color:var(--brd2);border-style:dashed}
+  .cri .badge{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:3px 7px;border-radius:99px;background:var(--sur);color:var(--txt2);align-self:flex-start}
+  .cri.win .badge{background:rgba(34,197,94,.2);color:var(--gn)}
+  .cri .pr{font-family:var(--font-d);font-size:22px;font-weight:800} .cri .pr small{font-family:var(--font-b);font-size:10px;color:var(--txt3);font-weight:600}
+  .cri .sv{font-size:12px;font-weight:700} .cri .sv.g{color:var(--gn)} .cri .sv.b{color:var(--rd)}
+  .cri .nm{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+  /* cotización */
+  .quote-grid{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px;align-items:start}
+  .doc{background:#fff;color:#111;border-radius:var(--r12);padding:24px;font-size:13px}
+  .doc h3{font-family:var(--font-d);font-size:18px;text-transform:uppercase}
+  .doc .doc-hd{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:12px;flex-wrap:wrap}
+  .doc .doc-hd small{display:block;color:#555}
+  .doc th,.doc td{border-color:#ddd} .doc th{color:#555} .doc tr.tot td{border-top-color:#111} .doc tr.tot td.n{color:#c2410c}
+  .doc .mock{width:100%;max-height:300px;object-fit:contain;border-radius:8px;border:1px solid #ddd;margin:8px 0}
+  .doc .note{font-size:11px;color:#555;margin-top:12px;line-height:1.5}
+  .doc .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .doc .cols div{background:#f5f5f5;border-radius:8px;padding:8px 10px} .doc .cols b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#666}
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--brd);font-size:12px;color:var(--txt3);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  @media (max-width:1100px){ .grid{grid-template-columns:1fr 1fr} .center{grid-column:1/-1;order:-1} .calc-grid{grid-template-columns:1fr 1fr} .cmp-res{grid-template-columns:1fr 1fr} }
+  @media (max-width:760px){ .wrap{padding:14px} .hero{grid-template-columns:1fr} .grid,.calc-grid,.quote-grid,.cmp-res{grid-template-columns:1fr} #view{max-height:52vh} .nav-links a:not(.nav-wa){display:none} .fields.f3{grid-template-columns:1fr 1fr} }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  @media print{ body{background:#fff;color:#111} .nav,.hero,.sec:not(#cotizacion),.quote-form,footer,.toast,.no-print{display:none!important} .wrap{padding:0;max-width:none} .quote-grid{grid-template-columns:1fr} .doc{padding:0} }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-brand" href="index.html"><span class="nav-logo">⚡</span><span class="nav-name">Bolt Paint<small>San Felipe Casas</small></span></a>
+  <div class="nav-links">
+    <a href="#mockup">Mockup</a><a href="#calculo">Cubetas</a><a href="#imperm">Impermeabilizante</a><a href="#comparador">Comparador</a><a href="#cotizacion">Cotización</a>
+    <a href="index.html#catalogo">Tienda</a>
+    <a class="nav-wa" href="https://wa.me/526862625119" target="_blank" rel="noopener">📲 (686) 262-5119</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="hero-txt">
+      <span class="eyebrow">Proyectos · Casas y residencias</span>
+      <h1>San Felipe Casas <b>Mockup, cubetas e impermeabilizante en una sola cotización</b></h1>
+      <p>Sube la foto de tu casa, prueba combinaciones con colores Bolt Paint, calcula cuánta pintura e impermeabilizante necesitas, compara contra tu proveedor y recibe la cotización por WhatsApp. Entrega en San Felipe y Mexicali en 10 días o menos.</p>
+      <div class="hero-steps" id="steps"><span class="now">1 · Foto</span><span>2 · Zonas</span><span>3 · Paleta</span><span>4 · Cubetas</span><span>5 · Cotizar</span></div>
+      <div class="hero-cta"><a class="btn primary" href="#mockup">Empezar con mi foto</a><a class="btn" href="#cotizacion">Ir a la cotización</a><span class="engine load" id="engine"><i></i><span>Cargando detección con IA…</span></span></div>
+    </div>
+    <div class="tile-wrap">
+      <span class="lbl">Así se verá el mosaico en la portada de Bolt Paint</span>
+      <a class="bp-entry tile-bg" href="#mockup"><span class="bp-tag">Proyectos</span><span class="bp-et">San Felipe Casas <b>Fachadas y residencias</b></span><span class="bp-ep">Sube la foto de tu casa, prueba colores Bolt Paint y cotiza pintura e impermeabilizante en minutos.</span><span class="bp-go">Entrar a la sección →</span><span class="bp-strip"></span></a>
+    </div>
+  </section>
+
+  <!-- ===================== MOCKUP ===================== -->
+  <section class="sec" id="mockup">
+    <div class="sec-hd"><div class="sec-title">1 · Mockup de tu casa<small>La app detecta muros, molduras, puertas y ventanas; tú eliges la combinación. Las ventanas nunca se pintan.</small></div></div>
+    <div class="grid">
+      <aside class="stack">
+        <section class="panel">
+          <div class="panel-h"><h2>Tu foto</h2></div>
+          <div class="panel-b">
+            <input id="file" type="file" accept="image/*" hidden>
+            <button class="btn primary block" id="btnUpload">📷 Subir foto de mi casa</button>
+            <button class="btn block sm" id="btnDemo">Usar casa de ejemplo</button>
+            <p class="hint">Foto de frente y con luz de día. Se procesa en tu teléfono o computadora; no se sube a ningún servidor.</p>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-h"><h2>Zonas detectadas</h2><button class="btn sm" id="btnRedetect" title="Volver a analizar la foto">↻</button></div>
+          <div class="panel-b">
+            <div class="zones" id="zones"></div>
+            <label class="check"><input type="checkbox" id="frames" checked> Marcar molduras en puertas y ventanas</label>
+            <label class="check"><input type="checkbox" id="showZones"> Ver zonas sobre la foto</label>
+            <button class="btn block sm" id="btnFix">Corregir una zona</button>
+            <p class="hint">Si algo quedó mal clasificado, activa “Corregir” y toca esa parte de la foto para decirle qué es.</p>
+            <details>
+              <summary>Opciones avanzadas</summary>
+              <div class="stack" style="margin-top:10px">
+                <label class="check"><input type="radio" name="eng" value="ai" id="engAI" checked> Detección con IA (recomendado)</label>
+                <label class="check"><input type="radio" name="eng" value="color" id="engColor"> Detección rápida por color</label>
+                <label class="field"><span class="lv">Detalle de la detección <b id="detV">14</b></span><input type="range" id="det" min="6" max="24" value="14"></label>
+                <label class="field"><span class="lv">Intensidad del color <b id="satV">100%</b></span><input type="range" id="sat" min="40" max="150" value="100"></label>
+                <label class="field"><span class="lv">Textura y sombras <b id="conV">100%</b></span><input type="range" id="con" min="30" max="170" value="100"></label>
+              </div>
+            </details>
+          </div>
+        </section>
+      </aside>
+
+      <section class="panel center">
+        <div class="stage" id="stage">
+          <div class="stage-inner">
+            <canvas id="view"></canvas>
+            <canvas id="overlay"></canvas>
+            <div class="pick" id="pick"></div>
+          </div>
+          <div class="busy" id="busy"><span id="busyT">Detectando zonas…</span><span class="bar"><i></i></span></div>
+          <div class="drop">Suelta la foto aquí</div>
+        </div>
+        <div class="bar">
+          <div class="cmp"><span>Antes</span><input type="range" id="cmp" min="0" max="100" value="100"><span>Después</span></div>
+          <button class="btn sm" id="btnOrig" title="Mantén presionado">Ver original</button>
+          <button class="btn sm" id="btnDl">Descargar imagen</button>
+        </div>
+        <div class="status" id="status">—</div>
+      </section>
+
+      <aside class="stack">
+        <section class="panel">
+          <div class="panel-h"><h2>Paletas Bolt Paint</h2></div>
+          <div class="panel-b">
+            <div class="pals" id="pals"></div>
+            <div class="row"><button class="btn sm" id="btnShuffle">Sorpréndeme</button><button class="btn sm" id="btnSwap">Invertir muros/molduras</button></div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-h"><h2>Cambiar un color</h2><span class="hint" id="catFor">para: Muros</span></div>
+          <div class="panel-b">
+            <div class="seg" id="catSeg"></div>
+            <div class="sws" id="sws"></div>
+            <div class="swname" id="swName">Toca un color del catálogo</div>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-h"><h2>Tu combinación</h2></div>
+          <div class="panel-b">
+            <div class="summary" id="summary"></div>
+            <a class="btn primary block" href="#calculo">Calcular cubetas con estos colores →</a>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===================== CALCULADORA ===================== -->
+  <section class="sec" id="calculo">
+    <div class="sec-hd"><div class="sec-title">2 · ¿Cuánta pintura necesitas?<small>Mismo cálculo que la tienda: rendimiento 350 ft²/galón por mano (≈8.6 m²/L) con 10 % de desperdicio.</small></div></div>
+    <div class="calc-grid">
+      <section class="panel">
+        <div class="panel-h"><h2>📐 Medidas de la fachada</h2></div>
+        <div class="panel-b">
+          <div class="fields f3">
+            <label class="field">Frente (m)<input class="inp" type="number" id="cA" value="10" step="0.1" min="0"></label>
+            <label class="field">Fondo (m)<input class="inp" type="number" id="cL" value="8" step="0.1" min="0"></label>
+            <label class="field">Alto (m)<input class="inp" type="number" id="cH" value="3" step="0.1" min="0"></label>
+          </div>
+          <label class="field">Muros a pintar
+            <div class="seg" id="sidesSeg"><button data-v="1">Solo frente</button><button data-v="2">Frente + 1 lado</button><button data-v="3">3 muros</button><button data-v="4" aria-pressed="true">Toda la casa</button></div>
+          </label>
+          <div class="fields f3">
+            <label class="field">Ventanas<input class="inp" type="number" id="cWin" value="4" step="1" min="0"></label>
+            <label class="field">Puertas<input class="inp" type="number" id="cDoor" value="1" step="1" min="0"></label>
+            <label class="field">Herrería (m²)<input class="inp" type="number" id="cIron" value="3" step="0.5" min="0"></label>
+          </div>
+          <label class="field">Manos de pintura
+            <div class="seg" id="coatsSeg"><button data-v="1">1 mano</button><button data-v="2" aria-pressed="true">2 manos ✓</button><button data-v="3">3 manos</button></div>
+          </label>
+          <label class="check"><input type="checkbox" id="cApply"> Incluir aplicación (mano de obra) a <input class="inp" type="number" id="cRate" value="50" min="0" step="5" style="width:80px;padding:4px 8px;margin:0 4px"> $/m²</label>
+          <p class="hint">Se descuentan 1.5 m² por ventana y 2 m² por puerta; molduras ≈ 0.9 m² por hueco y puertas 2 m² c/u se pintan con su propio color.</p>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-h"><h2>Resultado</h2></div>
+        <div class="panel-b">
+          <div class="res"><div><b id="rM2">0</b><span>m² muros</span></div><div><b id="rLts">0</b><span>litros</span></div><div><b id="rGal">0</b><span>galones</span></div><div><b id="rCub">0</b><span>cubetas 19 L</span></div></div>
+          <table id="paintTbl"><thead><tr><th>Zona · color</th><th class="n">m²</th><th class="n">Compra</th><th class="n">Importe</th></tr></thead><tbody></tbody></table>
+          <div class="callout"><span>🛒</span><div><div class="k">Pintura Bolt Paint</div><div class="v" id="rPaintTot">$0</div></div></div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-h"><h2>Cómo se calcula</h2></div>
+        <div class="panel-b">
+          <ul class="tips">
+            <li><b>m² de muros</b> = perímetro seleccionado × alto − huecos (1.5 m² por ventana, 2 m² por puerta).</li>
+            <li><b>Litros</b> = m² × manos × 1.10 ÷ 8.6 m²/L. Se redondea a cubetas de 19 L, galones (3.785 L) y litros, igual que en la tienda.</li>
+            <li><b>Molduras, puertas y herrería</b> se calculan aparte con su color; casi siempre alcanza con un galón.</li>
+            <li>Precios de lista de Bolt Paint por presentación (litro / galón / cubeta). Cada color mantiene el precio de su línea.</li>
+          </ul>
+          <p class="hint">¿Ya sabes los m² exactos? Escríbelos directo: <input class="inp" type="number" id="cM2Override" placeholder="m² de muros" min="0" step="1" style="width:130px;padding:4px 8px;margin-left:4px"></p>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ===================== IMPERMEABILIZANTE ===================== -->
+  <section class="sec" id="imperm">
+    <div class="sec-hd"><div class="sec-title">3 · Impermeabilizante para el techo<small>Imperm Master (Ficha IMP001) · acrílico fibratado · cubeta 19 L · Blanco, Gris o Terracota.</small></div></div>
+    <div class="calc-grid">
+      <section class="panel">
+        <div class="panel-h"><h2>☔ Techo o losa</h2></div>
+        <div class="panel-b">
+          <label class="check"><input type="checkbox" id="iOn" checked> Incluir impermeabilización en la cotización</label>
+          <div class="fields f3">
+            <label class="field">Largo (m)<input class="inp" type="number" id="iA" value="10" step="0.1" min="0"></label>
+            <label class="field">Ancho (m)<input class="inp" type="number" id="iB" value="8" step="0.1" min="0"></label>
+            <label class="field">o m² directo<input class="inp" type="number" id="iM2" placeholder="auto" min="0" step="1"></label>
+          </div>
+          <label class="field">Color
+            <div class="seg" id="iColorSeg"><button data-v="Blanco" aria-pressed="true">⬜ Blanco</button><button data-v="Gris">🩶 Gris</button><button data-v="Terracota">🟫 Terracota</button></div>
+          </label>
+          <label class="check"><input type="checkbox" id="iTela" checked> Con tela de refuerzo (17 m²/cubeta · garantía 5 años)</label>
+          <label class="check"><input type="checkbox" id="iApply"> Incluir aplicación a <input class="inp" type="number" id="iRate" value="50" min="0" step="5" style="width:80px;padding:4px 8px;margin:0 4px"> $/m²</label>
+          <p class="hint">Sin tela rinde 20 m²/cubeta con garantía de 3 años. Los resanes de grietas o humedad se cotizan al validar el área.</p>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-h"><h2>Resultado</h2></div>
+        <div class="panel-b">
+          <div class="res"><div><b id="iRm2">0</b><span>m² techo</span></div><div><b id="iRcub">0</b><span>cubetas 19 L</span></div><div><b id="iRcov">0</b><span>m² cubiertos</span></div><div><b id="iRyrs">5</b><span>años garantía</span></div></div>
+          <table id="impTbl"><tbody></tbody></table>
+          <div class="callout"><span>💧</span><div><div class="k">Impermeabilización</div><div class="v" id="iRtot">$0</div></div></div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-h"><h2>Garantía</h2></div>
+        <div class="panel-b">
+          <div class="warr">Imperm Master · elongación &gt; 200 %, secado 2–3 h, hasta <b>5 años</b> de protección con tela de refuerzo y <b>3 años</b> sin tela, contra filtraciones de humedad y desprendimiento del recubrimiento. Reduce el calor en la losa.</div>
+          <ul class="tips">
+            <li>Aplicación a 2 manos sobre superficie limpia y seca; con tela en juntas, grietas y bajadas.</li>
+            <li>Cubeta 19 L $1,109 · rendimiento 16–18 m² con tela · 20 m² sin tela.</li>
+            <li>Ficha técnica: <a href="ficha-tecnica-IMP001.pdf" target="_blank" rel="noopener">IMP001 (PDF)</a></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ===================== COMPARADOR ===================== -->
+  <section class="sec" id="comparador">
+    <div class="sec-hd"><div class="sec-title">4 · Comparador de precios<small>¿Tu proveedor cobra más? Ingresa su precio y mira cuánto ahorras con Bolt Paint.</small></div></div>
+    <section class="panel">
+      <div class="panel-b">
+        <div class="fields f3">
+          <label class="field">Precio de tu proveedor ($)<input class="inp" type="number" id="cmpPri" placeholder="ej. 350" min="0"></label>
+          <label class="field">Presentación<select class="inp" id="cmpTipo"><option value="litro">Litro (1 L)</option><option value="galon" selected>Galón (3.78 L)</option><option value="cubeta">Cubeta (19 L)</option></select></label>
+          <label class="field">Color<select class="inp" id="cmpCat"><option value="">Cualquier color</option><option value="blanco">Blancos</option><option value="beige">Beige</option><option value="cafe">Café</option><option value="gris">Gris</option><option value="azul">Azul</option><option value="verde">Verde</option><option value="naranja">Naranja / teja</option><option value="amarillo">Amarillo</option><option value="rosa">Rosa</option><option value="morado">Morado</option><option value="negro">Negro</option></select></label>
+        </div>
+        <button class="btn primary" id="btnComp">⚡ Comparar y ver opciones</button>
+        <div class="cmp-res" id="cmpRes"></div>
+        <p class="hint" id="cmpTip"></p>
+      </div>
+    </section>
+  </section>
+
+  <!-- ===================== COTIZACIÓN ===================== -->
+  <section class="sec" id="cotizacion">
+    <div class="sec-hd"><div class="sec-title">5 · Tu cotización<small>Pintura + impermeabilizante + aplicación. Se envía por WhatsApp a Bolt Paint para confirmar entrega en 10 días.</small></div></div>
+    <div class="quote-grid">
+      <section class="panel quote-form">
+        <div class="panel-h"><h2>Datos de entrega</h2></div>
+        <div class="panel-b">
+          <label class="field">Nombre<input class="inp" id="qName" placeholder="Nombre y apellido"></label>
+          <label class="field">Teléfono / WhatsApp<input class="inp" id="qPhone" placeholder="686 000 0000" inputmode="tel"></label>
+          <label class="field">Ciudad<select class="inp" id="qCity"><option>San Felipe</option><option>Mexicali</option></select></label>
+          <label class="field">Dirección de entrega<input class="inp" id="qAddr" placeholder="Calle, número, colonia"></label>
+          <label class="field">Notas (opcional)<input class="inp" id="qNotes" placeholder="Horario, referencias, dudas"></label>
+          <label class="check"><input type="checkbox" id="qMock" checked> Incluir el mockup de la fachada en la cotización</label>
+          <button class="btn wa block" id="btnWA">📲 Enviar cotización por WhatsApp</button>
+          <div class="row"><button class="btn sm" id="btnPrint">🖨️ Imprimir / PDF</button><button class="btn sm" id="btnCopyQ">📋 Copiar texto</button></div>
+          <a class="btn block sm" href="index.html#catalogo">Comprar los colores en la tienda →</a>
+          <p class="hint">Entrega en 10 días o menos en San Felipe y Mexicali. Precios de lista en MXN; pueden cambiar sin previo aviso.</p>
+        </div>
+      </section>
+      <div class="doc" id="doc"></div>
+    </div>
+  </section>
+
+  <footer><span>Bolt Paint · San Felipe Casas · Mexicali y San Felipe, B.C.</span><span>📲 (686) 262-5119 · <a href="index.html">boltpaint</a></span></footer>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.22.0/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/deeplab@0.2.2/dist/deeplab.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  // ===== Catálogo Bolt Paint (mismos SKUs y precios que index.html · DP) =====
+  var DP=[{"id": "p001", "nombre": "TEAL", "hex": "#008080", "cat": "azul", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p002", "nombre": "CORN FLOWER", "hex": "#6495ED", "cat": "azul", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p003", "nombre": "AZUCAR MASCABADO", "hex": "#8B6343", "cat": "cafe", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p004", "nombre": "AMBER", "hex": "#FFBF00", "cat": "amarillo", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p005", "nombre": "HIEDRA", "hex": "#3D5A3E", "cat": "verde", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p006", "nombre": "AMAZONAS", "hex": "#2C7744", "cat": "verde", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p007", "nombre": "APPLE", "hex": "#6FAA3E", "cat": "verde", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p008", "nombre": "TEJA INTENSA", "hex": "#A0522D", "cat": "naranja", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p009", "nombre": "TEJA FRANCESA", "hex": "#C2613C", "cat": "naranja", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p010", "nombre": "TEJA NARANJA", "hex": "#D2622B", "cat": "naranja", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p011", "nombre": "TEJA COLONIAL", "hex": "#B8562A", "cat": "naranja", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p012", "nombre": "TEJA CLARA", "hex": "#D4875A", "cat": "naranja", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 132, "galon": 498, "cubeta": 2500}, {"id": "p013", "nombre": "AQUARIUM", "hex": "#4EC9B0", "cat": "azul", "linea": "PREMIUM", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 126, "galon": 476, "cubeta": 2389}, {"id": "p014", "nombre": "CARAMELO SUAVE", "hex": "#C8874A", "cat": "cafe", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p015", "nombre": "SOFT CHOCOLATE", "hex": "#7B4F2E", "cat": "cafe", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p016", "nombre": "LIGHT CAMEL", "hex": "#C19A6B", "cat": "cafe", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p017", "nombre": "ARSENIC", "hex": "#3B444B", "cat": "gris", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p018", "nombre": "LILA", "hex": "#C8A2C8", "cat": "morado", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p019", "nombre": "PLUM", "hex": "#8E4585", "cat": "morado", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p020", "nombre": "EGGPLANT", "hex": "#614051", "cat": "morado", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p021", "nombre": "MORADO VINO", "hex": "#722F37", "cat": "morado", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p022", "nombre": "LIGHT PURPLE", "hex": "#B39DDB", "cat": "morado", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p023", "nombre": "OLD GOLD", "hex": "#CFB53B", "cat": "amarillo", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p024", "nombre": "ANTOINETTE", "hex": "#F4A57A", "cat": "naranja", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p025", "nombre": "PEACH", "hex": "#FFCBA4", "cat": "naranja", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p026", "nombre": "SALMON", "hex": "#FA8072", "cat": "rosa", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p027", "nombre": "BERRY", "hex": "#883A5F", "cat": "rosa", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p028", "nombre": "AVOCADO", "hex": "#568203", "cat": "verde", "linea": "SUPERIOR", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 102, "galon": 387, "cubeta": 1944}, {"id": "p029", "nombre": "VERDE CAMPO", "hex": "#4A8A50", "cat": "verde", "linea": "DEPOT", "tipo": "exterior", "marca": "ElPerico", "litro": 83, "galon": 314, "cubeta": 1574}, {"id": "p030", "nombre": "BABY BLUE", "hex": "#89CFF0", "cat": "azul", "linea": "DEPOT", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 73, "galon": 276, "cubeta": 1387}, {"id": "p031", "nombre": "OXY BROWN", "hex": "#5C4827", "cat": "cafe", "linea": "DEPOT", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 73, "galon": 276, "cubeta": 1387}, {"id": "p032", "nombre": "AZUL HORIZONTE", "hex": "#5B9BD5", "cat": "azul", "linea": "DEPOT", "tipo": "interior", "marca": "ElPerico", "litro": 66, "galon": 251, "cubeta": 1259}, {"id": "p033", "nombre": "VERDE MENTA", "hex": "#A8E6CF", "cat": "verde", "linea": "DEPOT", "tipo": "interior", "marca": "ElPerico", "litro": 66, "galon": 251, "cubeta": 1259}, {"id": "p034", "nombre": "TERRA COTA", "hex": "#E07A5F", "cat": "naranja", "linea": "DEPOT", "tipo": "exterior", "marca": "ElPerico", "litro": 66, "galon": 251, "cubeta": 1259}, {"id": "p035", "nombre": "VINILTEX CIELO", "hex": "#A8D8EA", "cat": "azul", "linea": "DEPOT", "tipo": "interior", "marca": "ElPerico", "litro": 63, "galon": 240, "cubeta": 1204}, {"id": "p036", "nombre": "BRISA DEL MAR", "hex": "#90E0EF", "cat": "azul", "linea": "DEPOT", "tipo": "interior", "marca": "ElPerico", "litro": 63, "galon": 240, "cubeta": 1204}, {"id": "p037", "nombre": "OCRE CLASICO", "hex": "#CA8A04", "cat": "amarillo", "linea": "DEPOT", "tipo": "exterior", "marca": "ElPerico", "litro": 63, "galon": 240, "cubeta": 1204}, {"id": "p038", "nombre": "VINILTEX BLANCO", "hex": "#F5F5F5", "cat": "blanco", "linea": "MAS VENDIDO", "tipo": "interior", "marca": "ElPerico", "litro": 60, "galon": 229, "cubeta": 1148}, {"id": "p039", "nombre": "ARENA CLASICA", "hex": "#C8A878", "cat": "beige", "linea": "DEPOT", "tipo": "interior/exterior", "marca": "ElPerico", "litro": 60, "galon": 229, "cubeta": 1148}, {"id": "p040", "nombre": "ROSA DUNAS", "hex": "#FCE4D6", "cat": "rosa", "linea": "DEPOT", "tipo": "interior", "marca": "ElPerico", "litro": 60, "galon": 229, "cubeta": 1148}, {"id": "p041", "nombre": "ARENA DE BAJA", "hex": "#D4B483", "cat": "beige", "linea": "DEPOT", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p042", "nombre": "CREMA", "hex": "#FFFDD0", "cat": "beige", "linea": "DEPOT", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p043", "nombre": "MAZAPAN", "hex": "#E8C99A", "cat": "beige", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p044", "nombre": "TAN", "hex": "#D2B48C", "cat": "beige", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p045", "nombre": "CREMA OCRE", "hex": "#D4A855", "cat": "beige", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p046", "nombre": "SANDY BROWN", "hex": "#C4A265", "cat": "cafe", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p047", "nombre": "XOCHOLATE SECO", "hex": "#5C3317", "cat": "cafe", "linea": "DEPOT", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p048", "nombre": "VIOLETA CENIZA", "hex": "#8E7D9A", "cat": "morado", "linea": "DEPOT", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p049", "nombre": "BLANCO TOTAL", "hex": "#F8F9FA", "cat": "blanco", "linea": "MAS VENDIDO", "tipo": "interior", "marca": "ElPerico", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p050", "nombre": "CREMA CALIDA", "hex": "#FEF3C7", "cat": "beige", "linea": "DEPOT", "tipo": "interior", "marca": "ElPerico", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p051", "nombre": "GRIS NIEBLA", "hex": "#CFD8DC", "cat": "gris", "linea": "DEPOT", "tipo": "interior", "marca": "ElPerico", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p052", "nombre": "BLANCO ARQUITECTO", "hex": "#F8FAFC", "cat": "blanco", "linea": "MAS VENDIDO", "tipo": "exterior", "marca": "ElPerico", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p053", "nombre": "BLANCO PURO", "hex": "#FFFFFF", "cat": "blanco", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p054", "nombre": "NEGRO CARBON", "hex": "#1C1C1C", "cat": "negro", "linea": "DEPOT", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p055", "nombre": "BLANCO NAVAJO", "hex": "#CCCCCC", "cat": "blanco", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 73, "galon": 277, "cubeta": 1389}, {"id": "p056", "nombre": "BLANCO POLAR", "hex": "#CCCCCC", "cat": "blanco", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 83, "galon": 314, "cubeta": 1574}, {"id": "p057", "nombre": "BLANCO SEMIGLOSS", "hex": "#CCCCCC", "cat": "blanco", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 122, "galon": 461, "cubeta": 2315}, {"id": "p058", "nombre": "BLANCO SATIN", "hex": "#CCCCCC", "cat": "blanco", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 88, "galon": 332, "cubeta": 1667}, {"id": "p059", "nombre": "GRIS PATRINA", "hex": "#CCCCCC", "cat": "gris", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "p060", "nombre": "GRIS RATA", "hex": "#CCCCCC", "cat": "gris", "linea": "MAS VENDIDO", "tipo": "interior/exterior", "marca": "BpaintDepot", "litro": 49, "galon": 184, "cubeta": 922}, {"id": "imp001", "nombre": "IMPERMEABILIZANTE BLANCO", "hex": "#F4F4F2", "cat": "blanco", "linea": "IMPERMEABILIZANTE", "tipo": "exterior", "marca": "BpaintDepot", "litro": 0, "galon": 0, "cubeta": 1109}, {"id": "imp002", "nombre": "IMPERMEABILIZANTE GRIS", "hex": "#8D9298", "cat": "gris", "linea": "IMPERMEABILIZANTE", "tipo": "exterior", "marca": "BpaintDepot", "litro": 0, "galon": 0, "cubeta": 1109}, {"id": "imp003", "nombre": "IMPERMEABILIZANTE TERRACOTA", "hex": "#B8562A", "cat": "naranja", "linea": "IMPERMEABILIZANTE", "tipo": "exterior", "marca": "BpaintDepot", "litro": 0, "galon": 0, "cubeta": 1109}];
+  // Tonos aproximados para los SKUs que en la tienda no traen muestra (#CCCCCC)
+  var HEX_FIX={p055:'#EDE3CF',p056:'#F7F7F5',p057:'#FAFAFA',p058:'#F5F5F3',p059:'#9A9A98',p060:'#6E6E6C'};
+  DP.forEach(function(p){ if(HEX_FIX[p.id]) p.hex=HEX_FIX[p.id]; });
+  var PAINTS=DP.filter(function(p){return (p.linea||'')!=='IMPERMEABILIZANTE'});
+  var BY=Object.create(null); DP.forEach(function(p){BY[p.id]=p});
+  var num=function(p){return '#'+String(p.id).replace(/^p0*/,'')};
+  var money=function(n){return '$'+Math.round(n).toLocaleString('es-MX')};
+  var WA_NUMBER='526862625119';
+
+  // ===== Precios de servicio (referencia · iguales a bolt-proyectos-v2.js) =====
+  var PRECIOS={ aplicacion:50, imp:{cubeta:1109, cap:19, rend_con_tela:17, rend_sin_tela:20, garantiaTela:'5 años', garantiaSinTela:'3 años'},
+    pintura:{rend_m2_por_litro:32.5/3.785, desperdicio:1.10, cap_cubeta:19, cap_galon:3.785, garantia:'1 año'} };
+  var IMP_SKU={Blanco:'imp001',Gris:'imp002',Terracota:'imp003'};
+
+  // ===== Zonas del mockup (cada una con un SKU Bolt Paint) =====
+  const ZONES = [
+    {id:'muros',    name:'Muros',                sub:'fachada',              sku:'p043', tint:[249,115,22]},
+    {id:'pilares',  name:'Pilares y columnas',   sub:'volúmenes verticales', sku:'p046', tint:[200,69,43]},
+    {id:'molduras', name:'Molduras y dinteles',  sub:'marcos, cornisas, biseles', sku:'p055', tint:[93,124,155]},
+    {id:'puerta',   name:'Puertas',              sub:'acceso',               sku:'p047', tint:[122,74,43]},
+    {id:'herreria', name:'Herrería',             sub:'rejas, barandales',    sku:'p054', tint:[46,42,38]},
+    {id:'techo',    name:'Techo / pretil',       sub:'remate, teja',         sku:'p011', tint:[110,140,90]},
+    {id:'ventana',  name:'Ventanas',             sub:'vidrio · no se pinta', sku:null,   tint:[80,190,230], locked:true},
+  ];
+  ZONES.forEach(function(z){ z.color=z.sku?BY[z.sku].hex:null; });
+  const ZI = {}; ZONES.forEach((z,i)=>ZI[z.id]=i);
+  const FONDO = 255;
+  // Paletas: [muros, pilares, molduras, puerta, herrería, techo] con SKUs Bolt Paint
+  const PALETTES = [
+    {name:'Mazapán & Navajo',      sub:'El clásico de Baja: cálido, no satura',     c:['p043','p046','p055','p047','p054','p011']},
+    {name:'Sandy Brown + Navajo',  sub:'Contraste que resalta molduras',            c:['p046','p044','p055','p015','p054','p008']},
+    {name:'Arena de Baja',         sub:'Arena, blanco puro y acero',                c:['p041','p039','p053','p017','p054','p059']},
+    {name:'Blanco Arquitecto',     sub:'Blanco total con puerta Teal',              c:['p052','p052','p053','p001','p017','p060']},
+    {name:'Gris Rata moderno',     sub:'Gris, blanco y puerta Amber',               c:['p060','p017','p053','p004','p054','p017']},
+    {name:'Camel & Hiedra',        sub:'Tierra con verde profundo',                 c:['p016','p005','p042','p047','p054','p005']},
+    {name:'Crema & Teja',          sub:'Crema con tejas mexicanas',                 c:['p042','p012','p053','p009','p054','p011']},
+    {name:'Costa San Felipe',      sub:'Baby Blue, Teal y sol Amber',               c:['p030','p001','p053','p004','p017','p060']},
+    {name:'Tan & Amber',           sub:'Un galón de Amber cambia la puerta',        c:['p044','p041','p055','p004','p054','p046']},
+    {name:'Salmón & Carbón',       sub:'Atrevido para casa de playa',               c:['p026','p024','p053','p054','p054','p017']},
+  ];
+  const CATS=[['Todos',''],['Blancos','blanco'],['Beige','beige'],['Café','cafe'],['Gris','gris'],['Azul','azul'],['Verde','verde'],['Teja','naranja'],['Amarillo','amarillo'],['Otros','rosa,morado,negro']];
+
+  // ---------- Estado ----------
+  const $=id=>document.getElementById(id);
+  const view=$('view'), vctx=view.getContext('2d',{willReadFrequently:true});
+  const overlay=$('overlay'), octx=overlay.getContext('2d');
+  const stage=$('stage');
+  let W=0,H=0, orig=null, lum=null, out=null;
+  let comp=null;          // Int32Array W*H: id de región por pixel (-1 = ninguna)
+  let comps=[];           // regiones: {zone, count, mean:[r,g,b], ...}
+  let zoneMap=null;       // Uint8Array W*H: índice de zona o FONDO
+  let active=0, showOrig=false, painted=false, cmp=100, sat=1, con=1, currentPal=0, fixMode=false, isDemo=false;
+  let renderQueued=false, model=null, modelState='loading';
+  const MAX_DIM=1000, ANALYSIS_W=360;
+
+  ZONES.forEach(z=>{ z.soft=null; z.meanL=0.5; z.count=0; });
+
+  // ---------- Color ----------
+  const hexToRgb=h=>{const n=parseInt(h.slice(1),16);return [(n>>16)&255,(n>>8)&255,n&255];};
+  function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,s=0;const l=(mx+mn)/2;if(mx!==mn){const d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}h/=6;}return [h,s,l];}
+  function hue2rgb(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}
+  function hslToRgb(h,s,l){let r,g,b;if(s===0){r=g=b=l;}else{const q=l<0.5?l*(1+s):l+s-l*s;const p=2*l-q;r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);}return [r*255,g*255,b*255];}
+  const lumOf=(r,g,b)=>0.299*r+0.587*g+0.114*b;
+  function buildLUT(hex,meanL){const [r,g,b]=hexToRgb(hex);let [h,s,l]=rgbToHsl(r,g,b);s=Math.min(1,s*sat);const room=Math.min(l,1-l)*2+0.35;const k=con*Math.min(1,room);const lut=new Uint8ClampedArray(768);for(let i=0;i<256;i++){let nl=l+(i/255-meanL)*k;nl=nl<0?0:nl>1?1:nl;const c=hslToRgb(h,s,nl);lut[i*3]=c[0];lut[i*3+1]=c[1];lut[i*3+2]=c[2];}return lut;}
+
+  // ---------- Render ----------
+  function requestRender(){ if(renderQueued)return; renderQueued=true; requestAnimationFrame(()=>{renderQueued=false;render();}); }
+  function render(){
+    if(!orig)return; const src=orig.data,dst=out.data; dst.set(src);
+    if(!showOrig&&painted){
+      for(const z of ZONES){ if(!z.count||z.locked)continue; const lut=buildLUT(z.color,z.meanL),m=z.soft;
+        for(let i=0,p=0;i<m.length;i++,p+=4){const a=m[i];if(!a)continue;const L=lum[i],r=lut[L*3],g=lut[L*3+1],b=lut[L*3+2];
+          if(a===255){dst[p]=r;dst[p+1]=g;dst[p+2]=b;}else{const t=a/255,u=1-t;dst[p]=dst[p]*u+r*t;dst[p+1]=dst[p+1]*u+g*t;dst[p+2]=dst[p+2]*u+b*t;}}}
+      if(cmp<100){const from=Math.round(W*cmp/100)*4;for(let y=0;y<H;y++){const o=y*W*4;dst.set(src.subarray(o+from,o+W*4),o+from);}}
+    }
+    vctx.putImageData(out,0,0); drawOverlay();
+  }
+  function drawOverlay(){
+    octx.clearRect(0,0,W,H); if(!orig||!zoneMap)return;
+    const show=$('showZones').checked||fixMode; if(!show)return;
+    const img=octx.createImageData(W,H),d=img.data;
+    for(let i=0,p=0;i<zoneMap.length;i++,p+=4){const zi=zoneMap[i];if(zi===FONDO)continue;const t=ZONES[zi].tint;d[p]=t[0];d[p+1]=t[1];d[p+2]=t[2];d[p+3]=zi===active?150:95;}
+    // bordes entre regiones
+    for(let y=1;y<H-1;y++){for(let x=1;x<W-1;x++){const i=y*W+x;const c=comp[i];if(c!==comp[i-1]||c!==comp[i-W]){const p=i*4;d[p]=255;d[p+1]=255;d[p+2]=255;d[p+3]=200;}}}
+    octx.putImageData(img,0,0);
+    if(cmp<100){const from=Math.round(W*cmp/100);octx.clearRect(from,0,W-from,H);}
+  }
+
+  // ---------- Análisis: k-means + regiones ----------
+  // k-means sobre rasgos (D dimensiones); inicialización por cuantiles de la última dimensión
+  function kmeans(feat,n,D,k,iters){
+    const lab=new Uint8Array(n), cent=new Float32Array(k*D);
+    const idx=new Uint32Array(n); for(let i=0;i<n;i++)idx[i]=i;
+    const key=new Float32Array(n); for(let i=0;i<n;i++)key[i]=feat[i*D+D-1]*3+feat[i*D]+feat[i*D+2]*0.5;
+    idx.sort((a,b)=>key[a]-key[b]);
+    for(let c=0;c<k;c++){const i=idx[Math.floor((c+.5)*n/k)];for(let d=0;d<D;d++)cent[c*D+d]=feat[i*D+d];}
+    const sum=new Float64Array(k*D),cnt=new Uint32Array(k);
+    for(let it=0;it<iters;it++){
+      sum.fill(0);cnt.fill(0);
+      for(let i=0;i<n;i++){let best=0,bd=1e12;
+        for(let c=0;c<k;c++){let d2=0;for(let d=0;d<D;d++){const df=feat[i*D+d]-cent[c*D+d];d2+=df*df;}if(d2<bd){bd=d2;best=c;}}
+        lab[i]=best;for(let d=0;d<D;d++)sum[best*D+d]+=feat[i*D+d];cnt[best]++;}
+      for(let c=0;c<k;c++){if(cnt[c])for(let d=0;d<D;d++)cent[c*D+d]=sum[c*D+d]/cnt[c];}
+    }
+    return lab;
+  }
+  // filtro de moda (mayoría) sobre un mapa de etiquetas: limpia manchas y endereza bordes
+  function modeFilter(map,w,h,r,passes){
+    let src=map; const counts=new Uint16Array(256);
+    for(let p=0;p<passes;p++){ const dst=new Uint8Array(w*h);
+      for(let y=0;y<h;y++){for(let x=0;x<w;x++){ counts.fill(0); let best=src[y*w+x],bv=0;
+        for(let dy=-r;dy<=r;dy++){const yy=y+dy;if(yy<0||yy>=h)continue;for(let dx=-r;dx<=r;dx++){const xx=x+dx;if(xx<0||xx>=w)continue;const v=src[yy*w+xx];if(++counts[v]>bv){bv=counts[v];best=v;}}}
+        dst[y*w+x]=best; }} src=dst; }
+    return src;
+  }
+  // islas pequeñas de una zona se absorben en la zona vecina dominante
+  function removeIslands(map,w,h,minSize){
+    const n=w*h,id=new Int32Array(n).fill(-1),stack=new Int32Array(n);let nid=0;const sizes=[];
+    for(let s=0;s<n;s++){ if(id[s]>=0)continue;const v=map[s];let sp=0;stack[sp++]=s;id[s]=nid;let cnt=0;
+      while(sp){const i=stack[--sp];cnt++;const x=i%w,y=(i-x)/w;
+        if(x>0&&id[i-1]<0&&map[i-1]===v){id[i-1]=nid;stack[sp++]=i-1;} if(x<w-1&&id[i+1]<0&&map[i+1]===v){id[i+1]=nid;stack[sp++]=i+1;}
+        if(y>0&&id[i-w]<0&&map[i-w]===v){id[i-w]=nid;stack[sp++]=i-w;} if(y<h-1&&id[i+w]<0&&map[i+w]===v){id[i+w]=nid;stack[sp++]=i+w;}}
+      sizes.push(cnt);nid++; }
+    const out=map.slice();
+    for(let c=0;c<nid;c++){ if(sizes[c]>=minSize)continue; const votes=new Map();
+      for(let i=0;i<n;i++){ if(id[i]!==c)continue; const x=i%w,y=(i-x)/w;
+        for(const q of [x>0?i-1:-1,x<w-1?i+1:-1,y>0?i-w:-1,y<h-1?i+w:-1]){ if(q>=0&&id[q]!==c)votes.set(map[q],(votes.get(map[q])||0)+1); } }
+      let best=-1,bv=0;votes.forEach((v,z)=>{if(v>bv){bv=v;best=z;}}); if(best<0)continue;
+      for(let i=0;i<n;i++)if(id[i]===c)out[i]=best; }
+    return out;
+  }
+  function components(lab,w,h,minSize){
+    const n=w*h,id=new Int32Array(n).fill(-1),list=[];const stack=new Int32Array(n);
+    for(let s=0;s<n;s++){ if(id[s]>=0)continue; const c=list.length,cl=lab[s]; let sp=0;stack[sp++]=s;id[s]=c;let cnt=0,minx=w,maxx=0,miny=h,maxy=0;
+      while(sp){const i=stack[--sp];cnt++;const x=i%w,y=(i-x)/w;if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y;
+        if(x>0&&id[i-1]<0&&lab[i-1]===cl){id[i-1]=c;stack[sp++]=i-1;} if(x<w-1&&id[i+1]<0&&lab[i+1]===cl){id[i+1]=c;stack[sp++]=i+1;}
+        if(y>0&&id[i-w]<0&&lab[i-w]===cl){id[i-w]=c;stack[sp++]=i-w;} if(y<h-1&&id[i+w]<0&&lab[i+w]===cl){id[i+w]=c;stack[sp++]=i+w;}}
+      list.push({id:c,cluster:cl,count:cnt,minx,maxx,miny,maxy}); }
+    // absorber regiones pequeñas en el vecino con más frontera
+    let changed=true,rounds=0;
+    while(changed&&rounds<3){ changed=false;rounds++;
+      for(const cp of list){ if(cp.count>=minSize||cp.dead)continue; const votes=new Map();
+        for(let i=0;i<n;i++){ if(id[i]!==cp.id)continue; const x=i%w,y=(i-x)/w; const nb=[x>0?id[i-1]:-1,x<w-1?id[i+1]:-1,y>0?id[i-w]:-1,y<h-1?id[i+w]:-1];
+          for(const q of nb){ if(q>=0&&q!==cp.id) votes.set(q,(votes.get(q)||0)+1); } }
+        let best=-1,bv=0; votes.forEach((v,q)=>{ if(v>bv){bv=v;best=q;} }); if(best<0)continue;
+        const t=list[best]; for(let i=0;i<n;i++){ if(id[i]===cp.id)id[i]=best; } t.count+=cp.count; t.minx=Math.min(t.minx,cp.minx);t.maxx=Math.max(t.maxx,cp.maxx);t.miny=Math.min(t.miny,cp.miny);t.maxy=Math.max(t.maxy,cp.maxy); cp.dead=true;cp.count=0;changed=true; }
+    }
+    return {id,list};
+  }
+
+  // ---------- Clasificación ----------
+  const ADE = {wall:1,building:2,sky:3,floor:4,tree:5,road:7,windowpane:9,grass:10,sidewalk:12,person:13,earth:14,door:15,plant:18,curtain:19,car:21,house:26,fence:33,railing:39,column:43,skyscraper:49,stairs:54,blind:64,hovel:80,awning:87,pole:94,bannister:96,step:122};
+  function adeToZone(v){
+    switch(v){ case ADE.wall:case ADE.building:case ADE.house:case ADE.skyscraper:case ADE.hovel:return ZI.muros;
+      case ADE.door:return ZI.puerta; case ADE.windowpane:case ADE.blind:case ADE.curtain:return ZI.ventana;
+      case ADE.column:case ADE.pole:return ZI.pilares; case ADE.fence:case ADE.railing:case ADE.bannister:return ZI.herreria;
+      default:return FONDO; }
+  }
+  const TEX_T=0.55; // fracción de pixeles con textura fuerte: piedra, plantas, rejas finas
+  function classify(list, w, h, px, ml, tex){
+    // estadísticas por región
+    const n=w*h; const sums=list.map(()=>[0,0,0,0,0]); const mlv=list.map(()=>new Map());
+    const {id}=cur;
+    for(let i=0;i<n;i++){const c=id[i];if(c<0)continue;const s=sums[c];s[0]+=px[i*3];s[1]+=px[i*3+1];s[2]+=px[i*3+2];s[3]+=tex[i];if(tex[i]>13)s[4]++;
+      if(ml){const z=adeToZone(ml[i]);mlv[c].set(z,(mlv[c].get(z)||0)+1);}}
+    list.forEach((cp,c)=>{ if(cp.dead)return; cp.mean=sums[c].slice(0,3).map(v=>v/cp.count); cp.tex=sums[c][3]/cp.count;cp.texFrac=sums[c][4]/cp.count; const [r,g,b]=cp.mean; const s=r+g+b+1; cp.nr=r/s;cp.ng=g/s;cp.nb=b/s; cp.L=lumOf(r,g,b)/255;
+      cp.bw=cp.maxx-cp.minx+1;cp.bh=cp.maxy-cp.miny+1;cp.fill=cp.count/(cp.bw*cp.bh);cp.touchTop=cp.miny===0;cp.touchBottom=cp.maxy===h-1;cp.touchSide=cp.minx===0||cp.maxx===w-1;
+      cp.zone=FONDO; cp.mlzone=FONDO; cp.textured=cp.texFrac>TEX_T;
+      if(ml){let best=FONDO,bv=-1;mlv[c].forEach((v,z)=>{if(v>bv){bv=v;best=z;}});cp.mlzone=best;cp.zone=best;
+        // superficies con textura (piedra, plantas) no se pintan aunque la IA diga "pared"
+        if(cp.textured&&[ZI.muros,ZI.pilares,ZI.molduras,ZI.techo].includes(cp.zone))cp.zone=FONDO; } });
+    // vecindad (qué regiones se tocan)
+    const adj=list.map(()=>new Map()); const link=(a,b)=>{adj[a].set(b,(adj[a].get(b)||0)+1);adj[b].set(a,(adj[b].get(a)||0)+1);};
+    for(let y=0;y<h;y++){for(let x=0;x<w;x++){const i=y*w+x,c=id[i];if(x<w-1){const q=id[i+1];if(q!==c)link(c,q);}if(y<h-1){const q=id[i+w];if(q!==c)link(c,q);}}}
+    const live=list.filter(cp=>!cp.dead);
+    const touchesZone=(cp,zs)=>[...adj[cp.id].keys()].some(q=>zs.includes(list[q].zone));
+    // igual, pero admite un vecino pequeño intermedio (el borde/sombra alrededor de una puerta o ventana)
+    const touchesZone2=(cp,zs)=>touchesZone(cp,zs)||[...adj[cp.id].keys()].some(q=>list[q].count<n*0.01&&touchesZone(list[q],zs));
+    if(!ml){ // ---- motor por color: heurísticas ----
+      const skyColor=cp=>{const [r,g,b]=cp.mean;return !cp.textured&&((b>=r+2&&b>=g-4&&cp.L>0.42)||(cp.L>0.86&&Math.max(r,g,b)-Math.min(r,g,b)<12));};
+      const greenColor=cp=>{const [r,g,b]=cp.mean;return g>r*1.04&&g>b*1.12&&g>60;};
+      for(const cp of live){ cp.struct=true; cp.sky=cp.touchTop&&skyColor(cp); cp.ground=cp.touchBottom&&cp.miny>h*0.6; if(greenColor(cp))cp.struct=false; }
+      // propagar cielo y suelo a regiones vecinas del mismo tipo (degradados)
+      for(let r=0;r<6;r++){ for(const cp of live){ if(!cp.sky&&skyColor(cp)&&cp.L>0.5&&(cp.miny<h*0.12||cp.bw>w*0.3)&&[...adj[cp.id].keys()].some(q=>list[q].sky))cp.sky=true;
+        if(!cp.ground&&cp.miny>h*0.55&&[...adj[cp.id].keys()].some(q=>list[q].ground)&&!greenColor(cp)&&cp.fill<0.9&&cp.bw>w*0.3)cp.ground=true; } }
+      for(const cp of live){ if(cp.sky||cp.ground)cp.struct=false; }
+      const structs=live.filter(cp=>cp.struct); const sArea=structs.reduce((a,c)=>a+c.count,0);
+      // muros: la región más grande + las de croma parecido + las muy grandes
+      const rest=structs.filter(cp=>cp.zone===FONDO).sort((a,b)=>b.count-a.count); const main=rest.find(cp=>!cp.textured)||rest[0];
+      if(main){ main.zone=ZI.muros;
+        for(const cp of rest){ if(cp.zone!==FONDO||cp.textured)continue; const dc=Math.abs(cp.nr-main.nr)+Math.abs(cp.ng-main.ng)+Math.abs(cp.nb-main.nb);
+          if((dc<0.035&&cp.count>n*0.0015)||cp.count>sArea*0.2)cp.zone=ZI.muros; } }
+      const wallsNow=()=>rest.filter(cp=>cp.zone===ZI.muros);
+      const wallsTop=Math.min(...wallsNow().map(c=>c.miny)), wallsBottom=Math.max(...wallsNow().map(c=>c.maxy));
+      // bardas/cercas al frente: tocan el suelo y empiezan a la altura de la base de los muros → no se pintan
+      for(const cp of rest){ if(cp.zone!==FONDO)continue; if(cp.miny>=wallsBottom-h*0.06&&[...adj[cp.id].keys()].some(q=>list[q].ground))cp.fence=true; }
+      // techo: arriba de los muros y tocándolos
+      for(const cp of rest){ if(cp.zone!==FONDO||!main)continue; const dc=Math.abs(cp.nr-main.nr)+Math.abs(cp.ng-main.ng)+Math.abs(cp.nb-main.nb); if(dc>0.04&&!cp.sky&&!skyColor(cp)&&cp.miny<=wallsTop+h*0.08&&cp.maxy<=wallsTop+h*0.22&&cp.count>n*0.003&&touchesZone(cp,[ZI.muros]))cp.zone=ZI.techo; }
+      for(let pass=0;pass<2;pass++){ // dos pasadas: las ventanas/puertas suelen tocar solo su marco (moldura)
+      // puertas: altas, compactas, llegan a la base de los muros, tocan muro/moldura
+      for(const cp of rest){ if(cp.zone!==FONDO||cp.fence||cp.touchSide)continue; const ratio=cp.bh/cp.bw; if(ratio>=1.2&&ratio<=4.5&&cp.fill>0.6&&cp.maxy>=wallsBottom-h*0.1&&cp.miny>wallsTop&&cp.count>n*0.0015&&cp.count<n*0.08&&touchesZone2(cp,[ZI.muros,ZI.molduras])) cp.zone=ZI.puerta; }
+      // marcos claros y huecos (rectángulos vacíos) pegados a muros: molduras
+      for(const cp of rest){ if(cp.zone!==FONDO||cp.fence)continue; if(cp.L>0.72&&cp.fill<0.5&&cp.count<sArea*0.15&&touchesZone(cp,[ZI.muros]))cp.zone=ZI.molduras; }
+      // ventanas: oscuras o azuladas, compactas, dentro de la fachada
+      for(const cp of rest){ if(cp.zone!==FONDO||cp.fence)continue; const [r,g,b]=cp.mean;const bluish=b>r+12&&b>g;const dark=cp.L<0.33;
+        if((bluish||dark)&&cp.fill>0.5&&cp.count>n*0.0008&&cp.count<n*0.08&&!cp.touchTop&&!cp.touchBottom&&!cp.touchSide&&cp.bh/cp.bw<3&&cp.bw/cp.bh<3.5&&touchesZone2(cp,[ZI.muros,ZI.molduras]))cp.zone=ZI.ventana; }
+      // herrería: oscuras y delgadas junto a muros/ventanas
+      for(const cp of rest){ if(cp.zone!==FONDO||cp.fence)continue; if(cp.L<0.3&&cp.fill<0.45&&touchesZone(cp,[ZI.muros,ZI.ventana]))cp.zone=ZI.herreria; }
+      // molduras: tocan ventana/puerta y muro, pequeñas
+      for(const cp of rest){ if(cp.zone!==FONDO||cp.fence||cp.texFrac>0.35)continue; const thin=Math.min(cp.bw,cp.bh)<Math.min(w,h)*0.09||cp.fill<0.45; if(thin&&touchesZone(cp,[ZI.ventana,ZI.puerta])&&touchesZone(cp,[ZI.muros])&&cp.count<sArea*0.15)cp.zone=ZI.molduras; }
+      }
+      // resto estructural mediano pegado a muros, liso y de croma parecido: muros
+      for(const cp of rest){ if(cp.zone!==FONDO||cp.fence)continue; const dc=main?Math.abs(cp.nr-main.nr)+Math.abs(cp.ng-main.ng)+Math.abs(cp.nb-main.nb):1;
+        if(cp.count>n*0.003&&cp.fill>0.35&&cp.texFrac<0.35&&dc<0.09&&touchesZone(cp,[ZI.muros]))cp.zone=ZI.muros; }
+    }
+    // ---- aberturas (IA y color): una región compacta rodeada de muro es una puerta o ventana, esté iluminada, oscura o reflejando ----
+    { const wl=live.filter(cp=>cp.zone===ZI.muros); const wB=wl.length?Math.max(...wl.map(c=>c.maxy)):h;
+      const solid=[ZI.muros,ZI.molduras,ZI.pilares,ZI.ventana,ZI.puerta,ZI.herreria];
+      for(const cp of live){ if(cp.zone!==FONDO||cp.touchSide||cp.touchTop||cp.touchBottom||cp.fence||cp.sky||cp.ground)continue;
+        if(cp.count<n*0.0005||cp.count>n*0.08||cp.fill<0.5)continue; const ar=cp.bh/cp.bw; if(ar<0.25||ar>4.5)continue;
+        let tot=0,ok=0; adj[cp.id].forEach((v,q)=>{tot+=v;const o=list[q];if(solid.includes(o.zone)||(o.count<n*0.01&&touchesZone(o,[ZI.muros,ZI.molduras])))ok+=v;});
+        if(tot&&ok/tot>=0.8){ cp.zone=(ar>=1.2&&cp.maxy>=wB-h*0.1)?ZI.puerta:ZI.ventana; } } }
+    // ---- refinamientos comunes (IA y color): pilares, molduras, techo dentro de "muros" ----
+    const walls=live.filter(cp=>cp.zone===ZI.muros); const wArea=walls.reduce((a,c)=>a+c.count,0);
+    if(walls.length){
+      const main=walls.slice().sort((a,b)=>b.count-a.count)[0];
+      const N={nr:0,ng:0,nb:0,L:0}; walls.forEach(cp=>{N.nr+=cp.nr*cp.count;N.ng+=cp.ng*cp.count;N.nb+=cp.nb*cp.count;N.L+=cp.L*cp.count;}); N.nr/=wArea;N.ng/=wArea;N.nb/=wArea;N.L/=wArea;
+      for(const cp of walls){
+        if(cp===main)continue;
+        const dc=Math.abs(cp.nr-N.nr)+Math.abs(cp.ng-N.ng)+Math.abs(cp.nb-N.nb), dl=Math.abs(cp.L-N.L);
+        const distinct=dc>0.045||dl>0.45; // solo croma distinto (la sombra no es otra zona)
+        const touchesOpening=touchesZone(cp,[ZI.ventana,ZI.puerta]);
+        const touchesWall=[...adj[cp.id].keys()].some(q=>list[q]!==cp&&list[q].zone===ZI.muros);
+        const thin=Math.min(cp.bw,cp.bh)<Math.min(w,h)*0.09||cp.fill<0.45;
+        if(cp.mlzone===ZI.pilares){cp.zone=ZI.pilares;continue;}
+        if(!touchesWall)continue;
+        if(ml&&cp.maxy<=main.miny+h*0.05&&distinct&&cp.count>n*0.004){cp.zone=ZI.techo;continue;}
+        if(cp.bh/cp.bw>=2.4&&cp.bw<w*0.18&&distinct&&cp.count>n*0.003&&cp.bh>h*0.25){cp.zone=ZI.pilares;continue;}
+        if(distinct&&touchesOpening&&thin&&cp.count<wArea*0.15){cp.zone=ZI.molduras;continue;}
+        if(ml&&distinct&&cp.count<wArea*0.06&&thin){cp.zone=ZI.molduras;}
+      }
+      // elementos "pintables" que no tocan ningún muro (postes en la calle, etc.) no se pintan
+      for(const cp of live){ if([ZI.pilares,ZI.herreria,ZI.molduras].includes(cp.zone)&&!touchesZone(cp,[ZI.muros,ZI.ventana,ZI.puerta]))cp.zone=FONDO; }
+    }
+    return list;
+  }
+  let cur=null;
+
+  // ---------- Pipeline ----------
+  async function detect(){
+    if(!orig)return; busy(true,'Detectando zonas…'); await tick();
+    const useAI=$('engAI').checked&&model&&!isDemo;
+    // 1) imagen de análisis
+    const aw=Math.min(ANALYSIS_W,W), ah=Math.round(H*aw/W); const ac=document.createElement('canvas');ac.width=aw;ac.height=ah;const actx=ac.getContext('2d');actx.drawImage(view,0,0,W,H,0,0,aw,ah);
+    // (view puede tener recolor; usar original)
+    const oc=document.createElement('canvas');oc.width=W;oc.height=H;oc.getContext('2d').putImageData(orig,0,0);actx.drawImage(oc,0,0,W,H,0,0,aw,ah);
+    const ad=actx.getImageData(0,0,aw,ah).data; const n=aw*ah; const px=new Float32Array(n*3); for(let i=0,p=0;i<n;i++,p+=4){px[i*3]=ad[p];px[i*3+1]=ad[p+1];px[i*3+2]=ad[p+2];}
+    // 2) IA
+    let ml=null;
+    if(useAI){ try{ busy(true,'Analizando con IA…'); await tick(); const t=model.predict(oc); const data=await t.data(); const [th,tw]=t.shape; t.dispose();
+        ml=new Uint8Array(n); for(let y=0;y<ah;y++){const sy=Math.min(th-1,Math.floor(y*th/ah));for(let x=0;x<aw;x++){const sx=Math.min(tw-1,Math.floor(x*tw/aw));ml[y*aw+x]=data[sy*tw+sx];}}
+      }catch(e){ console.warn('IA falló, usando color',e); toast('La IA no pudo analizar; usando detección por color.'); ml=null; } }
+    // 3) rasgos: croma (independiente de la sombra) con poco peso a la luz, + textura local
+    busy(true,'Separando superficies…'); await tick();
+    const L0=new Float32Array(n); for(let i=0;i<n;i++)L0[i]=lumOf(px[i*3],px[i*3+1],px[i*3+2]);
+    const Lm=new Float32Array(n); // luminancia suavizada 3x3 (quita grano JPEG antes de medir textura)
+    for(let y=0;y<ah;y++){for(let x=0;x<aw;x++){let s=0,c=0;for(let dy=-1;dy<=1;dy++){const yy=y+dy;if(yy<0||yy>=ah)continue;for(let dx=-1;dx<=1;dx++){const xx=x+dx;if(xx<0||xx>=aw)continue;s+=L0[yy*aw+xx];c++;}}Lm[y*aw+x]=s/c;}}
+    const tex=new Float32Array(n); // desviación típica de luminancia en 5x5
+    for(let y=0;y<ah;y++){for(let x=0;x<aw;x++){let s=0,s2=0,c=0;for(let dy=-2;dy<=2;dy++){const yy=y+dy;if(yy<0||yy>=ah)continue;for(let dx=-2;dx<=2;dx++){const xx=x+dx;if(xx<0||xx>=aw)continue;const v=Lm[yy*aw+xx];s+=v;s2+=v*v;c++;}}const m=s/c;tex[y*aw+x]=Math.sqrt(Math.max(0,s2/c-m*m));}}
+    const D=4, feat=new Float32Array(n*D);
+    for(let i=0;i<n;i++){ // suavizado 3x3 del color para que el grano no cree regiones
+      const x=i%aw,y=(i-x)/aw;let r=0,g=0,b=0,c=0;for(let dy=-1;dy<=1;dy++){const yy=y+dy;if(yy<0||yy>=ah)continue;for(let dx=-1;dx<=1;dx++){const xx=x+dx;if(xx<0||xx>=aw)continue;const j=(yy*aw+xx)*3;r+=px[j];g+=px[j+1];b+=px[j+2];c++;}}
+      r/=c;g/=c;b/=c;const s=r+g+b+1; feat[i*D]=(r/s)*900;feat[i*D+1]=(g/s)*900;feat[i*D+2]=(b/s)*900;feat[i*D+3]=lumOf(r,g,b)*0.45; }
+    const k=+$('det').value; const lab=kmeans(feat,n,D,k,10); cur=components(lab,aw,ah,Math.max(40,n*0.003));
+    classify(cur.list,aw,ah,px,ml,tex);
+    // 4) limpieza geométrica del mapa de zonas: mayoría + quitar islas
+    let zA=new Uint8Array(n); for(let i=0;i<n;i++)zA[i]=cur.list[cur.id[i]].zone;
+    zA=modeFilter(zA,aw,ah,3,2); zA=removeIslands(zA,aw,ah,n*0.006); zA=modeFilter(zA,aw,ah,2,1);
+    // 4b) geometría: puertas y ventanas se vuelven rectángulos; marco (moldura) alrededor si se pidió
+    { const isl=components(zA,aw,ah,0); const t=Math.max(2,Math.round(aw*0.012)); const frames=$('frames').checked;
+      for(const cp of isl.list){ if(cp.zone===undefined)cp.zone=cp.cluster; if(cp.cluster!==ZI.ventana&&cp.cluster!==ZI.puerta)continue;
+        const bw=cp.maxx-cp.minx+1,bh=cp.maxy-cp.miny+1; if(cp.count/(bw*bh)<0.5||cp.count<n*0.0005)continue;
+        for(let y=cp.miny;y<=cp.maxy;y++)for(let x=cp.minx;x<=cp.maxx;x++){const i=y*aw+x;const z=zA[i];if(z!==ZI.ventana&&z!==ZI.puerta)zA[i]=cp.cluster;}
+        if(frames){ for(let y=cp.miny-t;y<=cp.maxy+t;y++){ if(y<0||y>=ah)continue; for(let x=cp.minx-t;x<=cp.maxx+t;x++){ if(x<0||x>=aw)continue; if(y>=cp.miny&&y<=cp.maxy&&x>=cp.minx&&x<=cp.maxx)continue; const i=y*aw+x; if(zA[i]===ZI.muros)zA[i]=ZI.molduras; } } } } }
+    // regiones finales = islas de zona (para "Corregir una zona")
+    const fin=components(zA,aw,ah,0); const sums=fin.list.map(()=>[0,0,0]);
+    for(let i=0;i<n;i++){const c=fin.id[i];sums[c][0]+=px[i*3];sums[c][1]+=px[i*3+1];sums[c][2]+=px[i*3+2];}
+    fin.list.forEach((cp,c)=>{cp.zone=cp.cluster;cp.mean=sums[c].map(v=>v/Math.max(1,cp.count));});
+    comps=fin.list;
+    // 5) subir a resolución completa; en las fronteras, cada pixel va con el vecino de color más parecido
+    comp=new Int32Array(W*H); const d=orig.data;
+    for(let y=0;y<H;y++){const sy=Math.min(ah-1,Math.floor(y*ah/H));for(let x=0;x<W;x++){const sx=Math.min(aw-1,Math.floor(x*aw/W));comp[y*W+x]=fin.id[sy*aw+sx];}}
+    const R=Math.max(3,Math.round(W/aw)*2); const comp2=comp.slice();
+    const colAt=(j)=>[d[j*4],d[j*4+1],d[j*4+2]];
+    for(let y=0;y<H;y++){for(let x=0;x<W;x++){const i=y*W+x,c=comp[i];
+      const cand=[]; if(x>=R&&comp[i-R]!==c)cand.push(i-R); if(x<W-R&&comp[i+R]!==c)cand.push(i+R); if(y>=R&&comp[i-R*W]!==c)cand.push(i-R*W); if(y<H-R&&comp[i+R*W]!==c)cand.push(i+R*W);
+      if(!cand.length)continue;
+      const me=colAt(i); let best=c,bd=1e12;
+      // referencia propia: pixel a distancia R hacia el interior (dirección opuesta al primer candidato)
+      const own=i+(i-cand[0]); if(own>=0&&own<W*H&&comp[own]===c){const m=colAt(own);bd=(me[0]-m[0])**2+(me[1]-m[1])**2+(me[2]-m[2])**2;}
+      for(const q of cand){const m=colAt(q);const dist=(me[0]-m[0])**2+(me[1]-m[1])**2+(me[2]-m[2])**2;if(dist<bd*0.8){bd=dist;best=comp[q];}}
+      comp2[i]=best;}}
+    comp=comp2;
+    rebuildZones(); busy(false);
+    const found=ZONES.filter(z=>z.count).map(z=>z.name.toLowerCase());
+    setStatus(`${useAI&&ml?'IA + color':'Detección por color'} · ${comps.filter(c=>!c.dead).length} regiones · detectado: ${found.join(', ')||'nada'}`);
+    setStep(2); if(!painted)toast('Zonas listas. Elige una paleta Bolt Paint para ver el resultado.'); if(!ZONES[ZI.muros].count)toast('No encontré muros claros. Usa “Corregir una zona” y toca el muro.');
+  }
+  function rebuildZones(){
+    zoneMap=new Uint8Array(W*H); ZONES.forEach(z=>{z.mask=new Uint8Array(W*H);z.soft=new Uint8ClampedArray(W*H);z.count=0;});
+    for(let i=0;i<W*H;i++)zoneMap[i]=comps[comp[i]].zone;
+    zoneMap=modeFilter(zoneMap,W,H,2,1); // bordes más limpios a resolución completa
+    for(let i=0;i<W*H;i++){const zi=zoneMap[i];if(zi!==FONDO)ZONES[zi].mask[i]=255;}
+    ZONES.forEach(softenAndStats); refreshZones(); requestRender();
+  }
+  function softenAndStats(z){
+    const m=z.mask,s=z.soft;let count=0,sum=0;
+    for(let y=0;y<H;y++){for(let x=0;x<W;x++){const i=y*W+x;let acc=0,nn=0;
+      for(let dy=-1;dy<=1;dy++){const yy=y+dy;if(yy<0||yy>=H)continue;for(let dx=-1;dx<=1;dx++){const xx=x+dx;if(xx<0||xx>=W)continue;acc+=m[yy*W+xx];nn++;}}
+      s[i]=acc/nn;if(m[i]){count++;sum+=lum[i];}}}
+    z.count=count;z.meanL=count?(sum/count)/255:0.5;
+  }
+  const tick=()=>new Promise(r=>setTimeout(r,20));
+
+  // ---------- Imagen ----------
+  function setImage(src){
+    const sc=Math.min(1,MAX_DIM/Math.max(src.width,src.height)); W=Math.round(src.width*sc);H=Math.round(src.height*sc);
+    view.width=overlay.width=W;view.height=overlay.height=H; vctx.drawImage(src,0,0,W,H);
+    orig=vctx.getImageData(0,0,W,H);out=vctx.createImageData(W,H);
+    lum=new Uint8ClampedArray(W*H);const d=orig.data;for(let i=0,p=0;i<W*H;i++,p+=4)lum[i]=lumOf(d[p],d[p+1],d[p+2]);
+    comp=null;comps=[];zoneMap=null;ZONES.forEach(z=>{z.count=0;z.soft=null;});painted=false;currentPal=-1;refreshPals();cmp=100;$('cmp').value=100;
+    refreshZones();requestRender();
+  }
+  function loadFile(file){
+    if(!file||!file.type.startsWith('image/')){toast('Ese archivo no es una imagen.');return;}
+    const url=URL.createObjectURL(file);const im=new Image();
+    im.onload=()=>{isDemo=false;setImage(im);URL.revokeObjectURL(url);setStep(1);detect();};
+    im.onerror=()=>toast('No se pudo leer la imagen.');im.src=url;
+  }
+
+  // Casa de ejemplo (dibujada; no trae zonas: la app las detecta)
+  function demoHouse(){
+    const w=1000,h=680;const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
+    const sky=g.createLinearGradient(0,0,0,h*0.62);sky.addColorStop(0,'#9CC4E4');sky.addColorStop(1,'#E6EEF4');g.fillStyle=sky;g.fillRect(0,0,w,h);
+    g.fillStyle='#8FA36B';g.fillRect(0,h*0.78,w,h);const gr=g.createLinearGradient(0,h*0.78,0,h);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.18)');g.fillStyle=gr;g.fillRect(0,h*0.78,w,h);
+    g.fillStyle='#B9B2A4';g.fillRect(0,h*0.78,w,26);
+    const noise=document.createElement('canvas');noise.width=w;noise.height=h;const nc=noise.getContext('2d');const nd=nc.createImageData(w,h);let seed=7;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;};for(let i=0;i<nd.data.length;i+=4){const v=110+rnd()*60;nd.data[i]=nd.data[i+1]=nd.data[i+2]=v;nd.data[i+3]=255;}nc.putImageData(nd,0,0);
+    const wallPath=()=>{g.beginPath();g.rect(150,300,700,232);g.rect(150,240,300,60);g.moveTo(462,300);g.lineTo(650,192);g.lineTo(838,300);g.closePath();};
+    wallPath();g.fillStyle='#D8C3A5';g.fill();
+    g.save();wallPath();g.clip();g.globalAlpha=.14;g.globalCompositeOperation='overlay';g.drawImage(noise,0,0);g.globalCompositeOperation='source-over';g.globalAlpha=1;
+    const sh=g.createLinearGradient(150,0,850,0);sh.addColorStop(0,'rgba(0,0,0,.18)');sh.addColorStop(.45,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(255,255,255,.08)');g.fillStyle=sh;g.fillRect(150,180,700,360);
+    const al=g.createLinearGradient(0,300,0,335);al.addColorStop(0,'rgba(0,0,0,.22)');al.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=al;g.fillRect(450,300,400,35);g.restore();
+    // pilares del porche
+    [[470,300],[600,300]].forEach(([x,y])=>{g.fillStyle='#C9A97E';g.fillRect(x,y+10,34,222);g.fillStyle='rgba(0,0,0,.15)';g.fillRect(x+24,y+10,10,222);});
+    // techo
+    g.fillStyle='#6B4F3A';g.beginPath();g.moveTo(130,240);g.lineTo(470,240);g.lineTo(470,214);g.lineTo(130,214);g.closePath();g.fill();
+    g.beginPath();g.moveTo(430,300);g.lineTo(650,170);g.lineTo(870,300);g.lineTo(838,300);g.lineTo(650,192);g.lineTo(462,300);g.closePath();g.fill();
+    // molduras
+    const win=[[190,330,110,120],[330,330,110,120],[700,330,110,120]];
+    g.fillStyle='#F3EDE2';g.fillRect(150,532,700,16);g.fillRect(150,300,300,10);win.forEach(([x,y,ww,hh])=>{g.fillRect(x-12,y-12,ww+24,hh+24);});g.fillRect(514,376,132,156);
+    g.fillStyle='rgba(0,0,0,.12)';win.forEach(([x,y,ww,hh])=>{g.fillRect(x-12,y+hh+2,ww+24,10);});
+    // ventanas
+    win.forEach(([x,y,ww,hh])=>{const gl=g.createLinearGradient(x,y,x+ww,y+hh);gl.addColorStop(0,'#6E8FA8');gl.addColorStop(.5,'#3D556A');gl.addColorStop(1,'#7FA0B8');g.fillStyle=gl;g.fillRect(x,y,ww,hh);g.fillStyle='rgba(255,255,255,.25)';g.fillRect(x+8,y+8,ww*0.35,hh*0.5);
+      g.fillStyle='#2E2A26';g.fillRect(x,y,ww,5);g.fillRect(x,y+hh-5,ww,5);g.fillRect(x,y,5,hh);g.fillRect(x+ww-5,y,5,hh);g.fillRect(x+ww/2-2,y,5,hh);g.fillRect(x,y+hh/2-2,ww,5);});
+    // puerta
+    g.fillStyle='#7A4A2B';g.fillRect(530,392,100,140);g.save();g.beginPath();g.rect(530,392,100,140);g.clip();g.globalAlpha=.2;g.drawImage(noise,0,0);g.globalAlpha=1;g.fillStyle='rgba(0,0,0,.18)';g.fillRect(538,400,84,56);g.fillRect(538,468,84,56);g.restore();g.fillStyle='#C9A24A';g.beginPath();g.arc(614,466,5,0,7);g.fill();
+    g.fillStyle='#A8A093';g.fillRect(510,532,140,14);g.fillStyle='rgba(0,0,0,.15)';g.fillRect(150,548,700,6);
+    g.fillStyle='#4E6B3A';g.beginPath();g.arc(930,330,70,0,7);g.arc(880,380,55,0,7);g.fill();g.fillStyle='#5A4330';g.fillRect(918,380,24,160);
+    g.fillStyle='#5E7C44';g.beginPath();g.arc(80,520,50,0,7);g.arc(40,540,40,0,7);g.fill();
+    const warm=g.createRadialGradient(200,100,50,200,100,900);warm.addColorStop(0,'rgba(255,240,200,.14)');warm.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=warm;g.fillRect(0,0,w,h);
+    isDemo=true;setImage(c);setStep(1);detect();
+  }
+
+  // ---------- UI del mockup ----------
+  function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);}
+  function setStatus(s){$('status').textContent=s;}
+  function busy(on,txt){$('busy').classList.toggle('show',on);if(txt)$('busyT').textContent=txt;}
+  function setStep(i){[...$('steps').children].forEach((s,k)=>{s.className=k<i?'done':k===i?'now':'';});}
+  function setZoneSku(k,id){ZONES[k].sku=id;ZONES[k].color=BY[id].hex;}
+  function refreshZones(){
+    const el=$('zones');el.innerHTML='';const total=W*H||1;
+    ZONES.forEach((z,i)=>{const b=document.createElement('button');b.type='button';b.className='zone'+(i===active?' on':'')+(z.locked?' locked':'');
+      const pct=z.count?(100*z.count/total).toFixed(1)+'%':'—'; const p=z.sku?BY[z.sku]:null;
+      b.innerHTML=z.locked
+        ?`<span class="dot" style="background:var(--bg3)"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><span class="nm">${z.name}<small>${z.sub}</small></span><span class="cov"><b style="background:rgb(${z.tint})"></b>${pct}</span>`
+        :`<span class="dot" style="background:${z.color}"></span><span class="nm">${z.name}<small>${num(p)} ${p.nombre}</small></span><span class="cov"><b style="background:rgb(${z.tint})"></b>${pct}</span>`;
+      if(!z.locked) b.addEventListener('click',()=>{active=i;refreshZones();drawOverlay();});
+      el.appendChild(b);});
+    $('catFor').textContent='para: '+ZONES[active].name; refreshSummary(); buildSwatches();
+  }
+  function refreshPals(){document.querySelectorAll('.pal').forEach((p,i)=>p.classList.toggle('on',i===currentPal));}
+  function applyPalette(i,silent){currentPal=i;PALETTES[i].c.forEach((id,k)=>setZoneSku(k,id));if(!silent){painted=true;cmp=100;$('cmp').value=100;}refreshPals();refreshZones();if(orig&&zoneMap&&!silent)setStep(3);}
+  function refreshSummary(){$('summary').innerHTML=ZONES.filter(z=>!z.locked).map(z=>{const p=BY[z.sku];return `<div class="li"><i style="background:${z.color}"></i><span>${z.name}<small>${num(p)} ${p.nombre} · ${p.linea}</small></span><code>${money(p.galon)} gal</code></div>`;}).join(''); calcAll();}
+  PALETTES.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='pal';b.innerHTML=`<span class="nm">${p.name}<small>${p.sub}</small></span><span class="chips">${p.c.map(id=>`<i style="background:${BY[id].hex}" title="${BY[id].nombre}"></i>`).join('')}</span>`;b.addEventListener('click',()=>{applyPalette(i);requestRender();});$('pals').appendChild(b);});
+  let catSel='';
+  CATS.forEach(([n,v],i)=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.setAttribute('aria-pressed',i===0);b.addEventListener('click',()=>{catSel=v;document.querySelectorAll('#catSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));buildSwatches();});$('catSeg').appendChild(b);});
+  function buildSwatches(){ const el=$('sws'); el.innerHTML=''; const cats=catSel?catSel.split(','):null;
+    PAINTS.filter(p=>!cats||cats.includes(p.cat)).forEach(p=>{const b=document.createElement('button');b.type='button';b.className='sw'+(ZONES[active].sku===p.id?' on':'');b.style.background=p.hex;b.title=num(p)+' '+p.nombre+' · '+money(p.galon)+' galón';
+      b.addEventListener('mouseenter',()=>{$('swName').innerHTML=`<b>${num(p)} ${p.nombre}</b> · ${p.linea} · <code>${money(p.litro)} L · ${money(p.galon)} gal · ${money(p.cubeta)} cubeta</code>`;});
+      b.addEventListener('click',()=>{if(ZONES[active].locked)return;painted=true;setZoneSku(active,p.id);currentPal=-1;refreshPals();refreshZones();requestRender();toast(ZONES[active].name+' → '+num(p)+' '+p.nombre);});
+      el.appendChild(b);}); }
+
+  $('btnUpload').addEventListener('click',()=>$('file').click());
+  $('file').addEventListener('change',e=>loadFile(e.target.files[0]));
+  $('btnDemo').addEventListener('click',demoHouse);
+  $('btnRedetect').addEventListener('click',()=>{if(orig)detect();});
+  $('det').addEventListener('input',e=>$('detV').textContent=e.target.value);
+  $('det').addEventListener('change',()=>{if(orig)detect();});
+  $('engAI').addEventListener('change',()=>{if(orig)detect();}); $('engColor').addEventListener('change',()=>{if(orig)detect();});
+  $('showZones').addEventListener('change',drawOverlay);
+  $('frames').addEventListener('change',()=>{if(orig)detect();});
+  $('sat').addEventListener('input',e=>{sat=e.target.value/100;$('satV').textContent=e.target.value+'%';requestRender();});
+  $('con').addEventListener('input',e=>{con=e.target.value/100;$('conV').textContent=e.target.value+'%';requestRender();});
+  $('cmp').addEventListener('input',e=>{cmp=+e.target.value;requestRender();});
+  const holdOn=()=>{showOrig=true;requestRender();},holdOff=()=>{if(showOrig){showOrig=false;requestRender();}};
+  $('btnOrig').addEventListener('pointerdown',holdOn);$('btnOrig').addEventListener('pointerup',holdOff);$('btnOrig').addEventListener('pointerleave',holdOff);
+  function mockupDataUrl(){ if(!orig)return null; const c=document.createElement('canvas');c.width=W;c.height=H;const s=cmp;cmp=100;render();c.getContext('2d').drawImage(view,0,0);cmp=s;requestRender(); return c.toDataURL('image/jpeg',0.82); }
+  $('btnDl').addEventListener('click',()=>{const u=mockupDataUrl();if(!u)return;const a=document.createElement('a');a.href=u;a.download='mi-casa-boltpaint.jpg';document.body.appendChild(a);a.click();a.remove();});
+  $('btnShuffle').addEventListener('click',()=>{let i;do{i=Math.floor(Math.random()*PALETTES.length);}while(i===currentPal);applyPalette(i);requestRender();});
+  $('btnSwap').addEventListener('click',()=>{painted=true;const a=ZONES[0].sku;setZoneSku(0,ZONES[2].sku);setZoneSku(2,a);currentPal=-1;refreshPals();refreshZones();requestRender();});
+  $('btnFix').addEventListener('click',()=>{fixMode=!fixMode;$('btnFix').classList.toggle('on',fixMode);$('btnFix').textContent=fixMode?'Listo, terminar corrección':'Corregir una zona';view.classList.toggle('fix',fixMode);$('pick').classList.remove('show');drawOverlay();});
+  view.addEventListener('click',e=>{ if(!fixMode||!comp)return; const r=view.getBoundingClientRect();const x=Math.floor((e.clientX-r.left)*W/r.width),y=Math.floor((e.clientY-r.top)*H/r.height); if(x<0||y<0||x>=W||y>=H)return;
+    const c=comp[y*W+x]; const cp=comps[c]; const pk=$('pick'); const cur=cp.zone===FONDO?'No se pinta (fondo)':ZONES[cp.zone].name;
+    pk.innerHTML=`<div class="t">Esta parte es: ${cur}</div>`+ZONES.map((z,i)=>`<button data-z="${i}"><i style="background:rgb(${z.tint})"></i>${z.name}</button>`).join('')+`<button data-z="${FONDO}"><i style="background:var(--brd2)"></i>No se pinta (fondo)</button>`;
+    pk.style.left=Math.min(e.clientX-r.left+8, r.width-200)+'px'; pk.style.top=Math.min(e.clientY-r.top+8, r.height-260)+'px'; pk.classList.add('show');
+    pk.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ cp.zone=+b.dataset.z; pk.classList.remove('show'); rebuildZones(); toast('Región reasignada.'); })); });
+  document.addEventListener('click',e=>{ if(!e.target.closest('#pick')&&e.target!==view)$('pick').classList.remove('show'); });
+  ['dragenter','dragover'].forEach(ev=>stage.addEventListener(ev,e=>{e.preventDefault();stage.classList.add('dragging');}));
+  ['dragleave','drop'].forEach(ev=>stage.addEventListener(ev,e=>{e.preventDefault();stage.classList.remove('dragging');}));
+  stage.addEventListener('drop',e=>loadFile(e.dataTransfer.files[0]));
+
+  // ---------- Calculadora de pintura ----------
+  let sides=4, coats=2;
+  function seg(id,cb){document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#'+id+' button').forEach(x=>x.setAttribute('aria-pressed',x===b));cb(b.dataset.v);}));}
+  seg('sidesSeg',v=>{sides=+v;calcAll();}); seg('coatsSeg',v=>{coats=+v;calcAll();});
+  ['cA','cL','cH','cWin','cDoor','cIron','cRate','cM2Override','iA','iB','iM2','iRate'].forEach(id=>$(id).addEventListener('input',calcAll));
+  ['cApply','iOn','iTela','iApply'].forEach(id=>$(id).addEventListener('change',calcAll));
+  let impColor='Blanco'; seg('iColorSeg',v=>{impColor=v;calcAll();});
+  const v=id=>Math.max(0,parseFloat($(id).value)||0);
+  function containers(L){ const P=PRECIOS.pintura; L=Math.max(0,L); let cub=Math.floor(L/P.cap_cubeta),rem=L-cub*P.cap_cubeta; let gal=Math.floor(rem/P.cap_galon),rem2=rem-gal*P.cap_galon; let lit=Math.max(0,Math.ceil(rem2-1e-6)); if(lit>=3){gal+=1;lit=0} if(gal>=5){cub+=1;gal-=5} return {cub,gal,lit,litros:cub*P.cap_cubeta+gal*P.cap_galon+lit}; }
+  function lineFor(zoneIdx,m2){ const z=ZONES[zoneIdx],p=BY[z.sku]; if(m2<=0)return null; const P=PRECIOS.pintura; const L=m2*coats*P.desperdicio/P.rend_m2_por_litro; const b=containers(L); const cost=b.cub*p.cubeta+b.gal*p.galon+b.lit*p.litro; const det=[]; if(b.cub)det.push(b.cub+' cubeta'+(b.cub>1?'s':'')); if(b.gal)det.push(b.gal+' galón'+(b.gal>1?'es':'')); if(b.lit)det.push(b.lit+' L'); return {zone:z,p,m2,L,b,cost,det:det.join(' + ')}; }
+  let Q={paint:[],paintTot:0,apply:0,applyM2:0,imp:null,total:0};
+  function calcAll(){
+    // muros
+    const a=v('cA'),l=v('cL'),h=v('cH'),win=v('cWin'),door=v('cDoor'),iron=v('cIron');
+    const per={1:a,2:a+l,3:a+2*l,4:2*(a+l)}[sides]||0;
+    const ov=v('cM2Override'); let m2w=ov>0?ov:Math.max(0,per*h-win*1.5-door*2);
+    const m2mold=$('frames').checked?(win+door)*0.9:0, m2door=door*2, m2iron=iron;
+    const lines=[lineFor(ZI.muros,m2w),lineFor(ZI.molduras,m2mold),lineFor(ZI.puerta,m2door),lineFor(ZI.herreria,m2iron)].filter(Boolean);
+    const paintTot=lines.reduce((s,x)=>s+x.cost,0); const Lt=lines.reduce((s,x)=>s+x.L,0);
+    const wall=lines[0]&&lines[0].zone.id==='muros'?lines[0]:null;
+    $('rM2').textContent=Math.round(m2w); $('rLts').textContent=Math.ceil(Lt); $('rGal').textContent=wall?wall.b.gal:0; $('rCub').textContent=wall?wall.b.cub:0;
+    $('paintTbl').querySelector('tbody').innerHTML=lines.map(x=>`<tr><td><span class="sw-i" style="background:${x.p.hex}"></span>${x.zone.name}<br><small style="color:var(--txt3)">${num(x.p)} ${x.p.nombre}</small></td><td class="n">${x.m2.toFixed(1)}</td><td class="n">${x.det}</td><td class="n">${money(x.cost)}</td></tr>`).join('')||'<tr><td colspan="4" class="hint">Indica medidas mayores a 0.</td></tr>';
+    $('rPaintTot').textContent=money(paintTot);
+    const applyM2=m2w+m2mold+m2door; const apply=$('cApply').checked?applyM2*v('cRate'):0;
+    // impermeabilizante
+    let imp=null;
+    if($('iOn').checked){ const im2=v('iM2')>0?v('iM2'):v('iA')*v('iB'); const tela=$('iTela').checked; const rend=tela?PRECIOS.imp.rend_con_tela:PRECIOS.imp.rend_sin_tela; const cub=im2>0?Math.ceil(im2/rend-1e-6):0; const sku=BY[IMP_SKU[impColor]]; const mat=cub*PRECIOS.imp.cubeta; const iapply=$('iApply').checked?im2*v('iRate'):0;
+      imp={m2:im2,tela,rend,cub,sku,mat,apply:iapply,tot:mat+iapply,years:tela?PRECIOS.imp.garantiaTela:PRECIOS.imp.garantiaSinTela};
+      $('iRm2').textContent=Math.round(im2); $('iRcub').textContent=cub; $('iRcov').textContent=cub*rend; $('iRyrs').textContent=tela?5:3;
+      $('impTbl').querySelector('tbody').innerHTML=`<tr><td><span class="sw-i" style="background:${sku.hex}"></span>Imperm Master ${impColor} · cubeta 19 L</td><td class="n">${cub} × ${money(PRECIOS.imp.cubeta)}</td><td class="n">${money(mat)}</td></tr>`+(iapply?`<tr><td>Aplicación ${tela?'con tela':'sin tela'}</td><td class="n">${Math.round(im2)} m² × ${money(v('iRate'))}</td><td class="n">${money(iapply)}</td></tr>`:'');
+      $('iRtot').textContent=money(imp.tot);
+    } else { $('impTbl').querySelector('tbody').innerHTML='<tr><td class="hint">No incluido en la cotización.</td></tr>'; $('iRtot').textContent='$0'; }
+    Q={paint:lines,paintTot,apply,applyM2,imp,total:paintTot+apply+(imp?imp.tot:0),m2w};
+    renderDoc();
+  }
+
+  // ---------- Comparador ----------
+  $('btnComp').addEventListener('click',()=>{
+    const precio=parseFloat($('cmpPri').value); if(!precio||precio<=0){toast('Ingresa el precio de tu proveedor');return;}
+    const tipo=$('cmpTipo').value, cat=$('cmpCat').value; const tl={litro:'por litro',galon:'por galón',cubeta:'por cubeta 19 L'}[tipo];
+    let list=PAINTS.filter(p=>p[tipo]>0&&(!cat||p.cat===cat)).sort((a,b)=>a[tipo]-b[tipo]).slice(0,3);
+    let h=`<div class="cri cur"><span class="badge">📌 Tu proveedor</span><div class="pr">${money(precio)}<small> MXN ${tl}</small></div></div>`;
+    list.forEach((p,i)=>{const sav=precio-p[tipo],pct=Math.round(Math.abs(sav)/precio*100),win=i===0&&sav>0;
+      h+=`<div class="cri${win?' win':''}"><span class="badge">${win?'🏆 Mejor precio':'🎨 Bolt Paint'}</span><div class="nm"><span class="sw-i" style="background:${p.hex}"></span>${num(p)} ${p.nombre}</div><div class="pr">${money(p[tipo])}<small> MXN</small></div><div class="sv ${sav>=0?'g':'b'}">${sav>=0?'Ahorras '+money(sav):money(-sav)+' más caro'} · ${pct}%</div><button class="btn sm" data-id="${p.id}">Usar en ${ZONES[active].name.toLowerCase()}</button></div>`;});
+    $('cmpRes').innerHTML=h; $('cmpTip').textContent=list.length&&precio-list[0][tipo]>0?`🐾 Con ${num(list[0])} ${list[0].nombre} ahorras ${money(precio-list[0][tipo])} MXN ${tl}. 🚚 Entrega a domicilio · San Felipe y Mexicali.`:'';
+    $('cmpRes').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{painted=true;setZoneSku(active,b.dataset.id);currentPal=-1;refreshPals();refreshZones();requestRender();toast('Color aplicado al mockup y a la cotización');document.getElementById('mockup').scrollIntoView({behavior:'smooth'});}));
+  });
+
+  // ---------- Cotización ----------
+  const folio=()=>{const d=new Date();return 'SFC-'+d.getFullYear().toString().slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0');};
+  const FOLIO=folio(); const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  ['qName','qPhone','qCity','qAddr','qNotes','qMock'].forEach(id=>$(id).addEventListener('input',renderDoc));
+  $('qMock').addEventListener('change',renderDoc);
+  function renderDoc(){
+    const d=new Date(); const deliver=new Date(d.getTime()+10*864e5);
+    const f=(x)=>x.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
+    let rows=Q.paint.map(x=>`<tr><td><span class="sw-i" style="background:${x.p.hex}"></span>${x.zone.name} · ${num(x.p)} ${x.p.nombre} <small>(${x.p.linea})</small></td><td class="n">${x.m2.toFixed(1)} m²</td><td class="n">${x.det}</td><td class="n">${money(x.cost)}</td></tr>`).join('');
+    if(Q.apply)rows+=`<tr><td>Aplicación de pintura (${coats} manos, mano de obra)</td><td class="n">${Math.round(Q.applyM2)} m²</td><td class="n">${money(v('cRate'))}/m²</td><td class="n">${money(Q.apply)}</td></tr>`;
+    if(Q.imp){rows+=`<tr><td><span class="sw-i" style="background:${Q.imp.sku.hex}"></span>Imperm Master ${impColor} · IMP001 · ${Q.imp.tela?'con tela de refuerzo':'sin tela'}</td><td class="n">${Math.round(Q.imp.m2)} m²</td><td class="n">${Q.imp.cub} cubeta${Q.imp.cub!==1?'s':''} 19 L</td><td class="n">${money(Q.imp.mat)}</td></tr>`;
+      if(Q.imp.apply)rows+=`<tr><td>Aplicación de impermeabilizante</td><td class="n">${Math.round(Q.imp.m2)} m²</td><td class="n">${money(v('iRate'))}/m²</td><td class="n">${money(Q.imp.apply)}</td></tr>`;}
+    const mock=($('qMock').checked&&orig&&painted)?`<img class="mock" alt="Mockup de la fachada" src="${mockupDataUrl()}">`:'';
+    const pal=currentPal>=0?PALETTES[currentPal].name:'Combinación personalizada';
+    $('doc').innerHTML=`<div class="doc-hd"><div><h3>Cotización · San Felipe Casas</h3><small>Bolt Paint · Mexicali y San Felipe · 📲 (686) 262-5119</small></div><div style="text-align:right"><b>${FOLIO}</b><small>${f(d)}</small><small>Entrega estimada: ${f(deliver)}</small></div></div>
+      <div class="cols"><div><b>Cliente</b>${esc($('qName').value)||'—'}<br>${esc($('qPhone').value)||''}</div><div><b>Entrega</b>${esc($('qAddr').value)||'—'}<br>${esc($('qCity').value)}, B.C.</div></div>
+      ${mock}<p style="margin:4px 0 8px"><b>Paleta:</b> ${esc(pal)} · ${ZONES.filter(z=>!z.locked).map(z=>z.name+': '+num(BY[z.sku])+' '+BY[z.sku].nombre).join(' · ')}</p>
+      <table><thead><tr><th>Concepto</th><th class="n">Área</th><th class="n">Cantidad</th><th class="n">Importe</th></tr></thead><tbody>${rows||'<tr><td colspan="4">Sin conceptos aún.</td></tr>'}<tr class="tot"><td colspan="3">Total estimado (MXN)</td><td class="n">${money(Q.total)}</td></tr></tbody></table>
+      ${$('qNotes').value?`<p><b>Notas:</b> ${esc($('qNotes').value)}</p>`:''}
+      <div class="note">Precios de lista Bolt Paint en MXN, sujetos a validación de área y a resanes que se coticen en sitio. Pintura 100 % acrílica con garantía de ${PRECIOS.pintura.garantia} a 2 manos; Imperm Master con garantía de ${PRECIOS.imp.garantiaTela} con tela de refuerzo y ${PRECIOS.imp.garantiaSinTela} sin tela. Entrega en San Felipe y Mexicali en 10 días o menos. Los colores en pantalla son referencia; el tono final depende de la superficie y la luz.</div>`;
+  }
+  function quoteText(){
+    const L=[`*Cotización ${FOLIO} · San Felipe Casas · Bolt Paint*`];
+    L.push(`Cliente: ${$('qName').value||'—'} · Tel: ${$('qPhone').value||'—'}`); L.push(`Entrega: ${$('qAddr').value||'—'}, ${$('qCity').value}`);
+    L.push(`Paleta: ${currentPal>=0?PALETTES[currentPal].name:'personalizada'}`);
+    Q.paint.forEach(x=>L.push(`• ${x.zone.name}: ${num(x.p)} ${x.p.nombre} · ${x.m2.toFixed(1)} m² · ${x.det} · ${money(x.cost)}`));
+    if(Q.apply)L.push(`• Aplicación pintura: ${Math.round(Q.applyM2)} m² · ${money(Q.apply)}`);
+    if(Q.imp){L.push(`• Imperm Master ${impColor} ${Q.imp.tela?'con tela':'sin tela'}: ${Math.round(Q.imp.m2)} m² · ${Q.imp.cub} cubeta(s) · ${money(Q.imp.mat)}`); if(Q.imp.apply)L.push(`• Aplicación impermeabilizante: ${money(Q.imp.apply)}`);}
+    L.push(`*Total estimado: ${money(Q.total)} MXN* · entrega en 10 días o menos`); if($('qNotes').value)L.push(`Notas: ${$('qNotes').value}`);
+    return L.join('\n');
+  }
+  $('btnWA').addEventListener('click',()=>{ if(!$('qName').value||!$('qPhone').value){toast('Escribe tu nombre y teléfono para enviar la cotización');$('qName').focus();return;} window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(quoteText()),'_blank','noopener'); });
+  $('btnPrint').addEventListener('click',()=>window.print());
+  $('btnCopyQ').addEventListener('click',()=>{(navigator.clipboard?navigator.clipboard.writeText(quoteText()):Promise.reject()).then(()=>toast('Cotización copiada')).catch(()=>toast('No se pudo copiar'));});
+
+  // ---------- Modelo IA ----------
+  async function loadModel(){
+    const eng=$('engine');
+    const off=()=>{modelState='none';eng.className='engine warn';eng.lastElementChild.textContent='IA no disponible · detección por color';$('engColor').checked=true;};
+    if(typeof tf==='undefined'||typeof deeplab==='undefined'){off();return;}
+    try{ model=await deeplab.load({base:'ade20k',quantizationBytes:2}); }
+    catch(e1){ try{ model=await deeplab.load({modelUrl:'https://storage.googleapis.com/tfjs-models/savedmodel/deeplab/quantized/2/ade20k/model.json'}); }catch(e2){ console.warn(e1,e2); off(); return; } }
+    modelState='ready'; eng.className='engine ok'; eng.lastElementChild.textContent='IA lista (DeepLab · ADE20K)';
+    try{ const c=document.createElement('canvas');c.width=64;c.height=64;const t=model.predict(c);await t.data();t.dispose(); }catch(e){}
+    if(orig&&!isDemo&&$('engAI').checked)detect();
+  }
+
+  // init
+  applyPalette(0,true); calcAll(); demoHouse(); loadModel();
+})();
+</script>
+</body>
+</html>
