@@ -876,7 +876,7 @@
   let impColor='Blanco'; seg('iColorSeg',v=>{impColor=v;calcAll();});
   const v=id=>Math.max(0,parseFloat($(id).value)||0);
   function containers(L){ const P=PRECIOS.pintura; L=Math.max(0,L); let cub=Math.floor(L/P.cap_cubeta),rem=L-cub*P.cap_cubeta; let gal=Math.floor(rem/P.cap_galon),rem2=rem-gal*P.cap_galon; let lit=Math.max(0,Math.ceil(rem2-1e-6)); if(lit>=3){gal+=1;lit=0} if(gal>=5){cub+=1;gal-=5} return {cub,gal,lit,litros:cub*P.cap_cubeta+gal*P.cap_galon+lit}; }
-  function lineFor(zoneIdx,m2){ const z=ZONES[zoneIdx],p=BY[z.sku]; if(m2<=0)return null; const P=PRECIOS.pintura; const L=m2*coats*P.desperdicio/P.rend_m2_por_litro; const b=containers(L); const cost=b.cub*p.cubeta+b.gal*p.galon+b.lit*p.litro; const det=[]; if(b.cub)det.push(b.cub+' cubeta'+(b.cub>1?'s':'')); if(b.gal)det.push(b.gal+' galón'+(b.gal>1?'es':'')); if(b.lit)det.push(b.lit+' L'); return {zone:z,p,m2,L,b,cost,det:det.join(' + ')}; }
+    function lineFor(zoneIdx,m2){ const z=ZONES[zoneIdx],p=BY[z.sku]; if(m2<=0)return null; const P=PRECIOS.pintura; const L=m2*coats*P.desperdicio/P.rend_m2_por_litro; const b=containers(L); const cost=b.cub*p.cubeta+b.gal*p.galon+b.lit*p.litro; const det=[]; if(b.cub)det.push(b.cub+' cubeta'+(b.cub>1?'s':'')); if(b.gal)det.push(b.gal+(b.gal>1?' galones':' galón')); if(b.lit)det.push(b.lit+' L'); return {zone:z,p,m2,L,b,cost,det:det.join(' + ')}; }
   let Q={paint:[],paintTot:0,apply:0,applyM2:0,imp:null,total:0};
   function calcAll(){
     // muros
@@ -944,7 +944,7 @@
     if(Q.apply)L.push(`• Aplicación pintura: ${Math.round(Q.applyM2)} m² · ${money(Q.apply)}`);
     if(Q.imp){L.push(`• Imperm Master ${impColor} ${Q.imp.tela?'con tela':'sin tela'}: ${Math.round(Q.imp.m2)} m² · ${Q.imp.cub} cubeta(s) · ${money(Q.imp.mat)}`); if(Q.imp.apply)L.push(`• Aplicación impermeabilizante: ${money(Q.imp.apply)}`);}
     L.push(`*Total estimado: ${money(Q.total)} MXN* · entrega en 10 días o menos`); if($('qNotes').value)L.push(`Notas: ${$('qNotes').value}`);
-    return L.join('\n');
+        const T=s=>window.bpT?window.bpT(s):s; return L.map(T).join('\n');
   }
   $('btnWA').addEventListener('click',()=>{ if(!$('qName').value||!$('qPhone').value){toast('Escribe tu nombre y teléfono para enviar la cotización');$('qName').focus();return;} window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(quoteText()),'_blank','noopener'); });
   $('btnPrint').addEventListener('click',()=>window.print());
@@ -966,5 +966,6 @@
   applyPalette(0,true); calcAll(); demoHouse(); loadModel();
 })();
 </script>
+<script src="i18n-en.js"></script>
 </body>
 </html>
