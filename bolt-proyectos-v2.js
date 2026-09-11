@@ -32,7 +32,8 @@
       corporativo:{n:'Corporativo',dP:0.15,dA:0.15,dI:0},
       premium:{n:'Premium',dP:0.15,dA:0.15,dI:0.15}
     },
-    parametros:{rendimiento:10, cap_cubeta:19, cap_galon:3.785, cap_litro:1, manos:2}
+    // Rendimiento unificado con la tienda y San Felipe Casas: ficha 350 ft²/galón por mano ≈ 8.6 m²/L, con 10 % de desperdicio.
+    parametros:{rendimiento:8.6, desperdicio:1.10, cap_cubeta:19, cap_galon:3.785, cap_litro:1, manos:2}
   };
   var WA_NUMBER='526862625119';
 
@@ -208,7 +209,7 @@
     '<div class="bp-calc" id="bpPaintCalc"><div style="font-weight:800;font-size:13px;margin-bottom:6px">🧮 Calculadora de pintura</div>'+
     '<div class="bp-row"><div class="bp-f"><label>Área (m²)</label><input type="number" id="bpArea" value="40" min="0" oninput="bpCalcPrev()"></div>'+
     '<div class="bp-f"><label>Manos</label><input type="number" id="bpCoats" value="2" min="1" oninput="bpCalcPrev()"></div>'+
-    '<div class="bp-f"><label>Rendimiento (m²/L)</label><input type="number" id="bpYield" value="10" min="1" oninput="bpCalcPrev()"></div></div>'+
+    '<div class="bp-f"><label>Rendimiento (m²/L)</label><input type="number" id="bpYield" value="8.6" step="0.1" min="1" oninput="bpCalcPrev()"></div></div>'+
     '<div class="bp-prev" id="bpPrev"></div>'+
     '<div style="margin-top:12px"><button class="bp-add" onclick="bpAddPaint()">+ Agregar este tono</button></div></div>'+
     '<div class="bp-list" id="bpPaintList"></div></div>'+
@@ -327,7 +328,7 @@
     ['bpPaintCalc','bpPaintList','bpImpCalc','bpImpList'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=esFr?'none':''});
     // Encabezados de paso en modo fraccionamiento: A modelos · B pintura · C impermeabilizante · D aplicación
     var hp=document.querySelector('#bpStepPaint .bp-idx'),hi=document.querySelector('#bpStepImp .bp-idx');if(hp)hp.textContent=esFr?'B':'A';if(hi)hi.textContent=esFr?'C':'A';
-    if(esFr){var pd=document.querySelector('#bpStepPaint .bp-desc');if(pd)pd.textContent='Un color de fachada para todo el fraccionamiento (el mismo tono en cada casa). Rendimiento 10 m²/L y 2 manos.';var idd=document.querySelector('#bpStepImp .bp-desc');if(idd)idd.textContent='Elige color y sistema; las cubetas se calculan con los m² de losa de todos los modelos.';bpFraccRender();}
+    if(esFr){var pd=document.querySelector('#bpStepPaint .bp-desc');if(pd)pd.textContent='Un color de fachada para todo el fraccionamiento (el mismo tono en cada casa). Rendimiento 8.6 m²/L (350 ft²/galón), 2 manos y 10 % de desperdicio.';var idd=document.querySelector('#bpStepImp .bp-desc');if(idd)idd.textContent='Elige color y sistema; las cubetas se calculan con los m² de losa de todos los modelos.';bpFraccRender();}
     document.body.style.overflow='hidden';
     state.colors=DPcat();if(state.color>=state.colors.length)state.color=0;
     bpBuildCats();bpBuildSws();bpRecompute();
@@ -357,8 +358,8 @@
   }
   function bpCurrentCalc(){
     var all=bpColors(),col=all[state.color]||all[0]||{litro:0,galon:0,cubeta:0,n:'',h:'#ccc'};
-    var area=+document.getElementById('bpArea').value||0,coats=Math.max(1,+document.getElementById('bpCoats').value||1),yld=Math.max(1,+document.getElementById('bpYield').value||10);
-    var L=area*coats/yld,b=bpContainers(L);var cost=b.cub*col.cubeta+b.gal*col.galon+b.lit*col.litro;
+    var area=+document.getElementById('bpArea').value||0,coats=Math.max(1,+document.getElementById('bpCoats').value||1),yld=Math.max(1,+document.getElementById('bpYield').value||8.6);
+    var L=area*coats*(PRECIOS_SERVICIOS.parametros.desperdicio||1)/yld,b=bpContainers(L);var cost=b.cub*col.cubeta+b.gal*col.galon+b.lit*col.litro;
     return {col:col,area:area,coats:coats,L:b.need,b:b,cost:cost,provided:b.litros.toFixed(1)};
   }
   window.bpCalcPrev=function(){
@@ -475,8 +476,8 @@
   function bpCalcFracc(){
     var t=bpFrTotals();var P=PRECIOS_SERVICIOS.parametros;
     var all=bpColors(),col=all[state.color]||all[0]||{litro:0,galon:0,cubeta:0,n:'',h:'#ccc'};
-    var coats=P.manos||2,yld=P.rendimiento||10;
-    var b=bpContainers(t.paintM2*coats/yld);var pintura=b.cub*col.cubeta+b.gal*col.galon+b.lit*col.litro;
+    var coats=P.manos||2,yld=P.rendimiento||8.6,waste=P.desperdicio||1;
+    var b=bpContainers(t.paintM2*coats*waste/yld);var pintura=b.cub*col.cubeta+b.gal*col.galon+b.lit*col.litro;
     var IP=PRECIOS_SERVICIOS.impermeabilizante;var telaEl=document.getElementById('bpImpTela');var tela=telaEl?telaEl.checked:true;
     var rend=tela?IP.rend_con_tela:IP.rend_sin_tela;var impCub=t.roofM2>0?Math.ceil(t.roofM2/rend-1e-6):0;var impCost=impCub*IP.cubeta;
     var rate=PRECIOS_SERVICIOS.aplicacion.comercial;
