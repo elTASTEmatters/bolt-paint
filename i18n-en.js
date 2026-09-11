@@ -267,7 +267,7 @@
     "Mismo cálculo que la tienda: rendimiento 350 ft²/galón por mano (≈8.6 m²/L) con 10 % de desperdicio.":"Same math as the store: 350 sq ft/gallon per coat (≈8.6 m²/L) with 10 % waste.",
     "📐 Medidas de la fachada":"📐 Facade measurements","Frente (m)":"Front (m)","Fondo (m)":"Depth (m)","Muros a pintar":"Walls to paint",
     "Solo frente":"Front only","Frente + 1 lado":"Front + 1 side","3 muros":"3 walls","Toda la casa":"Whole house","Herrería (m²)":"Ironwork (m²)",
-    "Incluir aplicación (mano de obra) a":"Include application (labor) at",
+    "Incluir aplicación (mano de obra) a":"Include application (labor) at","Incluir aplicación (mano de obra) sobre los mismos m² de la pintura, a":"Include application (labor) on the same m² as the paint, at",
     "Se descuentan 1.5 m² por ventana y 2 m² por puerta; molduras ≈ 0.9 m² por hueco y puertas 2 m² c/u se pintan con su propio color.":"1.5 m² per window and 2 m² per door are deducted; trim ≈ 0.9 m² per opening and doors 2 m² each are painted in their own color.",
     "Resultado":"Result","m² muros":"m² walls","litros":"liters","galones":"gallons","cubetas 19 L":"19 L buckets","Zona · color":"Area · color","Compra":"Buy","Importe":"Amount","Pintura Bolt Paint":"Bolt Paint paint",
     "Cómo se calcula":"How it's calculated","m² de muros":"Wall m²","= perímetro seleccionado × alto − huecos (1.5 m² por ventana, 2 m² por puerta).":"= selected perimeter × height − openings (1.5 m² per window, 2 m² per door).",
