@@ -443,7 +443,7 @@
           <label class="field">Dirección de entrega<input class="inp" id="qAddr" placeholder="Calle, número, lote o referencias"></label>
           <label class="field">Notas (opcional)<input class="inp" id="qNotes" placeholder="Horario, referencias, dudas"></label>
           <label class="check"><input type="checkbox" id="qMock" checked> Incluir el mockup de la fachada en la cotización</label>
-          <button class="btn wa block" id="btnWA">📲 Enviar cotización por WhatsApp</button>
+          <button class="btn wa block" id="btnWA">📲 Enviar cotización (PDF) por WhatsApp</button>
           <div class="row"><button class="btn sm" id="btnPrint">🖨️ Imprimir / PDF</button><button class="btn sm" id="btnCopyQ">📋 Copiar texto</button></div>
           <a class="btn block sm" href="index.html#catalogo">Comprar los colores en la tienda →</a>
           <p class="hint">Entrega en 10 días o menos en San Felipe y Mexicali. Precios de lista en MXN; pueden cambiar sin previo aviso.</p>
@@ -1036,7 +1036,21 @@
     L.push(`*Total estimado: ${money(Q.total)} MXN* · entrega en 10 días o menos`); if($('qNotes').value)L.push(`Notas: ${$('qNotes').value}`);
         const T=s=>window.bpT?window.bpT(s):s; return L.map(T).join('\n');
   }
-  $('btnWA').addEventListener('click',()=>{ if(!$('qName').value||!$('qPhone').value){toast('Escribe tu nombre y teléfono para enviar la cotización');$('qName').focus();return;} window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(quoteText()),'_blank','noopener'); });
+  // ---- PDF por WhatsApp: en celular se comparte el archivo; en computadora se descarga y se abre el chat ----
+  function loadPdfLib(cb){ if(window.html2pdf){cb(true);return;} const sc=document.createElement('script'); sc.src='html2pdf.bundle.min.js'; sc.onload=()=>cb(!!window.html2pdf); sc.onerror=()=>cb(false); document.head.appendChild(sc); }
+  function docPdfBlob(cb){ loadPdfLib(ok=>{ if(!ok){cb(null);return;} const n=$('doc').cloneNode(true); const stage=document.createElement('div'); stage.setAttribute('data-i18n-skip','1'); stage.style.cssText='position:absolute;left:-10000px;top:0;width:680px;background:#fff;z-index:-1'; n.style.borderRadius='0'; stage.appendChild(n); document.body.appendChild(stage);
+    window.html2pdf().set({margin:[8,8,10,8],image:{type:'jpeg',quality:0.92},html2canvas:{scale:2,useCORS:true,scrollX:0,scrollY:0,windowWidth:document.documentElement.clientWidth},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(n).outputPdf('blob').then(b=>{stage.remove();cb(b);}).catch(e=>{console.error(e);stage.remove();cb(null);}); }); }
+  function waShortText(){ const T=s=>window.bpT?window.bpT(s):s; return [T(`*Cotización ${FOLIO} · San Felipe Casas · Bolt Paint*`),T(`Cliente: ${$('qName').value||'—'} · Tel: ${$('qPhone').value||'—'}`),T(`Entrega: ${$('qAddr').value||'—'}${fracc()?' · '+fracc():''}, ${$('qCity').value}`),T(`*Total estimado: ${money(Q.total)} MXN* · entrega en 10 días o menos`),T('📎 Te adjunto el PDF de la cotización')+` (Cotizacion-${FOLIO}.pdf).`].join('\n'); }
+  function sharePdf(blob){ const fname='Cotizacion-'+FOLIO+'.pdf', text=waShortText();
+    const openWa=()=>window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent(text),'_blank','noopener');
+    const download=()=>{try{const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);}catch(e){}};
+    if(!blob){ openWa(); toast('No se pudo generar el PDF; se envió el resumen en texto'); return; }
+    let file=null; try{ file=new File([blob],fname,{type:'application/pdf'}); }catch(e){}
+    if(file&&navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){
+      navigator.share({files:[file],title:fname,text:text}).then(()=>toast('PDF compartido: elige WhatsApp y el chat de Bolt Paint')).catch(err=>{ if(err&&err.name==='AbortError')return; download(); openWa(); toast('PDF descargado: adjúntalo en el chat de WhatsApp'); });
+    } else { download(); openWa(); toast('PDF descargado ('+fname+'): adjúntalo en el chat de WhatsApp que se abrió'); }
+  }
+  $('btnWA').addEventListener('click',()=>{ if(!$('qName').value||!$('qPhone').value){toast('Escribe tu nombre y teléfono para enviar la cotización');$('qName').focus();return;} toast('Generando el PDF de la cotización…'); docPdfBlob(sharePdf); });
   $('btnPrint').addEventListener('click',()=>window.print());
   $('btnCopyQ').addEventListener('click',()=>{(navigator.clipboard?navigator.clipboard.writeText(quoteText()):Promise.reject()).then(()=>toast('Cotización copiada')).catch(()=>toast('No se pudo copiar'));});
 
