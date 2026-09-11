@@ -77,6 +77,16 @@
   .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .fields.f3{grid-template-columns:1fr 1fr 1fr}
   .seg{display:flex;gap:6px}
+  .qz-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--txt3);display:flex;flex-direction:column;gap:2px;margin-top:4px}
+  .qz-h small{text-transform:none;letter-spacing:0;font-weight:500}
+  .qz{display:flex;flex-direction:column;gap:6px}
+  .qz-row{display:grid;grid-template-columns:minmax(100px,118px) 1fr;gap:8px;align-items:center;padding:6px 8px 6px 10px;border:1px solid var(--brd2);border-left:4px solid var(--brd2);border-radius:var(--r8);background:var(--bg3)}
+  .qz-row.m2{grid-template-columns:minmax(100px,118px) 1fr 64px}
+  .qz-row .check{font-size:12px;font-weight:700}
+  .qz-row select.inp,.qz-row input.inp{padding:6px 28px 6px 9px;font-size:13px}
+  .qz-row input.inp{padding-right:9px}
+  .qz-row.off select.inp,.qz-row.off input.inp{opacity:.35;pointer-events:none}
+  @media(max-width:560px){.qz-row,.qz-row.m2{grid-template-columns:1fr}}
   .seg button{flex:1;padding:8px 6px;border-radius:var(--r8);border:1px solid var(--brd2);background:var(--bg3);cursor:pointer;font-weight:700;font-size:12px;color:var(--txt2)}
   .seg button[aria-pressed=true]{background:rgba(249,115,22,.18);border-color:var(--or);color:var(--wh)}
   .engine{font-family:var(--font-m);font-size:11px;padding:6px 10px;border:1px solid var(--brd2);border-radius:6px;color:var(--txt2);display:flex;align-items:center;gap:8px;white-space:nowrap}
@@ -316,8 +326,10 @@
           <label class="field">Manos de pintura
             <div class="seg" id="coatsSeg"><button data-v="1">1 mano</button><button data-v="2" aria-pressed="true">2 manos ✓</button><button data-v="3">3 manos</button></div>
           </label>
+          <div class="qz-h">🎨 Pinturas a cotizar <small>Marca solo las secciones que quieres y elige el color de cada una</small></div>
+          <div class="qz" id="qz"></div>
           <label class="check"><input type="checkbox" id="cApply"> Incluir aplicación (mano de obra) a <input class="inp" type="number" id="cRate" value="50" min="0" step="5" style="width:80px;padding:4px 8px;margin:0 4px"> $/m²</label>
-          <p class="hint">Se descuentan 1.5 m² por ventana y 2 m² por puerta; molduras ≈ 0.9 m² por hueco y puertas 2 m² c/u se pintan con su propio color.</p>
+          <p class="hint">Se descuentan 1.5 m² por ventana y 2 m² por puerta; molduras ≈ 0.9 m² por hueco y puertas 2 m² c/u se pintan con su propio color. Las secciones sin marcar no entran en la cotización.</p>
         </div>
       </section>
       <section class="panel">
@@ -413,7 +425,9 @@
           <label class="field">Nombre<input class="inp" id="qName" placeholder="Nombre y apellido"></label>
           <label class="field">Teléfono / WhatsApp<input class="inp" id="qPhone" placeholder="686 000 0000" inputmode="tel"></label>
           <label class="field">Ciudad<select class="inp" id="qCity"><option>San Felipe</option><option>Mexicali</option></select></label>
-          <label class="field">Dirección de entrega<input class="inp" id="qAddr" placeholder="Calle, número, colonia"></label>
+          <label class="field"><span id="qFraccLbl">Campo turístico / fraccionamiento</span><input class="inp" id="qFracc" list="fraccList" placeholder="Ej. El Dorado Ranch, Playa de Oro, Centro" autocomplete="off"></label>
+          <datalist id="fraccList"></datalist>
+          <label class="field">Dirección de entrega<input class="inp" id="qAddr" placeholder="Calle, número, lote o referencias"></label>
           <label class="field">Notas (opcional)<input class="inp" id="qNotes" placeholder="Horario, referencias, dudas"></label>
           <label class="check"><input type="checkbox" id="qMock" checked> Incluir el mockup de la fachada en la cotización</label>
           <button class="btn wa block" id="btnWA">📲 Enviar cotización por WhatsApp</button>
@@ -824,7 +838,7 @@
         :`<span class="dot" style="background:${z.color}"></span><span class="nm">${z.name}<small>${num(p)} ${p.nombre}</small></span><span class="cov"><b style="background:rgb(${z.tint})"></b>${pct}</span>`;
       if(!z.locked) b.addEventListener('click',()=>{active=i;refreshZones();drawOverlay();});
       el.appendChild(b);});
-    $('catFor').textContent='para: '+ZONES[active].name; refreshSummary(); buildSwatches();
+    $('catFor').textContent='para: '+ZONES[active].name; refreshSummary(); buildSwatches(); if(typeof syncQZ==='function'&&$('qz').children.length){syncQZ();calcAll();}
   }
   function refreshPals(){document.querySelectorAll('.pal').forEach((p,i)=>p.classList.toggle('on',i===currentPal));}
   function applyPalette(i,silent){currentPal=i;PALETTES[i].c.forEach((id,k)=>setZoneSku(k,id));if(!silent){painted=true;cmp=100;$('cmp').value=100;}refreshPals();refreshZones();if(orig&&zoneMap&&!silent)setStep(3);}
@@ -877,20 +891,54 @@
   const v=id=>Math.max(0,parseFloat($(id).value)||0);
   function containers(L){ const P=PRECIOS.pintura; L=Math.max(0,L); let cub=Math.floor(L/P.cap_cubeta),rem=L-cub*P.cap_cubeta; let gal=Math.floor(rem/P.cap_galon),rem2=rem-gal*P.cap_galon; let lit=Math.max(0,Math.ceil(rem2-1e-6)); if(lit>=3){gal+=1;lit=0} if(gal>=5){cub+=1;gal-=5} return {cub,gal,lit,litros:cub*P.cap_cubeta+gal*P.cap_galon+lit}; }
     function lineFor(zoneIdx,m2){ const z=ZONES[zoneIdx],p=BY[z.sku]; if(m2<=0)return null; const P=PRECIOS.pintura; const L=m2*coats*P.desperdicio/P.rend_m2_por_litro; const b=containers(L); const cost=b.cub*p.cubeta+b.gal*p.galon+b.lit*p.litro; const det=[]; if(b.cub)det.push(b.cub+' cubeta'+(b.cub>1?'s':'')); if(b.gal)det.push(b.gal+(b.gal>1?' galones':' galón')); if(b.lit)det.push(b.lit+' L'); return {zone:z,p,m2,L,b,cost,det:det.join(' + ')}; }
+  // ---------- Secciones y colores a cotizar ----------
+  // on: entra en la cotización · m2: null = se calcula con las medidas; número = m² que escribe el cliente
+  const QZ=[
+    {id:'muros',    on:true,  m2:null, how:'según medidas'},
+    {id:'molduras', on:true,  m2:null, how:'0.9 m² por hueco'},
+    {id:'puerta',   on:true,  m2:null, how:'2 m² por puerta'},
+    {id:'herreria', on:true,  m2:null, how:'m² de herrería'},
+    {id:'pilares',  on:false, m2:0,    how:'m²'},
+    {id:'techo',    on:false, m2:0,    how:'m²'},
+  ];
+  const QZ_BY={}; QZ.forEach(q=>QZ_BY[q.id]=q);
+  const qOn=id=>!!(QZ_BY[id]&&QZ_BY[id].on);
+  function paintOptions(sel,cur){
+    const groups={}; PAINTS.forEach(p=>{(groups[p.linea]=groups[p.linea]||[]).push(p);});
+    sel.innerHTML=Object.keys(groups).map(g=>`<optgroup label="${esc(g)}">`+groups[g].map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${num(p)} ${esc(p.nombre)} · ${money(p.galon)}/gal</option>`).join('')+'</optgroup>').join('');
+  }
+  function buildQZ(){
+    const el=$('qz'); el.innerHTML='';
+    QZ.forEach(q=>{ const z=ZONES[ZI[q.id]]; const row=document.createElement('div'); row.className='qz-row'+(q.m2!==null?' m2':'')+(q.on?'':' off'); row.dataset.z=q.id;
+      row.innerHTML=`<label class="check"><input type="checkbox"${q.on?' checked':''}> ${z.name}</label><select class="inp" aria-label="Color para ${z.name}"></select>`+(q.m2!==null?`<input class="inp" type="number" min="0" step="0.5" value="${q.m2}" placeholder="m²" aria-label="m² de ${z.name}">`:'');
+      const chk=row.querySelector('input[type=checkbox]'), sel=row.querySelector('select'), m2=row.querySelector('input[type=number]');
+      paintOptions(sel,z.sku);
+      chk.addEventListener('change',()=>{q.on=chk.checked;row.classList.toggle('off',!q.on);calcAll();});
+      sel.addEventListener('change',()=>{painted=true;setZoneSku(ZI[q.id],sel.value);currentPal=-1;refreshPals();refreshZones();requestRender();toast(z.name+' → '+num(BY[sel.value])+' '+BY[sel.value].nombre);});
+      if(m2)m2.addEventListener('input',()=>{q.m2=Math.max(0,parseFloat(m2.value)||0);calcAll();});
+      el.appendChild(row);
+    });
+    syncQZ();
+  }
+  function syncQZ(){ document.querySelectorAll('#qz .qz-row').forEach(row=>{const z=ZONES[ZI[row.dataset.z]],sel=row.querySelector('select'); if(sel&&sel.value!==z.sku)sel.value=z.sku; row.style.borderLeftColor=z.color||''; }); }
+
   let Q={paint:[],paintTot:0,apply:0,applyM2:0,imp:null,total:0};
   function calcAll(){
     // muros
     const a=v('cA'),l=v('cL'),h=v('cH'),win=v('cWin'),door=v('cDoor'),iron=v('cIron');
     const per={1:a,2:a+l,3:a+2*l,4:2*(a+l)}[sides]||0;
     const ov=v('cM2Override'); let m2w=ov>0?ov:Math.max(0,per*h-win*1.5-door*2);
-    const m2mold=$('frames').checked?(win+door)*0.9:0, m2door=door*2, m2iron=iron;
-    const lines=[lineFor(ZI.muros,m2w),lineFor(ZI.molduras,m2mold),lineFor(ZI.puerta,m2door),lineFor(ZI.herreria,m2iron)].filter(Boolean);
+    const m2mold=(win+door)*0.9, m2door=door*2, m2iron=iron;
+    const m2of={muros:m2w,molduras:m2mold,puerta:m2door,herreria:m2iron,pilares:QZ_BY.pilares.m2,techo:QZ_BY.techo.m2};
+    const order=['muros','pilares','molduras','puerta','herreria','techo'];
+    const lines=order.filter(qOn).map(id=>lineFor(ZI[id],m2of[id])).filter(Boolean);
     const paintTot=lines.reduce((s,x)=>s+x.cost,0); const Lt=lines.reduce((s,x)=>s+x.L,0);
-    const wall=lines[0]&&lines[0].zone.id==='muros'?lines[0]:null;
+    const wall=lines.find(x=>x.zone.id==='muros')||null;
+    if(!qOn('muros'))m2w=0;
     $('rM2').textContent=Math.round(m2w); $('rLts').textContent=Math.ceil(Lt); $('rGal').textContent=wall?wall.b.gal:0; $('rCub').textContent=wall?wall.b.cub:0;
-    $('paintTbl').querySelector('tbody').innerHTML=lines.map(x=>`<tr><td><span class="sw-i" style="background:${x.p.hex}"></span>${x.zone.name}<br><small style="color:var(--txt3)">${num(x.p)} ${x.p.nombre}</small></td><td class="n">${x.m2.toFixed(1)}</td><td class="n">${x.det}</td><td class="n">${money(x.cost)}</td></tr>`).join('')||'<tr><td colspan="4" class="hint">Indica medidas mayores a 0.</td></tr>';
+    $('paintTbl').querySelector('tbody').innerHTML=lines.map(x=>`<tr><td><span class="sw-i" style="background:${x.p.hex}"></span>${x.zone.name}<br><small style="color:var(--txt3)">${num(x.p)} ${x.p.nombre}</small></td><td class="n">${x.m2.toFixed(1)}</td><td class="n">${x.det}</td><td class="n">${money(x.cost)}</td></tr>`).join('')||`<tr><td colspan="4" class="hint">${QZ.some(q=>q.on)?'Indica medidas mayores a 0.':'Marca al menos una sección a cotizar.'}</td></tr>`;
     $('rPaintTot').textContent=money(paintTot);
-    const applyM2=m2w+m2mold+m2door; const apply=$('cApply').checked?applyM2*v('cRate'):0;
+    const applyM2=lines.filter(x=>x.zone.id!=='herreria').reduce((s,x)=>s+x.m2,0); const apply=$('cApply').checked?applyM2*v('cRate'):0;
     // impermeabilizante
     let imp=null;
     if($('iOn').checked){ const im2=v('iM2')>0?v('iM2'):v('iA')*v('iB'); const tela=$('iTela').checked; const rend=tela?PRECIOS.imp.rend_con_tela:PRECIOS.imp.rend_sin_tela; const cub=im2>0?Math.ceil(im2/rend-1e-6):0; const sku=BY[IMP_SKU[impColor]]; const mat=cub*PRECIOS.imp.cubeta; const iapply=$('iApply').checked?im2*v('iRate'):0;
@@ -918,8 +966,16 @@
   // ---------- Cotización ----------
   const folio=()=>{const d=new Date();return 'SFC-'+d.getFullYear().toString().slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0');};
   const FOLIO=folio(); const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  ['qName','qPhone','qCity','qAddr','qNotes','qMock'].forEach(id=>$(id).addEventListener('input',renderDoc));
+  // Campos turísticos y fraccionamientos sugeridos (el cliente también puede escribir otro)
+  const FRACC={
+    'San Felipe':['Centro / Malecón','Colonia Los Arcos','Colonia Benito Juárez','El Dorado Ranch','La Ventana del Mar','Playa de Oro','Playas del Sol','Bahía Delfín','Villas del Mar','Playa Encanto','Las Dunas','Laguna Percebu','Pete’s Camp','Campo Ocotillo','Campo San Fernando','Campo Los Compadres','Campo Las Palmas','Playa Bonita','El Vergel','Bahía Blanca','Puertecitos'],
+    'Mexicali':['Centro Cívico','Nuevo Mexicali','Jardines del Valle','Villafontana','Valle de Puebla','Residencial San Pedro','Villas del Rey','Los Pinos','Compuertas','Cuauhtémoc','Bellavista','Pueblo Nuevo','Rivera','González Ortega','Vista Hermosa','Lucerna','Calafia','Hacienda del Bosque','Valle Dorado','Xochimilco']
+  };
+  function fillFracc(){ const city=$('qCity').value; $('fraccList').innerHTML=(FRACC[city]||[]).map(f=>`<option value="${esc(f)}"></option>`).join(''); $('qFraccLbl').textContent=city==='San Felipe'?'Campo turístico / fraccionamiento':'Colonia / fraccionamiento'; $('qFracc').placeholder=city==='San Felipe'?'Ej. El Dorado Ranch, Playa de Oro, Centro':'Ej. Villafontana, Centro Cívico'; }
+  $('qCity').addEventListener('change',()=>{fillFracc();renderDoc();}); fillFracc();
+  ['qName','qPhone','qCity','qFracc','qAddr','qNotes','qMock'].forEach(id=>$(id).addEventListener('input',renderDoc));
   $('qMock').addEventListener('change',renderDoc);
+  const fracc=()=>$('qFracc').value.trim();
   function renderDoc(){
     const d=new Date(); const deliver=new Date(d.getTime()+10*864e5);
     const f=(x)=>x.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
@@ -930,15 +986,15 @@
     const mock=($('qMock').checked&&orig&&painted)?`<img class="mock" alt="Mockup de la fachada" src="${mockupDataUrl()}">`:'';
     const pal=currentPal>=0?PALETTES[currentPal].name:'Combinación personalizada';
     $('doc').innerHTML=`<div class="doc-hd"><div><h3>Cotización · San Felipe Casas</h3><small>Bolt Paint · Mexicali y San Felipe · 📲 (686) 262-5119</small></div><div style="text-align:right"><b>${FOLIO}</b><small>${f(d)}</small><small>Entrega estimada: ${f(deliver)}</small></div></div>
-      <div class="cols"><div><b>Cliente</b>${esc($('qName').value)||'—'}<br>${esc($('qPhone').value)||''}</div><div><b>Entrega</b>${esc($('qAddr').value)||'—'}<br>${esc($('qCity').value)}, B.C.</div></div>
-      ${mock}<p style="margin:4px 0 8px"><b>Paleta:</b> ${esc(pal)} · ${ZONES.filter(z=>!z.locked).map(z=>z.name+': '+num(BY[z.sku])+' '+BY[z.sku].nombre).join(' · ')}</p>
+      <div class="cols"><div><b>Cliente</b>${esc($('qName').value)||'—'}<br>${esc($('qPhone').value)||''}</div><div><b>Entrega</b>${esc($('qAddr').value)||'—'}<br>${fracc()?esc(fracc())+' · ':''}${esc($('qCity').value)}, B.C.</div></div>
+      ${mock}<p style="margin:4px 0 8px"><b>Paleta:</b> ${esc(pal)} · ${Q.paint.length?Q.paint.map(x=>x.zone.name+': '+num(x.p)+' '+x.p.nombre).join(' · '):'sin secciones de pintura seleccionadas'}</p>
       <table><thead><tr><th>Concepto</th><th class="n">Área</th><th class="n">Cantidad</th><th class="n">Importe</th></tr></thead><tbody>${rows||'<tr><td colspan="4">Sin conceptos aún.</td></tr>'}<tr class="tot"><td colspan="3">Total estimado (MXN)</td><td class="n">${money(Q.total)}</td></tr></tbody></table>
       ${$('qNotes').value?`<p><b>Notas:</b> ${esc($('qNotes').value)}</p>`:''}
       <div class="note">Precios de lista Bolt Paint en MXN, sujetos a validación de área y a resanes que se coticen en sitio. Pintura 100 % acrílica con garantía de ${PRECIOS.pintura.garantia} a 2 manos; Imperm Master con garantía de ${PRECIOS.imp.garantiaTela} con tela de refuerzo y ${PRECIOS.imp.garantiaSinTela} sin tela. Entrega en San Felipe y Mexicali en 10 días o menos. Los colores en pantalla son referencia; el tono final depende de la superficie y la luz.</div>`;
   }
   function quoteText(){
     const L=[`*Cotización ${FOLIO} · San Felipe Casas · Bolt Paint*`];
-    L.push(`Cliente: ${$('qName').value||'—'} · Tel: ${$('qPhone').value||'—'}`); L.push(`Entrega: ${$('qAddr').value||'—'}, ${$('qCity').value}`);
+    L.push(`Cliente: ${$('qName').value||'—'} · Tel: ${$('qPhone').value||'—'}`); L.push(`Entrega: ${$('qAddr').value||'—'}${fracc()?' · '+fracc():''}, ${$('qCity').value}`);
     L.push(`Paleta: ${currentPal>=0?PALETTES[currentPal].name:'personalizada'}`);
     Q.paint.forEach(x=>L.push(`• ${x.zone.name}: ${num(x.p)} ${x.p.nombre} · ${x.m2.toFixed(1)} m² · ${x.det} · ${money(x.cost)}`));
     if(Q.apply)L.push(`• Aplicación pintura: ${Math.round(Q.applyM2)} m² · ${money(Q.apply)}`);
@@ -963,7 +1019,7 @@
   }
 
   // init
-  applyPalette(0,true); calcAll(); demoHouse(); loadModel();
+  buildQZ(); applyPalette(0,true); calcAll(); demoHouse(); loadModel();
 })();
 </script>
 <script src="i18n-en.js"></script>
