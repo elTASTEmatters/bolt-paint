@@ -337,7 +337,7 @@
             <div class="seg" id="coatsSeg"><button data-v="1">1 mano</button><button data-v="2" aria-pressed="true">2 manos ✓</button><button data-v="3">3 manos</button></div>
           </label>
           <p class="hint" id="qzSummary"></p>
-          <label class="check"><input type="checkbox" id="cApply"> Incluir aplicación (mano de obra) a <input class="inp" type="number" id="cRate" value="50" min="0" step="5" style="width:80px;padding:4px 8px;margin:0 4px"> $/m²</label>
+          <label class="check"><input type="checkbox" id="cApply"> Incluir aplicación (mano de obra) sobre los mismos m² de la pintura, a <input class="inp" type="number" id="cRate" value="50" min="0" step="5" style="width:80px;padding:4px 8px;margin:0 4px"> $/m²</label>
           <p class="hint">Se descuentan 1.5 m² por ventana y 2 m² por puerta; molduras ≈ 0.9 m² por hueco y puertas 2 m² c/u se pintan con su propio color. Las zonas y colores se eligen en la sección 1 (casilla de cada zona).</p>
         </div>
       </section>
@@ -346,7 +346,7 @@
         <div class="panel-b">
           <div class="res"><div><b id="rM2">0</b><span>m² muros</span></div><div><b id="rLts">0</b><span>litros</span></div><div><b id="rGal">0</b><span>galones</span></div><div><b id="rCub">0</b><span>cubetas 19 L</span></div></div>
           <table id="paintTbl"><thead><tr><th>Zona · color</th><th class="n">m²</th><th class="n">Compra</th><th class="n">Importe</th></tr></thead><tbody></tbody></table>
-          <div class="callout two"><div class="ln"><div class="k">🛒 Pintura Bolt Paint (material)</div><div class="v" id="rPaintTot">$0</div></div><div class="ln"><div class="k">🧑‍🎨 Aplicación de pintura (mano de obra)</div><div class="v" id="rApplyTot">No incluida</div></div></div>
+          <div class="callout two"><div class="ln"><div class="k">🛒 Pintura Bolt Paint (material)</div><div class="v" id="rPaintTot">$0</div></div><div class="ln"><div class="k">🧑‍🎨 Aplicación de pintura (mano de obra) <small id="rApplyM2" style="display:block;font-weight:500;text-transform:none;letter-spacing:0"></small></div><div class="v" id="rApplyTot">No incluida</div></div></div>
         </div>
       </section>
       <section class="panel">
@@ -390,7 +390,7 @@
         <div class="panel-b">
           <div class="res"><div><b id="iRm2">0</b><span>m² techo</span></div><div><b id="iRcub">0</b><span>cubetas 19 L</span></div><div><b id="iRcov">0</b><span>m² cubiertos</span></div><div><b id="iRyrs">5</b><span>años garantía</span></div></div>
           <table id="impTbl"><tbody></tbody></table>
-          <div class="callout two"><div class="ln"><div class="k">💧 Imperm Master (material)</div><div class="v" id="iRtot">$0</div></div><div class="ln"><div class="k">🧑‍🔧 Aplicación de impermeabilizante</div><div class="v" id="iRapply">No incluida</div></div></div>
+          <div class="callout two"><div class="ln"><div class="k">💧 Imperm Master (material)</div><div class="v" id="iRtot">$0</div></div><div class="ln"><div class="k">🧑‍🔧 Aplicación de impermeabilizante <small id="iRapplyM2" style="display:block;font-weight:500;text-transform:none;letter-spacing:0"></small></div><div class="v" id="iRapply">No incluida</div></div></div>
         </div>
       </section>
       <section class="panel">
@@ -944,8 +944,8 @@
     $('rM2').textContent=Math.round(m2w); $('rLts').textContent=Math.ceil(Lt); $('rGal').textContent=wall?wall.b.gal:0; $('rCub').textContent=wall?wall.b.cub:0;
     $('paintTbl').querySelector('tbody').innerHTML=lines.map(x=>`<tr><td><span class="sw-i" style="background:${x.p.hex}"></span>${x.zone.name}<br><small style="color:var(--txt3)">${num(x.p)} ${x.p.nombre}</small></td><td class="n">${x.m2.toFixed(1)}</td><td class="n">${x.det}</td><td class="n">${money(x.cost)}</td></tr>`).join('')||`<tr><td colspan="4" class="hint">${QZ.some(q=>q.on)?'Indica medidas mayores a 0.':'Marca al menos una sección a cotizar.'}</td></tr>`;
     $('rPaintTot').textContent=money(paintTot);
-    const applyM2=lines.filter(x=>x.zone.id!=='herreria').reduce((s,x)=>s+x.m2,0); const apply=$('cApply').checked?applyM2*v('cRate'):0;
-    $('rApplyTot').textContent=$('cApply').checked?money(apply):'No incluida';
+    const applyM2=lines.reduce((s,x)=>s+x.m2,0); const apply=$('cApply').checked?applyM2*v('cRate'):0; // mismos m² que la pintura cotizada
+    $('rApplyTot').textContent=$('cApply').checked?money(apply):'No incluida'; $('rApplyM2').textContent=$('cApply').checked?applyM2.toFixed(1)+' m² × '+money(v('cRate'))+'/m²':'';
     document.querySelectorAll('[data-m2]').forEach(e=>{const x=lines.find(l=>l.zone.id===e.dataset.m2);e.textContent=x?x.m2.toFixed(1)+' m²':'';});
     const onZ=QZ.filter(q=>q.on).map(q=>ZONES[ZI[q.id]].name); $('qzSummary').innerHTML=`<b>Se cotizan:</b> ${onZ.length?onZ.map(n=>`<span>${n}</span>`).join(', '):'<span>ninguna zona</span>'} · <a href="#mockup">cambiar en la sección 1</a>`;
     // impermeabilizante
@@ -954,8 +954,8 @@
       imp={m2:im2,tela,rend,cub,sku,mat,apply:iapply,tot:mat+iapply,years:tela?PRECIOS.imp.garantiaTela:PRECIOS.imp.garantiaSinTela};
       $('iRm2').textContent=Math.round(im2); $('iRcub').textContent=cub; $('iRcov').textContent=cub*rend; $('iRyrs').textContent=tela?5:3;
       $('impTbl').querySelector('tbody').innerHTML=`<tr><td><span class="sw-i" style="background:${sku.hex}"></span>Imperm Master ${impColor} · cubeta 19 L</td><td class="n">${cub} × ${money(PRECIOS.imp.cubeta)}</td><td class="n">${money(mat)}</td></tr>`+(iapply?`<tr><td>Aplicación ${tela?'con tela':'sin tela'}</td><td class="n">${Math.round(im2)} m² × ${money(v('iRate'))}</td><td class="n">${money(iapply)}</td></tr>`:'');
-      $('iRtot').textContent=money(imp.mat); $('iRapply').textContent=$('iApply').checked?money(iapply):'No incluida';
-    } else { $('impTbl').querySelector('tbody').innerHTML='<tr><td class="hint">No incluido en la cotización.</td></tr>'; $('iRtot').textContent='$0'; $('iRapply').textContent='No incluida'; }
+      $('iRtot').textContent=money(imp.mat); $('iRapply').textContent=$('iApply').checked?money(iapply):'No incluida'; $('iRapplyM2').textContent=$('iApply').checked?Math.round(im2)+' m² × '+money(v('iRate'))+'/m²':'';
+    } else { $('impTbl').querySelector('tbody').innerHTML='<tr><td class="hint">No incluido en la cotización.</td></tr>'; $('iRtot').textContent='$0'; $('iRapply').textContent='No incluida'; $('iRapplyM2').textContent=''; }
     // Bloques: A materiales · B aplicación (mano de obra)
     const matTot=MODE==='app'?0:paintTot+(imp?imp.mat:0);
     const srvTot=apply+(imp?imp.apply:0);
@@ -1004,7 +1004,7 @@
     if(Q.imp)matRows+=`<tr><td><span class="sw-i" style="background:${Q.imp.sku.hex}"></span>Imperm Master ${impColor} · IMP001 · ${Q.imp.tela?'con tela de refuerzo':'sin tela'}</td><td class="n">${Math.round(Q.imp.m2)} m²</td><td class="n">${Q.imp.cub} cubeta${Q.imp.cub!==1?'s':''} 19 L</td><td class="n">${money(Q.imp.mat)}</td></tr>`;
     // Bloque B · Aplicación (mano de obra)
     let srvRows='';
-    if(Q.apply)srvRows+=`<tr><td>Aplicación de pintura · ${coats} mano${coats>1?'s':''} (mano de obra)</td><td class="n">${Math.round(Q.applyM2)} m²</td><td class="n">${money(v('cRate'))}/m²</td><td class="n">${money(Q.apply)}</td></tr>`;
+    if(Q.apply)srvRows+=`<tr><td>Aplicación de pintura · ${coats} mano${coats>1?'s':''} (mano de obra)</td><td class="n">${Q.applyM2.toFixed(1)} m²</td><td class="n">${money(v('cRate'))}/m²</td><td class="n">${money(Q.apply)}</td></tr>`;
     if(Q.imp&&Q.imp.apply)srvRows+=`<tr><td>Aplicación de impermeabilizante · ${Q.imp.tela?'con tela de refuerzo':'sin tela'} (mano de obra)</td><td class="n">${Math.round(Q.imp.m2)} m²</td><td class="n">${money(v('iRate'))}/m²</td><td class="n">${money(Q.imp.apply)}</td></tr>`;
     const hdr=`<thead><tr><th>Concepto</th><th class="n">Área</th><th class="n">Cantidad</th><th class="n">Importe</th></tr></thead>`;
     let blocks='';
@@ -1031,7 +1031,7 @@
     Q.paint.forEach(x=>L.push(MODE==='app'?`• ${x.zone.name}: ${x.det}`:`• ${x.zone.name}: ${num(x.p)} ${x.p.nombre} · ${x.m2.toFixed(1)} m² · ${x.det} · ${money(x.cost)}`));
     if(Q.imp)L.push(MODE==='app'?`• Imperm Master: ${Q.imp.cub} cubeta(s) 19 L`:`• Imperm Master ${impColor} ${Q.imp.tela?'con tela':'sin tela'}: ${Math.round(Q.imp.m2)} m² · ${Q.imp.cub} cubeta(s) · ${money(Q.imp.mat)}`);
     if(MODE!=='app')L.push(`Subtotal materiales: ${money(Q.matTot)}`);
-    if(Q.srvTot){L.push('*B · Aplicación (mano de obra)*'); if(Q.apply)L.push(`• Aplicación pintura ${coats} mano(s): ${Math.round(Q.applyM2)} m² · ${money(Q.apply)}`); if(Q.imp&&Q.imp.apply)L.push(`• Aplicación impermeabilizante: ${Math.round(Q.imp.m2)} m² · ${money(Q.imp.apply)}`); L.push(`Subtotal aplicación: ${money(Q.srvTot)}`);}
+    if(Q.srvTot){L.push('*B · Aplicación (mano de obra)*'); if(Q.apply)L.push(`• Aplicación pintura ${coats} mano(s): ${Q.applyM2.toFixed(1)} m² · ${money(Q.apply)}`); if(Q.imp&&Q.imp.apply)L.push(`• Aplicación impermeabilizante: ${Math.round(Q.imp.m2)} m² · ${money(Q.imp.apply)}`); L.push(`Subtotal aplicación: ${money(Q.srvTot)}`);}
     else L.push('B · Aplicación: no incluida');
     L.push(`*Total estimado: ${money(Q.total)} MXN* · entrega en 10 días o menos`); if($('qNotes').value)L.push(`Notas: ${$('qNotes').value}`);
         const T=s=>window.bpT?window.bpT(s):s; return L.map(T).join('\n');
