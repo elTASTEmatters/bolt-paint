@@ -48,7 +48,7 @@
   .sec-hd{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
   .sec-title{font-family:var(--font-d);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.3px}
   .sec-title small{display:block;font-family:var(--font-b);font-size:12px;text-transform:none;letter-spacing:0;color:var(--txt3);font-weight:600;margin-top:2px}
-  .grid{display:grid;grid-template-columns:280px minmax(0,1fr) 300px;gap:16px;align-items:start}
+  .grid{display:grid;grid-template-columns:320px minmax(0,1fr) 280px;gap:16px;align-items:start}
   .stack{display:flex;flex-direction:column;gap:14px}
   .panel{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r12)}
   .panel-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;border-bottom:1px solid var(--brd)}
@@ -97,17 +97,35 @@
   .steps span{padding:3px 8px;border-radius:99px;border:1px solid var(--brd)}
   .steps span.done{border-color:var(--gn);color:var(--gn)} .steps span.now{border-color:var(--or);background:rgba(249,115,22,.15);color:var(--txt)}
 
-  .zones{display:flex;flex-direction:column;gap:4px}
-  .zone{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:10px;padding:6px 8px;border:1px solid transparent;border-radius:var(--r8);cursor:pointer;background:transparent;text-align:left;width:100%}
-  .zone:hover{background:var(--bg3)}
-  .zone.on{border-color:var(--or);background:rgba(249,115,22,.12)}
-  .zone.locked{cursor:default}
-  .zone .dot{width:30px;height:30px;border-radius:7px;border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex:none}
-  .zone .dot svg{width:16px;height:16px;stroke:var(--txt3);fill:none;stroke-width:2}
-  .zone .nm{font-weight:700;line-height:1.2;font-size:13px}
-  .zone .nm small{display:block;font-size:11px;color:var(--txt3);font-weight:500}
-  .zone .cov{font-family:var(--font-m);font-size:11px;color:var(--txt3);font-variant-numeric:tabular-nums;text-align:right}
-  .zone .cov b{display:block;width:10px;height:10px;border-radius:2px;margin-left:auto;margin-bottom:2px}
+  .zsteps{display:flex;gap:6px;flex-wrap:wrap}
+  .zsteps span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt2);background:var(--bg3);border:1px solid var(--brd);border-radius:999px;padding:2px 9px 2px 3px}
+  .zsteps i{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--or);color:#000;font-style:normal;font-weight:800;font-size:11px}
+  .zones{display:flex;flex-direction:column;gap:6px}
+  .zone{border:1px solid var(--brd);border-radius:var(--r8);background:var(--bg3);overflow:hidden}
+  .zone.open{border-color:var(--or)}
+  .zone.off .zrow{opacity:.55}
+  .zrow{display:grid;grid-template-columns:20px 32px 1fr auto 14px;gap:9px;align-items:center;padding:7px 9px;cursor:pointer}
+  .zrow:hover{background:var(--sur)}
+  .zone.locked .zrow{cursor:default} .zone.locked .zrow:hover{background:none}
+  .zrow input[type=checkbox]{width:17px;height:17px;margin:0;accent-color:var(--or);cursor:pointer}
+  .zrow .lock{display:inline-grid;place-items:center;width:17px;height:17px;color:var(--txt3)} .zrow .lock svg{width:15px;height:15px;stroke:var(--txt3);fill:none;stroke-width:2}
+  .zrow .dot{width:32px;height:32px;border-radius:7px;border:1px solid rgba(255,255,255,.18)}
+  .zrow .nm{font-weight:700;line-height:1.2;font-size:13px;min-width:0}
+  .zrow .nm small{display:block;font-size:11px;color:var(--txt3);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .zrow .nm small.dim{color:var(--or2)}
+  .zrow .cov{font-family:var(--font-m);font-size:10.5px;color:var(--txt3);font-variant-numeric:tabular-nums;text-align:right;line-height:1.25}
+  .zrow .cov b{display:block;color:var(--txt2);font-size:12px}
+  .zrow .chev{color:var(--txt3);font-size:11px;transition:transform .15s} .zone.open .chev{transform:rotate(180deg)}
+  .zbody{display:none;flex-direction:column;gap:8px;border-top:1px solid var(--brd);padding:9px;background:var(--bg2)}
+  .zone.open .zbody{display:flex}
+  .zcats{display:flex;gap:4px;flex-wrap:wrap}
+  .zcats button{font:inherit;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid var(--brd2);background:var(--bg3);color:var(--txt2);cursor:pointer}
+  .zcats button[aria-pressed=true]{background:var(--or);border-color:var(--or);color:#000}
+  .zsws{display:grid;grid-template-columns:repeat(auto-fill,minmax(28px,1fr));gap:4px}
+  .zsel{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--txt2);flex-wrap:wrap} .zsel b{color:var(--wh)} .zsel code{font-family:var(--font-m);font-size:10.5px;color:var(--txt3)}
+  .zm2{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--txt2);flex-wrap:wrap} .zm2 input{width:78px;padding:5px 8px;border-radius:6px;border:1px solid var(--brd2);background:var(--bg3);color:var(--txt);font:inherit;font-weight:700}
+  .zfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--txt3)} .zfoot b{color:var(--txt)}
+  @media(prefers-reduced-motion:reduce){.zrow .chev{transition:none}}
 
   .stage{position:relative;background:var(--bg3);border-radius:var(--r12) var(--r12) 0 0;display:flex;align-items:center;justify-content:center;min-height:320px;overflow:hidden;
     background-image:linear-gradient(45deg,var(--sur) 25%,transparent 25%,transparent 75%,var(--sur) 75%),linear-gradient(45deg,var(--sur) 25%,transparent 25%,transparent 75%,var(--sur) 75%);background-size:20px 20px;background-position:0 0,10px 10px}
@@ -242,9 +260,11 @@
           </div>
         </section>
         <section class="panel">
-          <div class="panel-h"><h2>Zonas detectadas</h2><button class="btn sm" id="btnRedetect" title="Volver a analizar la foto">↻</button></div>
+          <div class="panel-h"><h2>Zonas de tu casa</h2><button class="btn sm" id="btnRedetect" title="Volver a analizar la foto">↻</button></div>
           <div class="panel-b">
+            <div class="zsteps"><span><i>1</i>Toca una zona</span><span><i>2</i>Elige su color</span><span><i>3</i>Marca ☑ lo que cotizas</span></div>
             <div class="zones" id="zones"></div>
+            <div class="zfoot"><span id="zCount"></span><a class="btn sm" href="#calculo">Calcular cubetas →</a></div>
             <label class="check"><input type="checkbox" id="frames" checked> Marcar molduras en puertas y ventanas</label>
             <label class="check"><input type="checkbox" id="showZones"> Ver zonas sobre la foto</label>
             <button class="btn block sm" id="btnFix">Corregir una zona</button>
@@ -289,21 +309,6 @@
             <div class="row"><button class="btn sm" id="btnShuffle">Sorpréndeme</button><button class="btn sm" id="btnSwap">Invertir muros/molduras</button></div>
           </div>
         </section>
-        <section class="panel">
-          <div class="panel-h"><h2>Cambiar un color</h2><span class="hint" id="catFor">para: Muros</span></div>
-          <div class="panel-b">
-            <div class="seg" id="catSeg"></div>
-            <div class="sws" id="sws"></div>
-            <div class="swname" id="swName">Toca un color del catálogo</div>
-          </div>
-        </section>
-        <section class="panel">
-          <div class="panel-h"><h2>Tu combinación</h2></div>
-          <div class="panel-b">
-            <div class="summary" id="summary"></div>
-            <a class="btn primary block" href="#calculo">Calcular cubetas con estos colores →</a>
-          </div>
-        </section>
       </aside>
     </div>
   </section>
@@ -331,10 +336,9 @@
           <label class="field">Manos de pintura
             <div class="seg" id="coatsSeg"><button data-v="1">1 mano</button><button data-v="2" aria-pressed="true">2 manos ✓</button><button data-v="3">3 manos</button></div>
           </label>
-          <div class="qz-h">🎨 Pinturas a cotizar <small>Marca solo las secciones que quieres y elige el color de cada una</small></div>
-          <div class="qz" id="qz"></div>
+          <p class="hint" id="qzSummary"></p>
           <label class="check"><input type="checkbox" id="cApply"> Incluir aplicación (mano de obra) a <input class="inp" type="number" id="cRate" value="50" min="0" step="5" style="width:80px;padding:4px 8px;margin:0 4px"> $/m²</label>
-          <p class="hint">Se descuentan 1.5 m² por ventana y 2 m² por puerta; molduras ≈ 0.9 m² por hueco y puertas 2 m² c/u se pintan con su propio color. Las secciones sin marcar no entran en la cotización.</p>
+          <p class="hint">Se descuentan 1.5 m² por ventana y 2 m² por puerta; molduras ≈ 0.9 m² por hueco y puertas 2 m² c/u se pintan con su propio color. Las zonas y colores se eligen en la sección 1 (casilla de cada zona).</p>
         </div>
       </section>
       <section class="panel">
@@ -838,28 +842,40 @@
   function busy(on,txt){$('busy').classList.toggle('show',on);if(txt)$('busyT').textContent=txt;}
   function setStep(i){[...$('steps').children].forEach((s,k)=>{s.className=k<i?'done':k===i?'now':'';});}
   function setZoneSku(k,id){ZONES[k].sku=id;ZONES[k].color=BY[id].hex;}
+  let openZone=-1, catSel='';
   function refreshZones(){
     const el=$('zones');el.innerHTML='';const total=W*H||1;
-    ZONES.forEach((z,i)=>{const b=document.createElement('button');b.type='button';b.className='zone'+(i===active?' on':'')+(z.locked?' locked':'');
-      const pct=z.count?(100*z.count/total).toFixed(1)+'%':'—'; const p=z.sku?BY[z.sku]:null;
-      b.innerHTML=z.locked
-        ?`<span class="dot" style="background:var(--bg3)"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><span class="nm">${z.name}<small>${z.sub}</small></span><span class="cov"><b style="background:rgb(${z.tint})"></b>${pct}</span>`
-        :`<span class="dot" style="background:${z.color}"></span><span class="nm">${z.name}<small>${num(p)} ${p.nombre}</small></span><span class="cov"><b style="background:rgb(${z.tint})"></b>${pct}</span>`;
-      if(!z.locked) b.addEventListener('click',()=>{active=i;refreshZones();drawOverlay();});
-      el.appendChild(b);});
-    $('catFor').textContent='para: '+ZONES[active].name; refreshSummary(); buildSwatches(); if(typeof syncQZ==='function'&&$('qz').children.length){syncQZ();calcAll();}
+    ZONES.forEach((z,i)=>{ const q=QZ_BY[z.id]; const p=z.sku?BY[z.sku]:null; const pct=z.count?(100*z.count/total).toFixed(1)+'%':'—';
+      const d=document.createElement('div'); d.className='zone'+(openZone===i?' open':'')+(z.locked?' locked':'')+(q&&!q.on?' off':''); d.dataset.z=z.id;
+      const areaTxt=z.locked?'foto':(q&&q.m2!==null)?(q.on&&q.m2?q.m2+' m²':'m² a mano'):`<span data-m2="${z.id}"></span>`;
+      d.innerHTML=`<div class="zrow">${z.locked?'<span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>':`<input type="checkbox"${q.on?' checked':''} title="Incluir en la cotización" aria-label="Cotizar ${z.name}">`}
+        <span class="dot" style="background:${z.locked?'linear-gradient(135deg,#3f5a73,#9fc3dc)':z.color}"></span>
+        <span class="nm">${z.name}${z.locked?`<small>${z.sub}</small>`:(q.on?`<small>${num(p)} ${p.nombre} · ${money(p.galon)}/gal</small>`:`<small class="dim">no se cotiza · ${num(p)} ${p.nombre}</small>`)}</span>
+        <span class="cov"><b>${pct}</b>${areaTxt}</span>${z.locked?'<span></span>':'<span class="chev">▼</span>'}</div>`;
+      if(!z.locked){
+        const body=document.createElement('div'); body.className='zbody';
+        const cats=catSel?catSel.split(','):null; const list=PAINTS.filter(x=>!cats||cats.includes(x.cat));
+        body.innerHTML=`<div class="zcats">${CATS.map(([n,v])=>`<button type="button" data-v="${v}" aria-pressed="${v===catSel}">${n}</button>`).join('')}</div>
+          <div class="zsws">${list.map(x=>`<button type="button" class="sw${x.id===z.sku?' on':''}" data-id="${x.id}" style="background:${x.hex}" title="${num(x)} ${x.nombre} · ${money(x.galon)} galón"></button>`).join('')}</div>
+          <div class="zsel"><span><b>${num(p)} ${p.nombre}</b> · ${p.linea}</span><code>${money(p.litro)} L · ${money(p.galon)} gal · ${money(p.cubeta)} cubeta</code></div>
+          ${q.m2!==null?`<label class="zm2">m² de ${z.name.toLowerCase()} <input type="number" min="0" step="0.5" value="${q.m2||''}" placeholder="0" data-m2in="${z.id}"> <span class="hint">(no salen de las medidas; escríbelos)</span></label>`:''}
+          <div class="row"><button type="button" class="btn sm primary" data-act="done">Listo</button><button type="button" class="btn sm" data-act="tog">${q.on?'No cotizar esta zona':'Cotizar esta zona'}</button></div>`;
+        body.querySelectorAll('.zcats button').forEach(c=>c.addEventListener('click',()=>{catSel=c.dataset.v;refreshZones();}));
+        body.querySelectorAll('.sw').forEach(b=>b.addEventListener('click',()=>{painted=true;setZoneSku(i,b.dataset.id);currentPal=-1;refreshPals();refreshZones();requestRender();toast(z.name+' → '+num(BY[b.dataset.id])+' '+BY[b.dataset.id].nombre);}));
+        body.querySelector('[data-act=done]').addEventListener('click',()=>{openZone=-1;refreshZones();});
+        body.querySelector('[data-act=tog]').addEventListener('click',()=>{q.on=!q.on;refreshZones();});
+        const mi=body.querySelector('[data-m2in]'); if(mi)mi.addEventListener('input',()=>{q.m2=Math.max(0,parseFloat(mi.value)||0);calcAll();});
+        d.appendChild(body);
+        d.querySelector('.zrow').addEventListener('click',e=>{if(e.target.type==='checkbox')return;active=i;openZone=openZone===i?-1:i;refreshZones();drawOverlay();});
+        d.querySelector('input[type=checkbox]').addEventListener('change',e=>{q.on=e.target.checked;refreshZones();});
+      }
+      el.appendChild(d);});
+    const on=QZ.filter(q=>q.on).length; $('zCount').innerHTML=`<b>${on}</b> de ${QZ.length} zonas en la cotización`;
+    calcAll();
   }
   function refreshPals(){document.querySelectorAll('.pal').forEach((p,i)=>p.classList.toggle('on',i===currentPal));}
   function applyPalette(i,silent){currentPal=i;PALETTES[i].c.forEach((id,k)=>setZoneSku(k,id));if(!silent){painted=true;cmp=100;$('cmp').value=100;}refreshPals();refreshZones();if(orig&&zoneMap&&!silent)setStep(3);}
-  function refreshSummary(){$('summary').innerHTML=ZONES.filter(z=>!z.locked).map(z=>{const p=BY[z.sku];return `<div class="li"><i style="background:${z.color}"></i><span>${z.name}<small>${num(p)} ${p.nombre} · ${p.linea}</small></span><code>${money(p.galon)} gal</code></div>`;}).join(''); calcAll();}
   PALETTES.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='pal';b.innerHTML=`<span class="nm">${p.name}<small>${p.sub}</small></span><span class="chips">${p.c.map(id=>`<i style="background:${BY[id].hex}" title="${BY[id].nombre}"></i>`).join('')}</span>`;b.addEventListener('click',()=>{applyPalette(i);requestRender();});$('pals').appendChild(b);});
-  let catSel='';
-  CATS.forEach(([n,v],i)=>{const b=document.createElement('button');b.type='button';b.textContent=n;b.setAttribute('aria-pressed',i===0);b.addEventListener('click',()=>{catSel=v;document.querySelectorAll('#catSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));buildSwatches();});$('catSeg').appendChild(b);});
-  function buildSwatches(){ const el=$('sws'); el.innerHTML=''; const cats=catSel?catSel.split(','):null;
-    PAINTS.filter(p=>!cats||cats.includes(p.cat)).forEach(p=>{const b=document.createElement('button');b.type='button';b.className='sw'+(ZONES[active].sku===p.id?' on':'');b.style.background=p.hex;b.title=num(p)+' '+p.nombre+' · '+money(p.galon)+' galón';
-      b.addEventListener('mouseenter',()=>{$('swName').innerHTML=`<b>${num(p)} ${p.nombre}</b> · ${p.linea} · <code>${money(p.litro)} L · ${money(p.galon)} gal · ${money(p.cubeta)} cubeta</code>`;});
-      b.addEventListener('click',()=>{if(ZONES[active].locked)return;painted=true;setZoneSku(active,p.id);currentPal=-1;refreshPals();refreshZones();requestRender();toast(ZONES[active].name+' → '+num(p)+' '+p.nombre);});
-      el.appendChild(b);}); }
 
   $('btnUpload').addEventListener('click',()=>$('file').click());
   $('file').addEventListener('change',e=>loadFile(e.target.files[0]));
@@ -912,25 +928,6 @@
   ];
   const QZ_BY={}; QZ.forEach(q=>QZ_BY[q.id]=q);
   const qOn=id=>!!(QZ_BY[id]&&QZ_BY[id].on);
-  function paintOptions(sel,cur){
-    const groups={}; PAINTS.forEach(p=>{(groups[p.linea]=groups[p.linea]||[]).push(p);});
-    sel.innerHTML=Object.keys(groups).map(g=>`<optgroup label="${esc(g)}">`+groups[g].map(p=>`<option value="${p.id}"${p.id===cur?' selected':''}>${num(p)} ${esc(p.nombre)} · ${money(p.galon)}/gal</option>`).join('')+'</optgroup>').join('');
-  }
-  function buildQZ(){
-    const el=$('qz'); el.innerHTML='';
-    QZ.forEach(q=>{ const z=ZONES[ZI[q.id]]; const row=document.createElement('div'); row.className='qz-row'+(q.m2!==null?' m2':'')+(q.on?'':' off'); row.dataset.z=q.id;
-      row.innerHTML=`<label class="check"><input type="checkbox"${q.on?' checked':''}> ${z.name}</label><select class="inp" aria-label="Color para ${z.name}"></select>`+(q.m2!==null?`<input class="inp" type="number" min="0" step="0.5" value="${q.m2}" placeholder="m²" aria-label="m² de ${z.name}">`:'');
-      const chk=row.querySelector('input[type=checkbox]'), sel=row.querySelector('select'), m2=row.querySelector('input[type=number]');
-      paintOptions(sel,z.sku);
-      chk.addEventListener('change',()=>{q.on=chk.checked;row.classList.toggle('off',!q.on);calcAll();});
-      sel.addEventListener('change',()=>{painted=true;setZoneSku(ZI[q.id],sel.value);currentPal=-1;refreshPals();refreshZones();requestRender();toast(z.name+' → '+num(BY[sel.value])+' '+BY[sel.value].nombre);});
-      if(m2)m2.addEventListener('input',()=>{q.m2=Math.max(0,parseFloat(m2.value)||0);calcAll();});
-      el.appendChild(row);
-    });
-    syncQZ();
-  }
-  function syncQZ(){ document.querySelectorAll('#qz .qz-row').forEach(row=>{const z=ZONES[ZI[row.dataset.z]],sel=row.querySelector('select'); if(sel&&sel.value!==z.sku)sel.value=z.sku; row.style.borderLeftColor=z.color||''; }); }
-
   let Q={paint:[],paintTot:0,apply:0,applyM2:0,imp:null,total:0};
   function calcAll(){
     // muros
@@ -949,6 +946,8 @@
     $('rPaintTot').textContent=money(paintTot);
     const applyM2=lines.filter(x=>x.zone.id!=='herreria').reduce((s,x)=>s+x.m2,0); const apply=$('cApply').checked?applyM2*v('cRate'):0;
     $('rApplyTot').textContent=$('cApply').checked?money(apply):'No incluida';
+    document.querySelectorAll('[data-m2]').forEach(e=>{const x=lines.find(l=>l.zone.id===e.dataset.m2);e.textContent=x?x.m2.toFixed(1)+' m²':'';});
+    const onZ=QZ.filter(q=>q.on).map(q=>ZONES[ZI[q.id]].name); $('qzSummary').innerHTML=`<b>Se cotizan:</b> ${onZ.length?onZ.map(n=>`<span>${n}</span>`).join(', '):'<span>ninguna zona</span>'} · <a href="#mockup">cambiar en la sección 1</a>`;
     // impermeabilizante
     let imp=null;
     if($('iOn').checked){ const im2=v('iM2')>0?v('iM2'):v('iA')*v('iB'); const tela=$('iTela').checked; const rend=tela?PRECIOS.imp.rend_con_tela:PRECIOS.imp.rend_sin_tela; const cub=im2>0?Math.ceil(im2/rend-1e-6):0; const sku=BY[IMP_SKU[impColor]]; const mat=cub*PRECIOS.imp.cubeta; const iapply=$('iApply').checked?im2*v('iRate'):0;
@@ -1054,7 +1053,7 @@
   }
 
   // init
-  buildQZ(); applyPalette(0,true); calcAll(); demoHouse(); loadModel();
+  applyPalette(0,true); calcAll(); demoHouse(); loadModel();
 })();
 </script>
 <script src="i18n-en.js"></script>
