@@ -192,6 +192,11 @@
   .doc th,.doc td{border-color:#ddd} .doc th{color:#555} .doc tr.tot td{border-top-color:#111} .doc tr.tot td.n{color:#c2410c}
   .doc .mock{width:100%;max-height:300px;object-fit:contain;border-radius:8px;border:1px solid #ddd;margin:8px 0}
   .doc .note{font-size:11px;color:#555;margin-top:12px;line-height:1.5}
+  .doc .blk{margin:12px 0 4px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#333;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;padding-bottom:4px}
+  .doc .blk small{font-weight:500;text-transform:none;letter-spacing:0;color:#666}
+  .doc tr.sub td{font-weight:700;background:#fafafa;border-bottom:1px solid #ddd} .doc tr.sub td.n{color:#333}
+  .doc .off{font-size:11px;color:#777;margin:6px 0 2px;font-style:italic}
+  .callout.two{flex-direction:column;align-items:stretch;gap:6px} .callout .ln{display:flex;justify-content:space-between;align-items:center;gap:8px} .callout .ln .v{font-size:13px} .callout .ln.tot .v{font-size:15px}
   .doc .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
   .doc .cols div{background:#f5f5f5;border-radius:8px;padding:8px 10px} .doc .cols b{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#666}
   footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--brd);font-size:12px;color:var(--txt3);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -337,7 +342,7 @@
         <div class="panel-b">
           <div class="res"><div><b id="rM2">0</b><span>m² muros</span></div><div><b id="rLts">0</b><span>litros</span></div><div><b id="rGal">0</b><span>galones</span></div><div><b id="rCub">0</b><span>cubetas 19 L</span></div></div>
           <table id="paintTbl"><thead><tr><th>Zona · color</th><th class="n">m²</th><th class="n">Compra</th><th class="n">Importe</th></tr></thead><tbody></tbody></table>
-          <div class="callout"><span>🛒</span><div><div class="k">Pintura Bolt Paint</div><div class="v" id="rPaintTot">$0</div></div></div>
+          <div class="callout two"><div class="ln"><div class="k">🛒 Pintura Bolt Paint (material)</div><div class="v" id="rPaintTot">$0</div></div><div class="ln"><div class="k">🧑‍🎨 Aplicación de pintura (mano de obra)</div><div class="v" id="rApplyTot">No incluida</div></div></div>
         </div>
       </section>
       <section class="panel">
@@ -381,7 +386,7 @@
         <div class="panel-b">
           <div class="res"><div><b id="iRm2">0</b><span>m² techo</span></div><div><b id="iRcub">0</b><span>cubetas 19 L</span></div><div><b id="iRcov">0</b><span>m² cubiertos</span></div><div><b id="iRyrs">5</b><span>años garantía</span></div></div>
           <table id="impTbl"><tbody></tbody></table>
-          <div class="callout"><span>💧</span><div><div class="k">Impermeabilización</div><div class="v" id="iRtot">$0</div></div></div>
+          <div class="callout two"><div class="ln"><div class="k">💧 Imperm Master (material)</div><div class="v" id="iRtot">$0</div></div><div class="ln"><div class="k">🧑‍🔧 Aplicación de impermeabilizante</div><div class="v" id="iRapply">No incluida</div></div></div>
         </div>
       </section>
       <section class="panel">
@@ -422,6 +427,10 @@
       <section class="panel quote-form">
         <div class="panel-h"><h2>Datos de entrega</h2></div>
         <div class="panel-b">
+          <label class="field">¿Qué quieres cotizar?
+            <div class="seg" id="modeSeg"><button data-v="mat" aria-pressed="true">Solo material</button><button data-v="both">Material + aplicación</button><button data-v="app">Solo aplicación</button></div>
+          </label>
+          <p class="hint" id="modeHint">Material entregado a domicilio en 10 días o menos. Marca "aplicación" si quieres que Bolt Paint también lo aplique.</p>
           <label class="field">Nombre<input class="inp" id="qName" placeholder="Nombre y apellido"></label>
           <label class="field">Teléfono / WhatsApp<input class="inp" id="qPhone" placeholder="686 000 0000" inputmode="tel"></label>
           <label class="field">Ciudad<select class="inp" id="qCity"><option>San Felipe</option><option>Mexicali</option></select></label>
@@ -939,15 +948,19 @@
     $('paintTbl').querySelector('tbody').innerHTML=lines.map(x=>`<tr><td><span class="sw-i" style="background:${x.p.hex}"></span>${x.zone.name}<br><small style="color:var(--txt3)">${num(x.p)} ${x.p.nombre}</small></td><td class="n">${x.m2.toFixed(1)}</td><td class="n">${x.det}</td><td class="n">${money(x.cost)}</td></tr>`).join('')||`<tr><td colspan="4" class="hint">${QZ.some(q=>q.on)?'Indica medidas mayores a 0.':'Marca al menos una sección a cotizar.'}</td></tr>`;
     $('rPaintTot').textContent=money(paintTot);
     const applyM2=lines.filter(x=>x.zone.id!=='herreria').reduce((s,x)=>s+x.m2,0); const apply=$('cApply').checked?applyM2*v('cRate'):0;
+    $('rApplyTot').textContent=$('cApply').checked?money(apply):'No incluida';
     // impermeabilizante
     let imp=null;
     if($('iOn').checked){ const im2=v('iM2')>0?v('iM2'):v('iA')*v('iB'); const tela=$('iTela').checked; const rend=tela?PRECIOS.imp.rend_con_tela:PRECIOS.imp.rend_sin_tela; const cub=im2>0?Math.ceil(im2/rend-1e-6):0; const sku=BY[IMP_SKU[impColor]]; const mat=cub*PRECIOS.imp.cubeta; const iapply=$('iApply').checked?im2*v('iRate'):0;
       imp={m2:im2,tela,rend,cub,sku,mat,apply:iapply,tot:mat+iapply,years:tela?PRECIOS.imp.garantiaTela:PRECIOS.imp.garantiaSinTela};
       $('iRm2').textContent=Math.round(im2); $('iRcub').textContent=cub; $('iRcov').textContent=cub*rend; $('iRyrs').textContent=tela?5:3;
       $('impTbl').querySelector('tbody').innerHTML=`<tr><td><span class="sw-i" style="background:${sku.hex}"></span>Imperm Master ${impColor} · cubeta 19 L</td><td class="n">${cub} × ${money(PRECIOS.imp.cubeta)}</td><td class="n">${money(mat)}</td></tr>`+(iapply?`<tr><td>Aplicación ${tela?'con tela':'sin tela'}</td><td class="n">${Math.round(im2)} m² × ${money(v('iRate'))}</td><td class="n">${money(iapply)}</td></tr>`:'');
-      $('iRtot').textContent=money(imp.tot);
-    } else { $('impTbl').querySelector('tbody').innerHTML='<tr><td class="hint">No incluido en la cotización.</td></tr>'; $('iRtot').textContent='$0'; }
-    Q={paint:lines,paintTot,apply,applyM2,imp,total:paintTot+apply+(imp?imp.tot:0),m2w};
+      $('iRtot').textContent=money(imp.mat); $('iRapply').textContent=$('iApply').checked?money(iapply):'No incluida';
+    } else { $('impTbl').querySelector('tbody').innerHTML='<tr><td class="hint">No incluido en la cotización.</td></tr>'; $('iRtot').textContent='$0'; $('iRapply').textContent='No incluida'; }
+    // Bloques: A materiales · B aplicación (mano de obra)
+    const matTot=MODE==='app'?0:paintTot+(imp?imp.mat:0);
+    const srvTot=apply+(imp?imp.apply:0);
+    Q={paint:lines,paintTot,apply,applyM2,imp,matTot,srvTot,total:matTot+srvTot,m2w};
     renderDoc();
   }
 
@@ -976,19 +989,37 @@
   ['qName','qPhone','qCity','qFracc','qAddr','qNotes','qMock'].forEach(id=>$(id).addEventListener('input',renderDoc));
   $('qMock').addEventListener('change',renderDoc);
   const fracc=()=>$('qFracc').value.trim();
+  // Modalidad: mat = solo material · both = material + aplicación · app = solo aplicación (el cliente ya tiene el material)
+  let MODE='mat';
+  const MODE_HINT={mat:'Material entregado a domicilio en 10 días o menos. Marca "aplicación" si quieres que Bolt Paint también lo aplique.',both:'Material a domicilio + aplicación por Bolt Paint. Los m² se validan en sitio antes de iniciar.',app:'Solo mano de obra: tú pones la pintura y/o el impermeabilizante. Se cotiza con los m² y manos indicados arriba.'};
+  function setMode(m,fromSeg){ MODE=m; document.querySelectorAll('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===m)); $('modeHint').textContent=MODE_HINT[m];
+    if(fromSeg){ const on=m!=='mat'; $('cApply').checked=on; if($('iOn').checked)$('iApply').checked=on; } calcAll(); }
+  seg('modeSeg',v=>setMode(v,true));
+  // Si tocan las casillas de aplicación en las secciones 2/3, la modalidad se ajusta sola
+  ['cApply','iApply'].forEach(id=>$(id).addEventListener('change',()=>{ const anyApp=$('cApply').checked||($('iOn').checked&&$('iApply').checked); if(!anyApp&&MODE!=='mat')setMode('mat'); else if(anyApp&&MODE==='mat')setMode('both'); }));
   function renderDoc(){
     const d=new Date(); const deliver=new Date(d.getTime()+10*864e5);
     const f=(x)=>x.toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'});
-    let rows=Q.paint.map(x=>`<tr><td><span class="sw-i" style="background:${x.p.hex}"></span>${x.zone.name} · ${num(x.p)} ${x.p.nombre} <small>(${x.p.linea})</small></td><td class="n">${x.m2.toFixed(1)} m²</td><td class="n">${x.det}</td><td class="n">${money(x.cost)}</td></tr>`).join('');
-    if(Q.apply)rows+=`<tr><td>Aplicación de pintura (${coats} manos, mano de obra)</td><td class="n">${Math.round(Q.applyM2)} m²</td><td class="n">${money(v('cRate'))}/m²</td><td class="n">${money(Q.apply)}</td></tr>`;
-    if(Q.imp){rows+=`<tr><td><span class="sw-i" style="background:${Q.imp.sku.hex}"></span>Imperm Master ${impColor} · IMP001 · ${Q.imp.tela?'con tela de refuerzo':'sin tela'}</td><td class="n">${Math.round(Q.imp.m2)} m²</td><td class="n">${Q.imp.cub} cubeta${Q.imp.cub!==1?'s':''} 19 L</td><td class="n">${money(Q.imp.mat)}</td></tr>`;
-      if(Q.imp.apply)rows+=`<tr><td>Aplicación de impermeabilizante</td><td class="n">${Math.round(Q.imp.m2)} m²</td><td class="n">${money(v('iRate'))}/m²</td><td class="n">${money(Q.imp.apply)}</td></tr>`;}
+    // Bloque A · Materiales
+    let matRows=Q.paint.map(x=>`<tr><td><span class="sw-i" style="background:${x.p.hex}"></span>${x.zone.name} · ${num(x.p)} ${x.p.nombre} <small>(${x.p.linea})</small></td><td class="n">${x.m2.toFixed(1)} m²</td><td class="n">${x.det}</td><td class="n">${money(x.cost)}</td></tr>`).join('');
+    if(Q.imp)matRows+=`<tr><td><span class="sw-i" style="background:${Q.imp.sku.hex}"></span>Imperm Master ${impColor} · IMP001 · ${Q.imp.tela?'con tela de refuerzo':'sin tela'}</td><td class="n">${Math.round(Q.imp.m2)} m²</td><td class="n">${Q.imp.cub} cubeta${Q.imp.cub!==1?'s':''} 19 L</td><td class="n">${money(Q.imp.mat)}</td></tr>`;
+    // Bloque B · Aplicación (mano de obra)
+    let srvRows='';
+    if(Q.apply)srvRows+=`<tr><td>Aplicación de pintura · ${coats} mano${coats>1?'s':''} (mano de obra)</td><td class="n">${Math.round(Q.applyM2)} m²</td><td class="n">${money(v('cRate'))}/m²</td><td class="n">${money(Q.apply)}</td></tr>`;
+    if(Q.imp&&Q.imp.apply)srvRows+=`<tr><td>Aplicación de impermeabilizante · ${Q.imp.tela?'con tela de refuerzo':'sin tela'} (mano de obra)</td><td class="n">${Math.round(Q.imp.m2)} m²</td><td class="n">${money(v('iRate'))}/m²</td><td class="n">${money(Q.imp.apply)}</td></tr>`;
+    const hdr=`<thead><tr><th>Concepto</th><th class="n">Área</th><th class="n">Cantidad</th><th class="n">Importe</th></tr></thead>`;
+    let blocks='';
+    if(MODE==='app') blocks+=`<div class="blk">A · Materiales <small>no incluidos · el cliente proporciona la pintura y/o el impermeabilizante</small></div><p class="off">Referencia de material necesario: ${Q.paint.map(x=>x.zone.name+' '+x.det).concat(Q.imp?['Imperm Master '+Q.imp.cub+' cubeta(s) 19 L']:[]).join(' · ')||'—'}</p>`;
+    else blocks+=`<div class="blk">A · Materiales <small>entrega a domicilio en 10 días o menos</small></div><table>${hdr}<tbody>${matRows||'<tr><td colspan="4">Sin materiales seleccionados.</td></tr>'}<tr class="sub"><td colspan="3">Subtotal materiales</td><td class="n">${money(Q.matTot)}</td></tr></tbody></table>`;
+    if(srvRows) blocks+=`<div class="blk">B · Aplicación <small>mano de obra por Bolt Paint · m² sujetos a validación en sitio</small></div><table>${hdr}<tbody>${srvRows}<tr class="sub"><td colspan="3">Subtotal aplicación</td><td class="n">${money(Q.srvTot)}</td></tr></tbody></table>`;
+    else blocks+=`<div class="blk">B · Aplicación <small>no incluida · solo material</small></div>`;
+    blocks+=`<table><tbody><tr class="tot"><td colspan="3">Total estimado (MXN)</td><td class="n">${money(Q.total)}</td></tr></tbody></table>`;
     const mock=($('qMock').checked&&orig&&painted)?`<img class="mock" alt="Mockup de la fachada" src="${mockupDataUrl()}">`:'';
     const pal=currentPal>=0?PALETTES[currentPal].name:'Combinación personalizada';
     $('doc').innerHTML=`<div class="doc-hd"><div><h3>Cotización · San Felipe Casas</h3><small>Bolt Paint · Mexicali y San Felipe · 📲 (686) 262-5119</small></div><div style="text-align:right"><b>${FOLIO}</b><small>${f(d)}</small><small>Entrega estimada: ${f(deliver)}</small></div></div>
       <div class="cols"><div><b>Cliente</b>${esc($('qName').value)||'—'}<br>${esc($('qPhone').value)||''}</div><div><b>Entrega</b>${esc($('qAddr').value)||'—'}<br>${fracc()?esc(fracc())+' · ':''}${esc($('qCity').value)}, B.C.</div></div>
       ${mock}<p style="margin:4px 0 8px"><b>Paleta:</b> ${esc(pal)} · ${Q.paint.length?Q.paint.map(x=>x.zone.name+': '+num(x.p)+' '+x.p.nombre).join(' · '):'sin secciones de pintura seleccionadas'}</p>
-      <table><thead><tr><th>Concepto</th><th class="n">Área</th><th class="n">Cantidad</th><th class="n">Importe</th></tr></thead><tbody>${rows||'<tr><td colspan="4">Sin conceptos aún.</td></tr>'}<tr class="tot"><td colspan="3">Total estimado (MXN)</td><td class="n">${money(Q.total)}</td></tr></tbody></table>
+      ${blocks}
       ${$('qNotes').value?`<p><b>Notas:</b> ${esc($('qNotes').value)}</p>`:''}
       <div class="note">Precios de lista Bolt Paint en MXN, sujetos a validación de área y a resanes que se coticen en sitio. Pintura 100 % acrílica con garantía de ${PRECIOS.pintura.garantia} a 2 manos; Imperm Master con garantía de ${PRECIOS.imp.garantiaTela} con tela de refuerzo y ${PRECIOS.imp.garantiaSinTela} sin tela. Entrega en San Felipe y Mexicali en 10 días o menos. Los colores en pantalla son referencia; el tono final depende de la superficie y la luz.</div>`;
   }
@@ -996,9 +1027,13 @@
     const L=[`*Cotización ${FOLIO} · San Felipe Casas · Bolt Paint*`];
     L.push(`Cliente: ${$('qName').value||'—'} · Tel: ${$('qPhone').value||'—'}`); L.push(`Entrega: ${$('qAddr').value||'—'}${fracc()?' · '+fracc():''}, ${$('qCity').value}`);
     L.push(`Paleta: ${currentPal>=0?PALETTES[currentPal].name:'personalizada'}`);
-    Q.paint.forEach(x=>L.push(`• ${x.zone.name}: ${num(x.p)} ${x.p.nombre} · ${x.m2.toFixed(1)} m² · ${x.det} · ${money(x.cost)}`));
-    if(Q.apply)L.push(`• Aplicación pintura: ${Math.round(Q.applyM2)} m² · ${money(Q.apply)}`);
-    if(Q.imp){L.push(`• Imperm Master ${impColor} ${Q.imp.tela?'con tela':'sin tela'}: ${Math.round(Q.imp.m2)} m² · ${Q.imp.cub} cubeta(s) · ${money(Q.imp.mat)}`); if(Q.imp.apply)L.push(`• Aplicación impermeabilizante: ${money(Q.imp.apply)}`);}
+    L.push(`Modalidad: ${{mat:'solo material',both:'material + aplicación',app:'solo aplicación (material del cliente)'}[MODE]}`);
+    L.push(MODE==='app'?'*A · Materiales* (no incluidos, referencia):':'*A · Materiales*');
+    Q.paint.forEach(x=>L.push(MODE==='app'?`• ${x.zone.name}: ${x.det}`:`• ${x.zone.name}: ${num(x.p)} ${x.p.nombre} · ${x.m2.toFixed(1)} m² · ${x.det} · ${money(x.cost)}`));
+    if(Q.imp)L.push(MODE==='app'?`• Imperm Master: ${Q.imp.cub} cubeta(s) 19 L`:`• Imperm Master ${impColor} ${Q.imp.tela?'con tela':'sin tela'}: ${Math.round(Q.imp.m2)} m² · ${Q.imp.cub} cubeta(s) · ${money(Q.imp.mat)}`);
+    if(MODE!=='app')L.push(`Subtotal materiales: ${money(Q.matTot)}`);
+    if(Q.srvTot){L.push('*B · Aplicación (mano de obra)*'); if(Q.apply)L.push(`• Aplicación pintura ${coats} mano(s): ${Math.round(Q.applyM2)} m² · ${money(Q.apply)}`); if(Q.imp&&Q.imp.apply)L.push(`• Aplicación impermeabilizante: ${Math.round(Q.imp.m2)} m² · ${money(Q.imp.apply)}`); L.push(`Subtotal aplicación: ${money(Q.srvTot)}`);}
+    else L.push('B · Aplicación: no incluida');
     L.push(`*Total estimado: ${money(Q.total)} MXN* · entrega en 10 días o menos`); if($('qNotes').value)L.push(`Notas: ${$('qNotes').value}`);
         const T=s=>window.bpT?window.bpT(s):s; return L.map(T).join('\n');
   }
