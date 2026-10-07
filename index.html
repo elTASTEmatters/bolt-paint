@@ -609,8 +609,8 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
       <button class="btn-secondary" onclick="goImp()">
         💧 Impermeabilizante
       </button>
-      <button class="btn-secondary" onclick="document.getElementById('accesorios').scrollIntoView({behavior:'smooth'})">
-        🖌️ Accesorios
+      <button class="btn-secondary bpa-hero-btn" onclick="document.getElementById('accesorios').scrollIntoView({behavior:'smooth'})">
+        🖌️ Accesorios <span class="bpa-new">Nuevo</span>
       </button>
       <button class="btn-secondary" onclick="document.getElementById('tracking-sec').scrollIntoView({behavior:'smooth'})">
         📦 Rastrear pedido
@@ -648,6 +648,9 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
     </div>
   </div>
 </div>
+
+<!-- ACCESORIOS: franja de acceso · la llena bolt-accesorios-v2.js -->
+<div id="bpaPromo"></div>
 
 <!-- GALLERY -->
 <section class="sec" id="galeria-sec">
@@ -833,7 +836,7 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
   </div>
 </section>
 
-<!-- PRODUCTOS Y ACCESORIOS (B-Roller) · lo llena bolt-accesorios-v1.js -->
+<!-- PRODUCTOS Y ACCESORIOS (B-Roller) · lo llena bolt-accesorios-v2.js -->
 <section class="sec" id="accesorios"></section>
 
 <!-- TOOLS SECTION: Tracking + Calc + Comparador -->
@@ -1858,5 +1861,5 @@ updCounters();
 <script src="i18n-en.js"></script>
 <script src="mp.js"></script>
 <script src="bolt-proyectos-v2.js"></script>
-<script src="bolt-accesorios-v1.js"></script></body>
+<script src="bolt-accesorios-v2.js"></script></body>
 </html>
