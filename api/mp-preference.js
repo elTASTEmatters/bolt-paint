@@ -20,9 +20,9 @@ export default async function handler(req, res) {
         notification_url: "https://bolt-paint.vercel.app/api/mp-webhook",
         external_reference: "BOLTPAINT-" + Date.now(),
         back_urls: {
-          success: "https://eltastematters.github.io/bolt-paint/",
-          failure: "https://eltastematters.github.io/bolt-paint/",
-          pending: "https://eltastematters.github.io/bolt-paint/"
+          success: "https://boltpaintmexicali.com/",
+          failure: "https://boltpaintmexicali.com/",
+          pending: "https://boltpaintmexicali.com/"
         },
         auto_return: "approved"
       })
