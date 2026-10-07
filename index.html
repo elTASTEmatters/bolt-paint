@@ -609,6 +609,9 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
       <button class="btn-secondary" onclick="goImp()">
         💧 Impermeabilizante
       </button>
+      <button class="btn-secondary" onclick="document.getElementById('accesorios').scrollIntoView({behavior:'smooth'})">
+        🖌️ Accesorios
+      </button>
       <button class="btn-secondary" onclick="document.getElementById('tracking-sec').scrollIntoView({behavior:'smooth'})">
         📦 Rastrear pedido
       </button>
@@ -829,6 +832,9 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
     <span style="font-size:12px;color:var(--txt3);">Ficha IMP001 · Impermeabilizante Acrílico Fibratado</span>
   </div>
 </section>
+
+<!-- PRODUCTOS Y ACCESORIOS (B-Roller) · lo llena bolt-accesorios-v1.js -->
+<section class="sec" id="accesorios"></section>
 
 <!-- TOOLS SECTION: Tracking + Calc + Comparador -->
 <section class="sec" id="tracking-sec">
@@ -1220,7 +1226,7 @@ function updCart(){
   if(!cart.length){el.innerHTML='<div class="cart-empty">Tu carrito está vacío.<br>Elige colores del catálogo.</div>';return;}
   var h="";
   cart.forEach(function(it,i){
-    var szLbl={litro:"Litro 1L",galon:"Galón 3.78L",cubeta:"Cubeta 19L"}[it.sz];
+    var szLbl=it.szLbl||{litro:"Litro 1L",galon:"Galón 3.78L",cubeta:"Cubeta 19L"}[it.sz];
     h+='<div class="ci">';
     h+='<div class="ci-sw" style="background:'+it.hex+'"></div>';
     h+='<div class="ci-info"><div class="ci-name">'+it.nombre+'</div><div class="ci-meta">'+szLbl+'  ·  $'+it.pr.toLocaleString()+' c/u</div></div>';
@@ -1564,7 +1570,7 @@ function downloadOrderPDF(o){
   if(!o) return;
   var stages={nueva:"🟠 Nueva",validando:"🟡 Validando",listo:"🟢 Lista para entrega",entregado:"✅ Entregado"};
   var items=(o.items||[]).map(function(it){
-    return '<tr><td style="padding:7px 10px;border-bottom:1px solid #eee">'+it.nombre+'</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:center">'+it.qty+" x "+(it.sz==="cubeta"?"Cubeta 19L":it.sz==="litro"?"Litro 1L":"Galón")+'</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:700">$'+(it.pr*it.qty).toLocaleString()+' MXN</td></tr>';
+    return '<tr><td style="padding:7px 10px;border-bottom:1px solid #eee">'+it.nombre+'</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:center">'+it.qty+" x "+(it.szLbl||(it.sz==="cubeta"?"Cubeta 19L":it.sz==="litro"?"Litro 1L":"Galón"))+'</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:700">$'+(it.pr*it.qty).toLocaleString()+' MXN</td></tr>';
   }).join("");
   var doc='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+o.id+' — Bolt Paint</title><style>body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#111;font-size:13px}.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #f97316;margin-bottom:20px}h1{color:#f97316;font-size:20px;margin-bottom:4px}.brand{font-size:11px;color:#666}.oid{font-size:26px;font-weight:bold;color:#f97316}.status{display:inline-block;padding:4px 12px;border-radius:99px;font-weight:bold;font-size:11px;background:#fff5ef;color:#f97316}h2{font-size:13px;margin-top:18px;margin-bottom:7px;border-bottom:2px solid #f97316;padding-bottom:3px}.tbl{width:100%;border-collapse:collapse}.tbl th{background:#1c1c24;color:#fff;padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase}.tot{font-weight:bold;background:#fff5ef}.footer{margin-top:20px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#999;text-align:center}</style></head><body>';
   doc+='<div class="hdr"><div><h1>🐾 Bolt Paint</h1><div class="brand">Distribuidor BPaint Depot · Mexicali & San Felipe · (686) 262-5119</div></div><div style="text-align:right"><div class="oid">'+o.id+'</div><div style="font-size:10px;color:#666;margin-top:3px">'+o.fecha+'</div><div style="margin-top:5px"><span class="status">'+(stages[o.status]||o.status)+'</span></div></div></div>';
@@ -1851,5 +1857,6 @@ updCounters();
 </script>
 <script src="i18n-en.js"></script>
 <script src="mp.js"></script>
-<script src="bolt-proyectos-v2.js"></script></body>
+<script src="bolt-proyectos-v2.js"></script>
+<script src="bolt-accesorios-v1.js"></script></body>
 </html>
