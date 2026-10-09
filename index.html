@@ -986,7 +986,7 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
             <div style="font-size:11px;color:rgba(99,161,255,.9);line-height:1.6;">
               <div style="margin-bottom:4px;">① Transfiere el monto exacto a la CLABE indicada.</div>
               <div style="margin-bottom:4px;">② En el concepto escribe tu <strong style="color:var(--txt)">Número de Orden</strong>.</div>
-              <div>③ 📲 Envía comprobante por WhatsApp al <strong style="color:var(--txt)">(686) 262-5119</strong></div>
+              <div>③ 📲 Envía comprobante por WhatsApp al <strong style="color:var(--txt)">(686) 317-3475</strong></div>
             </div>
           </div>
           <div style="margin-top:8px;font-size:10px;color:var(--txt3);text-align:center;">⏱ Validación en 1–2 horas hábiles · casteljesus77@gmail.com</div>
@@ -998,7 +998,7 @@ body{font-family:"Plus Jakarta Sans",sans-serif;background:var(--bg);color:var(-
           <div class="cash-title">💵 Efectivo / OXXO Pay</div>
           <div class="cash-step"><div class="cash-n">1</div><div class="cash-txt">Confirma tu orden — recibes tu número de pedido por WhatsApp.</div></div>
           <div class="cash-step"><div class="cash-n">2</div><div class="cash-txt">Deposita en cualquier OXXO con tu número de pedido.</div></div>
-          <div class="cash-step"><div class="cash-n">3</div><div class="cash-txt">Envía comprobante al (686) 262-5119. Preparamos tu pedido en 24h.</div></div>
+          <div class="cash-step"><div class="cash-n">3</div><div class="cash-txt">Envía comprobante al (686) 317-3475. Preparamos tu pedido en 24h.</div></div>
         </div>
       </div>
       <!-- Factura toggle -->
@@ -1209,7 +1209,7 @@ function addToCart(id){
   if(!p) return;
   var sz=szMap[id]||(p.galon&&p.galon>0?"galon":p.cubeta&&p.cubeta>0?"cubeta":"litro");
   var pr=sz==="cubeta"?p.cubeta:sz==="litro"?p.litro:p.galon;
-  if(!pr||pr<=0){toast("⚠️ Llama al (686) 262-5119 para precio");return;}
+  if(!pr||pr<=0){toast("⚠️ Llama al (686) 317-3475 para precio");return;}
   var ex=cart.find(function(c){return c.id===id&&c.sz===sz;});
   if(ex){ex.qty++;}else{cart.push({id:id,nombre:p.nombre,hex:p.hex,sz:sz,pr:pr,qty:1});}
   updCart(); toast("✅ "+p.nombre+" — "+{litro:"1L",galon:"Galón",cubeta:"Cubeta"}[sz]+" agregado");
@@ -1366,7 +1366,7 @@ function checkout(){
     '<div class="succ-row"><span>Pago</span><strong>'+pInfo+'</strong></div>'+
     fRow+
     '<div class="succ-row"><span>Total</span><strong style="color:var(--or);font-size:16px">$'+tot.toLocaleString()+' MXN</strong></div>'+
-    '<div style="margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:9px;font-size:11px;color:var(--gn);line-height:1.5;">📲 Te contactamos al '+tel+' en breve. (686) 262-5119 · Entrega a tu domicilio · Mexicali & San Felipe.</div>';
+    '<div style="margin-top:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:9px;font-size:11px;color:var(--gn);line-height:1.5;">📲 Te contactamos al '+tel+' en breve. (686) 317-3475 · Entrega a tu domicilio · Mexicali & San Felipe.</div>';
   closeCart();
   document.getElementById("succScreen").classList.add("open");
 }
@@ -1576,7 +1576,7 @@ function downloadOrderPDF(o){
     return '<tr><td style="padding:7px 10px;border-bottom:1px solid #eee">'+it.nombre+'</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:center">'+it.qty+" x "+(it.szLbl||(it.sz==="cubeta"?"Cubeta 19L":it.sz==="litro"?"Litro 1L":"Galón"))+'</td><td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:700">$'+(it.pr*it.qty).toLocaleString()+' MXN</td></tr>';
   }).join("");
   var doc='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>'+o.id+' — Bolt Paint</title><style>body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#111;font-size:13px}.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:3px solid #f97316;margin-bottom:20px}h1{color:#f97316;font-size:20px;margin-bottom:4px}.brand{font-size:11px;color:#666}.oid{font-size:26px;font-weight:bold;color:#f97316}.status{display:inline-block;padding:4px 12px;border-radius:99px;font-weight:bold;font-size:11px;background:#fff5ef;color:#f97316}h2{font-size:13px;margin-top:18px;margin-bottom:7px;border-bottom:2px solid #f97316;padding-bottom:3px}.tbl{width:100%;border-collapse:collapse}.tbl th{background:#1c1c24;color:#fff;padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase}.tot{font-weight:bold;background:#fff5ef}.footer{margin-top:20px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#999;text-align:center}</style></head><body>';
-  doc+='<div class="hdr"><div><h1>🐾 Bolt Paint</h1><div class="brand">Distribuidor BPaint Depot · Mexicali & San Felipe · (686) 262-5119</div></div><div style="text-align:right"><div class="oid">'+o.id+'</div><div style="font-size:10px;color:#666;margin-top:3px">'+o.fecha+'</div><div style="margin-top:5px"><span class="status">'+(stages[o.status]||o.status)+'</span></div></div></div>';
+  doc+='<div class="hdr"><div><h1>🐾 Bolt Paint</h1><div class="brand">Distribuidor BPaint Depot · Mexicali & San Felipe · (686) 317-3475</div></div><div style="text-align:right"><div class="oid">'+o.id+'</div><div style="font-size:10px;color:#666;margin-top:3px">'+o.fecha+'</div><div style="margin-top:5px"><span class="status">'+(stages[o.status]||o.status)+'</span></div></div></div>';
   doc+='<h2>📍 Datos de entrega</h2><table class="tbl"><tbody>';
   doc+='<tr><td style="padding:7px 10px;border-bottom:1px solid #eee;width:35%">Cliente</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-weight:bold">'+(o.nombre||"—")+'</td></tr>';
   doc+='<tr><td style="padding:7px 10px;border-bottom:1px solid #eee">WhatsApp</td><td style="padding:7px 10px;border-bottom:1px solid #eee">'+(o.telefono||"—")+'</td></tr>';
@@ -1860,6 +1860,6 @@ updCounters();
 </script>
 <script src="i18n-en.js"></script>
 <script src="mp.js"></script>
-<script src="bolt-proyectos-v2.js"></script>
-<script src="bolt-accesorios-v2.js"></script></body>
+<script src="bolt-proyectos-v3.js"></script>
+<script src="bolt-accesorios-v3.js"></script></body>
 </html>

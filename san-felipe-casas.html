@@ -230,7 +230,7 @@
   <div class="nav-links">
     <a href="#mockup">Mockup</a><a href="#calculo">Cubetas</a><a href="#imperm">Impermeabilizante</a><a href="#comparador">Comparador</a><a href="#cotizacion">Cotización</a>
     <a href="index.html#catalogo">Tienda</a>
-    <a class="nav-wa" href="https://wa.me/526862625119" target="_blank" rel="noopener">📲 (686) 262-5119</a>
+    <a class="nav-wa" href="https://wa.me/526863173475" target="_blank" rel="noopener">📲 (686) 317-3475</a>
   </div>
 </nav>
 
@@ -453,9 +453,32 @@
     </div>
   </section>
 
-  <footer><span>Bolt Paint · San Felipe Casas · Mexicali y San Felipe, B.C.</span><span>📲 (686) 262-5119 · <a href="index.html">boltpaint</a></span></footer>
+  <footer><span>Bolt Paint · San Felipe Casas · Mexicali y San Felipe, B.C.</span><span>📲 (686) 317-3475 · <a href="index.html">boltpaint</a></span></footer>
 </div>
 <div class="toast" id="toast"></div>
+<script type="module">
+/* Guarda la cotización en Firestore (colección pedidos) para el CRM de seguimiento */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const app = initializeApp({
+  apiKey: "AIzaSyD44dk4huRpzmbrmeLMrldBmvunh_K7o24",
+  authDomain: "bolt-paint.firebaseapp.com",
+  projectId: "bolt-paint",
+  storageBucket: "bolt-paint.firebasestorage.app",
+  messagingSenderId: "251872983332",
+  appId: "1:251872983332:web:3ab2eb0f8bf17838715bb1"
+});
+const db = getFirestore(app);
+let savedId = null, chain = Promise.resolve();
+async function save(p){
+  try{
+    if(savedId){ const u = {...p}; delete u.status; await updateDoc(doc(db,"pedidos",savedId), u); return savedId; }
+    const r = await addDoc(collection(db,"pedidos"), {...p, createdAt: serverTimestamp()});
+    savedId = r.id; return savedId;
+  }catch(e){ console.error("Error guardando cotización:", e); return null; }
+}
+window.sfcSaveQuote = function(p){ chain = chain.then(()=>save(p)); return chain; };
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.22.0/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/deeplab@0.2.2/dist/deeplab.min.js"></script>
 <script>
@@ -470,7 +493,7 @@
   var BY=Object.create(null); DP.forEach(function(p){BY[p.id]=p});
   var num=function(p){return '#'+String(p.id).replace(/^p0*/,'')};
   var money=function(n){return '$'+Math.round(n).toLocaleString('es-MX')};
-  var WA_NUMBER='526862625119';
+  var WA_NUMBER='526863173475'; // Cotizaciones: WhatsApp de Ignacio Pelayo (686 317 3475)
 
   // ===== Precios de servicio (referencia · iguales a bolt-proyectos-v2.js) =====
   var PRECIOS={ aplicacion:50, imp:{cubeta:1109, cap:19, rend_con_tela:17, rend_sin_tela:20, garantiaTela:'5 años', garantiaSinTela:'3 años'},
@@ -1015,7 +1038,7 @@
     blocks+=`<table><tbody><tr class="tot"><td colspan="3">Total estimado (MXN)</td><td class="n">${money(Q.total)}</td></tr></tbody></table>`;
     const mock=($('qMock').checked&&orig&&painted)?`<img class="mock" alt="Mockup de la fachada" src="${mockupDataUrl()}">`:'';
     const pal=currentPal>=0?PALETTES[currentPal].name:'Combinación personalizada';
-    $('doc').innerHTML=`<div class="doc-hd"><div><h3>Cotización · San Felipe Casas</h3><small>Bolt Paint · Mexicali y San Felipe · 📲 (686) 262-5119</small></div><div style="text-align:right"><b>${FOLIO}</b><small>${f(d)}</small><small>Entrega estimada: ${f(deliver)}</small></div></div>
+    $('doc').innerHTML=`<div class="doc-hd"><div><h3>Cotización · San Felipe Casas</h3><small>Bolt Paint · Mexicali y San Felipe · 📲 (686) 317-3475</small></div><div style="text-align:right"><b>${FOLIO}</b><small>${f(d)}</small><small>Entrega estimada: ${f(deliver)}</small></div></div>
       <div class="cols"><div><b>Cliente</b>${esc($('qName').value)||'—'}<br>${esc($('qPhone').value)||''}</div><div><b>Entrega</b>${esc($('qAddr').value)||'—'}<br>${fracc()?esc(fracc())+' · ':''}${esc($('qCity').value)}, B.C.</div></div>
       ${mock}<p style="margin:4px 0 8px"><b>Paleta:</b> ${esc(pal)} · ${Q.paint.length?Q.paint.map(x=>x.zone.name+': '+num(x.p)+' '+x.p.nombre).join(' · '):'sin secciones de pintura seleccionadas'}</p>
       ${blocks}
@@ -1050,7 +1073,28 @@
       navigator.share({files:[file],title:fname,text:text}).then(()=>toast('PDF compartido: elige WhatsApp y el chat de Bolt Paint')).catch(err=>{ if(err&&err.name==='AbortError')return; download(); openWa(); toast('PDF descargado: adjúntalo en el chat de WhatsApp'); });
     } else { download(); openWa(); toast('PDF descargado ('+fname+'): adjúntalo en el chat de WhatsApp que se abrió'); }
   }
-  $('btnWA').addEventListener('click',()=>{ if(!$('qName').value||!$('qPhone').value){toast('Escribe tu nombre y teléfono para enviar la cotización');$('qName').focus();return;} toast('Generando el PDF de la cotización…'); docPdfBlob(sharePdf); });
+  // ---- CRM: la cotización enviada se graba en Firebase con el mismo esquema de pedido que Proyectos ----
+  const CRM_DOC_CSS='<style>.sfc-doc{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111}.sfc-doc h3{margin:0;font-size:16px;text-transform:uppercase}.sfc-doc .doc-hd{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:10px}.sfc-doc small{display:block;color:#555}.sfc-doc .cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.sfc-doc .cols div{background:#f5f5f5;border-radius:6px;padding:6px 8px}.sfc-doc .cols b{display:block;font-size:10px;text-transform:uppercase;color:#666}.sfc-doc table{width:100%;border-collapse:collapse;margin:4px 0}.sfc-doc th,.sfc-doc td{border-bottom:1px solid #ddd;padding:4px 5px;text-align:left;vertical-align:top}.sfc-doc .n{text-align:right;white-space:nowrap}.sfc-doc .blk{margin:10px 0 3px;font-size:10.5px;font-weight:800;text-transform:uppercase;border-bottom:1px solid #ddd}.sfc-doc .blk small{display:inline;font-weight:400;text-transform:none;margin-left:6px}.sfc-doc tr.sub td{font-weight:700;background:#fafafa}.sfc-doc tr.tot td{font-weight:800;font-size:14px;border-top:2px solid #111}.sfc-doc .sw-i{display:inline-block;width:10px;height:10px;border-radius:2px;border:1px solid #999;margin-right:5px}.sfc-doc .note,.sfc-doc .off{font-size:10px;color:#555;margin-top:8px}</style>';
+  function crmPedido(){
+    const modeTxt={mat:'solo material',both:'material + aplicación',app:'solo aplicación (material del cliente)'}[MODE];
+    const noMat=MODE==='app', items=[];
+    Q.paint.forEach(x=>items.push({nombre:`${x.zone.name} · ${num(x.p)} ${x.p.nombre} · ${x.m2.toFixed(1)} m² (${x.det})`+(noMat?' — material del cliente':''),qty:1,pr:noMat?0:Math.round(x.cost)}));
+    if(Q.imp)items.push({nombre:`Imperm Master ${impColor} ${Q.imp.tela?'con tela':'sin tela'} · ${Math.round(Q.imp.m2)} m² (${Q.imp.cub} cubeta${Q.imp.cub!==1?'s':''} 19 L)`+(noMat?' — material del cliente':''),qty:1,pr:noMat?0:Math.round(Q.imp.mat)});
+    if(Q.apply)items.push({nombre:`Aplicación de pintura · ${coats} mano${coats>1?'s':''} · ${Q.applyM2.toFixed(1)} m²`,qty:1,pr:Math.round(Q.apply)});
+    if(Q.imp&&Q.imp.apply)items.push({nombre:`Aplicación de impermeabilizante · ${Math.round(Q.imp.m2)} m²`,qty:1,pr:Math.round(Q.imp.apply)});
+    const n=$('doc').cloneNode(true); n.querySelectorAll('img').forEach(i=>i.remove()); // sin la foto del mockup: no cabe en Firestore
+    return {
+      id:FOLIO, tipo:'cotizacion', origen:'san-felipe-casas', modo:MODE,
+      nombre:$('qName').value.trim(), telefono:$('qPhone').value.trim(),
+      direccion:[$('qAddr').value.trim(),fracc(),$('qCity').value+', B.C.'].filter(Boolean).join(' · '),
+      total:Math.round(Q.total), fecha:new Date().toLocaleDateString('es-MX'),
+      items:items, status:'nueva', pago:'Cotización (por definir)',
+      notas:'Cotización San Felipe Casas · '+modeTxt+($('qNotes').value.trim()?' · '+$('qNotes').value.trim():''),
+      docHTML:'<div class="sfc-doc">'+CRM_DOC_CSS+n.innerHTML+'</div>'
+    };
+  }
+  function crmSave(){ try{ if(window.sfcSaveQuote) window.sfcSaveQuote(JSON.parse(JSON.stringify(crmPedido()))); }catch(e){ console.error('CRM San Felipe Casas:',e); } }
+  $('btnWA').addEventListener('click',()=>{ if(!$('qName').value||!$('qPhone').value){toast('Escribe tu nombre y teléfono para enviar la cotización');$('qName').focus();return;} crmSave(); toast('Generando el PDF de la cotización…'); docPdfBlob(sharePdf); });
   $('btnPrint').addEventListener('click',()=>window.print());
   $('btnCopyQ').addEventListener('click',()=>{(navigator.clipboard?navigator.clipboard.writeText(quoteText()):Promise.reject()).then(()=>toast('Cotización copiada')).catch(()=>toast('No se pudo copiar'));});
 
