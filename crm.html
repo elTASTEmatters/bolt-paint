@@ -107,6 +107,12 @@ button{cursor:pointer}
 .addn{display:flex;gap:8px}
 .addn input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:8px 10px}
 .tools .btn{flex:0 0 auto}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--line);vertical-align:-1px;margin-right:6px;flex:none}
+.prods{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.prods li{background:var(--panel);border-radius:4px;padding:8px 10px;display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.prods li>div{min-width:0;overflow-wrap:anywhere}
+.prods small{display:block;color:var(--muted);font-size:12.5px}
+.prods .n{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
 .fld .req{color:var(--accent)}
 .prow{display:grid;grid-template-columns:minmax(0,1fr) 64px 104px 34px;gap:6px;align-items:center}
@@ -260,7 +266,20 @@ function tipo(o){
   }
   return 'Cotización';
 }
+function pres(x){var d=[];if(x.cub)d.push(x.cub+' cub');if(x.gal)d.push(x.gal+' gal');if(x.lit)d.push(x.lit+' L');return d.join(' + ')}
+function swatch(h){return /^#[0-9a-f]{3,8}$/i.test(h||'')?'<span class="sw" style="background:'+h+'"></span>':''}
+function productos(o){
+  var L=[];
+  (Array.isArray(o.paints)?o.paints:[]).forEach(function(p){L.push({h:p.h,t:'Pintura '+(p.n||''),d:[p.area?p.area+' m²':'',pres(p)].filter(Boolean).join(' · '),c:p.cost})});
+  (Array.isArray(o.impermeabilizantes)?o.impermeabilizantes:[]).forEach(function(i){L.push({h:i.hex,t:'Impermeabilizante '+(i.color||'')+(i.tela?' con tela':' sin tela'),d:[i.area?i.area+' m²':'',pres(i)].filter(Boolean).join(' · '),c:i.cost})});
+  (Array.isArray(o.igualaciones)?o.igualaciones:[]).forEach(function(g){L.push({h:g.color,t:'Igualación de color '+(g.name||''),d:[g.brand,g.code,g.type,g.loc,g.uses,g.dur,g.notes].filter(Boolean).join(' · '),c:null})});
+  var fr=o.fraccionamiento;
+  if(fr&&Array.isArray(fr.modelos))fr.modelos.forEach(function(m){L.push({h:'',t:'Modelo '+(m.name||'sin nombre')+' × '+(m.qty||1)+' vivienda'+((m.qty||1)>1?'s':''),d:'Lote '+(m.f||0)+' × '+(m.d||0)+' m · '+(m.lv||1)+' nivel'+((m.lv||1)>1?'es':''),c:null})});
+  return L;
+}
 function resumen(o){
+  var P=productos(o).filter(function(p){return !/^Modelo /.test(p.t)});
+  if(P.length)return P.map(function(p){return p.t+(p.d?' ('+p.d+')':'')}).join(' · ');
   var it=(o.items||[]).filter(function(i){return (Number(i.pr)||0)>=0}).map(function(i){return ((Number(i.qty)||1)>1?i.qty+'× ':'')+i.nombre});
   return it.join(' · ')||o.notas||'';
 }
@@ -340,7 +359,7 @@ function renderDrawer(){
   if(!o){sel=null;drawerFor=null;d.hidden=true;$('scrim').hidden=true;return}
   /* No redibujar mientras Ignacio escribe una nota: se conserva lo tecleado */
   var draft=(drawerFor===sel&&$('d-nota'))?$('d-nota').value:'', hadFocus=document.activeElement&&document.activeElement.id==='d-nota', scr=drawerFor===sel?d.scrollTop:0;
-  var et=etapa(o), wa=waLink(o);
+  var et=etapa(o), wa=waLink(o), prods=productos(o);
   var rows=(o.items||[]).map(function(i){
     var qty=Number(i.qty)||1, imp=(Number(i.pr)||0)*qty;
     return '<tr class="'+(imp<0?'neg':'')+'"><td>'+(qty>1?qty+'× ':'')+esc(i.nombre)+'</td><td class="n">'+(imp===0?'—':money(imp))+'</td></tr>';
@@ -365,6 +384,7 @@ function renderDrawer(){
    '</div>'+
    '<div class="sec"><span class="lbl">'+(o.origen==='manual'?'Lo que se le cotizó':'Lo que cotizó en la página')+'</span>'+
      (extra.length?'<div>'+extra.map(esc).join('<br>')+'</div>':'')+
+     (prods.length?'<ul class="prods">'+prods.map(function(p){return '<li><div>'+swatch(p.h)+'<b>'+esc(p.t)+'</b>'+(p.d?'<small>'+esc(p.d)+'</small>':'')+'</div><span class="n">'+(p.c==null?'':p.c>0?money(p.c):'por cotizar')+'</span></li>'}).join('')+'</ul><span class="lbl">Partidas y total</span>':'')+
      '<table>'+rows+'<tr class="t"><td>Total cotizado</td><td class="n">'+money(total(o))+'</td></tr></table>'+
      (o.docHTML?'<div><button type="button" class="btn ghost sm" id="d-pdf">Descargar el PDF del cliente</button></div>':'')+
      (o.origen==='manual'?'<div><button type="button" class="btn ghost sm" id="d-edit">Editar datos y partidas</button></div>':'')+
