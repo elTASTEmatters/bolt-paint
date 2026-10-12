@@ -113,6 +113,12 @@ button{cursor:pointer}
 .prods li>div{min-width:0;overflow-wrap:anywhere}
 .prods small{display:block;color:var(--muted);font-size:12.5px}
 .prods .n{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600}
+.prods li{flex-direction:column;gap:6px}
+.prods .ph{display:flex;justify-content:space-between;gap:10px}
+.prods .ph>div{min-width:0;overflow-wrap:anywhere}
+.prods .br{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;color:var(--fg);border-top:1px dashed var(--line);padding-top:5px;font-variant-numeric:tabular-nums}
+.prods .br span:first-child{min-width:0}
+.prods .br em{font-style:normal;color:var(--muted)}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
 .fld .req{color:var(--accent)}
 .prow{display:grid;grid-template-columns:minmax(0,1fr) 64px 104px 34px;gap:6px;align-items:center}
@@ -266,12 +272,28 @@ function tipo(o){
   }
   return 'Cotización';
 }
+var CAT=null;
+fetch('index.html',{cache:'no-cache'}).then(function(r){return r.text()}).then(function(t){
+  var m=/var DP=(\[[\s\S]*?\]);/.exec(t);if(!m)return;
+  CAT={};JSON.parse(m[1]).forEach(function(p){CAT[String(p.nombre||'').toUpperCase()]=p});
+  if(sel&&!formOpen){drawerFor=null;renderDrawer()}
+}).catch(function(e){console.warn('Catálogo no disponible',e)});
+var PRES=[['cub','cubeta','Cubeta 19 L'],['gal','galon','Galón 3.785 L'],['lit','litro','Litro']];
+function desglose(x,nombre){
+  var rows=PRES.filter(function(k){return Number(x[k[0]])>0}).map(function(k){return {k:k,q:Number(x[k[0]])}});
+  if(!rows.length)return [];
+  var cost=Number(x.cost)||0, pu=x.pu||null, c=CAT&&nombre?CAT[String(nombre).toUpperCase()]:null;
+  if(pu)rows.forEach(function(r){r.pu=Number(pu[r.k[1]])||null});
+  else if(rows.length===1&&cost>0)rows[0].pu=cost/rows[0].q;
+  else if(c&&Math.abs(rows.reduce(function(s,r){return s+r.q*(Number(c[r.k[1]])||0)},0)-cost)<1)rows.forEach(function(r){r.pu=Number(c[r.k[1]])||null});
+  return rows.map(function(r){return {t:r.q+' × '+r.k[2],pu:r.pu||null,imp:r.pu?r.q*r.pu:null}});
+}
 function pres(x){var d=[];if(x.cub)d.push(x.cub+' cub');if(x.gal)d.push(x.gal+' gal');if(x.lit)d.push(x.lit+' L');return d.join(' + ')}
 function swatch(h){return /^#[0-9a-f]{3,8}$/i.test(h||'')?'<span class="sw" style="background:'+h+'"></span>':''}
 function productos(o){
   var L=[];
-  (Array.isArray(o.paints)?o.paints:[]).forEach(function(p){L.push({h:p.h,t:'Pintura '+(p.n||''),d:[p.area?p.area+' m²':'',pres(p)].filter(Boolean).join(' · '),c:p.cost})});
-  (Array.isArray(o.impermeabilizantes)?o.impermeabilizantes:[]).forEach(function(i){L.push({h:i.hex,t:'Impermeabilizante '+(i.color||'')+(i.tela?' con tela':' sin tela'),d:[i.area?i.area+' m²':'',pres(i)].filter(Boolean).join(' · '),c:i.cost})});
+  (Array.isArray(o.paints)?o.paints:[]).forEach(function(p){L.push({h:p.h,t:'Pintura '+(p.n||''),d:[p.area?p.area+' m²':'',pres(p)].filter(Boolean).join(' · '),c:p.cost,br:desglose(p,p.n)})});
+  (Array.isArray(o.impermeabilizantes)?o.impermeabilizantes:[]).forEach(function(i){L.push({h:i.hex,t:'Impermeabilizante '+(i.color||'')+(i.tela?' con tela':' sin tela'),d:[i.area?i.area+' m²':'',pres(i)].filter(Boolean).join(' · '),c:i.cost,br:desglose(i,null)})});
   (Array.isArray(o.igualaciones)?o.igualaciones:[]).forEach(function(g){L.push({h:g.color,t:'Igualación de color '+(g.name||''),d:[g.brand,g.code,g.type,g.loc,g.uses,g.dur,g.notes].filter(Boolean).join(' · '),c:null})});
   var fr=o.fraccionamiento;
   if(fr&&Array.isArray(fr.modelos))fr.modelos.forEach(function(m){L.push({h:'',t:'Modelo '+(m.name||'sin nombre')+' × '+(m.qty||1)+' vivienda'+((m.qty||1)>1?'s':''),d:'Lote '+(m.f||0)+' × '+(m.d||0)+' m · '+(m.lv||1)+' nivel'+((m.lv||1)>1?'es':''),c:null})});
@@ -360,10 +382,11 @@ function renderDrawer(){
   /* No redibujar mientras Ignacio escribe una nota: se conserva lo tecleado */
   var draft=(drawerFor===sel&&$('d-nota'))?$('d-nota').value:'', hadFocus=document.activeElement&&document.activeElement.id==='d-nota', scr=drawerFor===sel?d.scrollTop:0;
   var et=etapa(o), wa=waLink(o), prods=productos(o);
-  var rows=(o.items||[]).map(function(i){
+  var hayDet=productos(o).some(function(p){return p.br&&p.br.length});
+  var rows=(o.items||[]).filter(function(i){return !(hayDet&&/^(Pintura|Impermeabilizante) \(/.test(i.nombre||''))}).map(function(i){
     var qty=Number(i.qty)||1, imp=(Number(i.pr)||0)*qty;
     return '<tr class="'+(imp<0?'neg':'')+'"><td>'+(qty>1?qty+'× ':'')+esc(i.nombre)+'</td><td class="n">'+(imp===0?'—':money(imp))+'</td></tr>';
-  }).join('')||'<tr><td>Sin partidas guardadas</td><td class="n"></td></tr>';
+  }).join('')||(hayDet?'':'<tr><td>Sin partidas guardadas</td><td class="n"></td></tr>');
   var notas=notasCrm(o).slice().reverse().map(function(n){return '<li><time>'+fmtDate(n.f)+'</time>'+esc(n.t)+'</li>'}).join('')||'<li>Sin notas todavía.</li>';
   var extra=[];
   if(o.plan)extra.push('Plan: '+o.plan);
@@ -384,7 +407,7 @@ function renderDrawer(){
    '</div>'+
    '<div class="sec"><span class="lbl">'+(o.origen==='manual'?'Lo que se le cotizó':'Lo que cotizó en la página')+'</span>'+
      (extra.length?'<div>'+extra.map(esc).join('<br>')+'</div>':'')+
-     (prods.length?'<ul class="prods">'+prods.map(function(p){return '<li><div>'+swatch(p.h)+'<b>'+esc(p.t)+'</b>'+(p.d?'<small>'+esc(p.d)+'</small>':'')+'</div><span class="n">'+(p.c==null?'':p.c>0?money(p.c):'por cotizar')+'</span></li>'}).join('')+'</ul><span class="lbl">Partidas y total</span>':'')+
+     (prods.length?'<ul class="prods">'+prods.map(function(p){return '<li><div class="ph"><div>'+swatch(p.h)+'<b>'+esc(p.t)+'</b>'+(p.d?'<small>'+esc(p.d)+'</small>':'')+'</div><span class="n">'+(p.c==null?'':p.c>0?money(p.c):'por cotizar')+'</span></div>'+(p.br||[]).map(function(b){return '<div class="br"><span>'+esc(b.t)+(b.pu?' <em>· '+money(b.pu)+' c/u</em>':'')+'</span><span>'+(b.imp!=null?money(b.imp):'')+'</span></div>'}).join('')+'</li>'}).join('')+'</ul><span class="lbl">'+(hayDet?'Otros conceptos y total':'Partidas y total')+'</span>':'')+
      '<table>'+rows+'<tr class="t"><td>Total cotizado</td><td class="n">'+money(total(o))+'</td></tr></table>'+
      (o.docHTML?'<div><button type="button" class="btn ghost sm" id="d-pdf">Descargar el PDF del cliente</button></div>':'')+
      (o.origen==='manual'?'<div><button type="button" class="btn ghost sm" id="d-edit">Editar datos y partidas</button></div>':'')+
