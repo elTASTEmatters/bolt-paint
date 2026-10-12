@@ -106,6 +106,16 @@ button{cursor:pointer}
 .log time{display:block;font-size:11.5px;color:var(--muted)}
 .addn{display:flex;gap:8px}
 .addn input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:8px 10px}
+.tools .btn{flex:0 0 auto}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.fld .req{color:var(--accent)}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) 64px 104px 34px;gap:6px;align-items:center}
+.prow input{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:8px 8px;width:100%;min-width:0}
+.prow .rm{background:none;border:1px solid var(--line);border-radius:4px;height:36px;color:var(--muted)}
+.phead{display:grid;grid-template-columns:minmax(0,1fr) 64px 104px 34px;gap:6px}
+.ftot{display:flex;justify-content:space-between;font-weight:700;font-size:16px;border-top:1px solid var(--line);padding-top:8px;font-variant-numeric:tabular-nums}
+.ferr{color:var(--bad);font-size:13.5px;min-height:1.2em}
+.factions{display:flex;gap:8px;flex-wrap:wrap}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:4px;font-weight:600;z-index:9;max-width:calc(100% - 32px)}
   .bp-rc{background:#fff;color:#111;max-width:420px;width:100%;border-radius:12px;padding:24px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.5}
   .bp-rc .bp-rch{text-align:center;margin-bottom:8px}.bp-rc .bp-rlogo{font-family:'Syne',sans-serif;font-weight:800;font-size:24px}.bp-rc .bp-rlogo em{color:#F47A00;font-style:normal}
@@ -161,7 +171,9 @@ button{cursor:pointer}
   <div class="tools">
     <input id="buscar" type="search" placeholder="Buscar cliente, folio o teléfono" aria-label="Buscar">
     <select id="filtro" aria-label="Tipo de cotización"><option value="">Todos los tipos</option></select>
+    <button class="btn" id="nuevo" type="button">+ Agregar cliente</button>
   </div>
+  <datalist id="conceptos"></datalist>
 
   <main class="board" id="board" aria-label="Pipeline de cotizaciones"></main>
 </div>
@@ -172,7 +184,7 @@ button{cursor:pointer}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD44dk4huRpzmbrmeLMrldBmvunh_K7o24",
@@ -190,7 +202,8 @@ window.BP = {
     const q = query(collection(db,"pedidos"), orderBy("createdAt","desc"));
     return onSnapshot(q, s=>{const a=[];s.forEach(d=>a.push({fbId:d.id,...d.data()}));cb(a);}, err);
   },
-  update(fbId, updates){ return updateDoc(doc(db,"pedidos",fbId), updates); }
+  update(fbId, updates){ return updateDoc(doc(db,"pedidos",fbId), updates); },
+  add(p){ return addDoc(collection(db,"pedidos"), {...p, createdAt: serverTimestamp()}).then(r=>r.id); }
 };
 window.dispatchEvent(new Event('bp-ready'));
 </script>
@@ -238,6 +251,7 @@ function fechaIso(o){
 function tipo(o){
   if(o.origen==='accesorios')return 'Accesorios B-Roller';
   if(o.origen==='san-felipe-casas')return 'San Felipe Casas';
+  if(o.origen==='manual')return o.modo||'Cliente directo';
   if(o.origen==='proyecto'){
     if(o.modo==='fraccionamiento')return 'Residencial';
     if(o.modo==='industrial')return 'Proyecto industrial';
@@ -308,7 +322,7 @@ function renderBoard(){
       return '<div class="cardwrap"><button type="button" class="card" draggable="true" data-id="'+esc(o.fbId)+'">'+
         '<span class="r1"><span>'+esc(o.id||'')+'</span><span>'+fmtDate(fechaIso(o))+'</span></span>'+
         '<span class="name">'+esc(o.nombre||'(sin nombre)')+'</span>'+
-        '<span class="tag">'+esc(tipo(o))+'</span>'+
+        '<span class="tag">'+esc(tipo(o))+(o.origen==='manual'?' · agregado por Ignacio':'')+'</span>'+
         '<span class="desc">'+esc(resumen(o))+'</span>'+
         '<span class="r3"><span class="tot">'+money(total(o))+'</span>'+
         (du?'<span class="due '+du.c+'">'+du.t+'</span>':(st.id==='perdida'&&o.crmMotivo?'<span class="due">'+esc(o.crmMotivo)+'</span>':''))+'</span>'+
@@ -319,8 +333,9 @@ function renderBoard(){
       '<div class="cards">'+(cards||'<div class="empty">Sin cotizaciones en esta etapa</div>')+'</div></section>';
   }).join('');
 }
-var drawerFor=null;
+var drawerFor=null, formOpen=false;
 function renderDrawer(){
+  if(formOpen)return;
   var d=$('drawer'), o=sel&&byId(sel);
   if(!o){sel=null;drawerFor=null;d.hidden=true;$('scrim').hidden=true;return}
   /* No redibujar mientras Ignacio escribe una nota: se conserva lo tecleado */
@@ -340,6 +355,7 @@ function renderDrawer(){
    '<div class="grid2">'+
      '<div class="fld"><span class="lbl">WhatsApp del cliente</span><span class="val">'+esc(o.telefono||'—')+'</span>'+(wa?'<a class="wa" href="'+esc(wa)+'" target="_blank" rel="noopener">Abrir chat de WhatsApp</a>':'')+'</div>'+
      '<div class="fld"><span class="lbl">Entrega / lugar</span><span class="val">'+esc(o.direccion||'—')+'</span></div>'+
+     (o.canal?'<div class="fld"><span class="lbl">Cómo llegó</span><span class="val">'+esc(o.canal)+'</span></div>':'')+
    '</div>'+
    '<div class="grid2">'+
      '<label class="fld"><span class="lbl">Etapa</span><select id="d-etapa">'+STAGES.map(function(s){return '<option value="'+s.id+'"'+(s.id===et?' selected':'')+'>'+s.n+'</option>'}).join('')+'</select></label>'+
@@ -347,10 +363,11 @@ function renderDrawer(){
        ?'<label class="fld"><span class="lbl">Motivo</span><select id="d-motivo"><option value="">Elegir motivo</option>'+MOTIVOS.map(function(m){return '<option'+(m===o.crmMotivo?' selected':'')+'>'+m+'</option>'}).join('')+'</select></label>'
        :(OPEN.indexOf(et)>=0?'<label class="fld"><span class="lbl">Próximo seguimiento</span><input type="date" id="d-prox" value="'+esc(o.crmProx||'')+'"></label>':''))+
    '</div>'+
-   '<div class="sec"><span class="lbl">Lo que cotizó en la página</span>'+
+   '<div class="sec"><span class="lbl">'+(o.origen==='manual'?'Lo que se le cotizó':'Lo que cotizó en la página')+'</span>'+
      (extra.length?'<div>'+extra.map(esc).join('<br>')+'</div>':'')+
      '<table>'+rows+'<tr class="t"><td>Total cotizado</td><td class="n">'+money(total(o))+'</td></tr></table>'+
      (o.docHTML?'<div><button type="button" class="btn ghost sm" id="d-pdf">Descargar el PDF del cliente</button></div>':'')+
+     (o.origen==='manual'?'<div><button type="button" class="btn ghost sm" id="d-edit">Editar datos y partidas</button></div>':'')+
    '</div>'+
    '<div class="sec"><span class="lbl">Bitácora de seguimiento</span>'+
      '<form class="addn" id="d-form"><input id="d-nota" placeholder="Ej. Llamé, pide entrega el viernes" aria-label="Nueva nota" autocomplete="off"><button class="btn sm" type="submit">Agregar</button></form>'+
@@ -394,6 +411,83 @@ function descargarPdf(o,btn){
   var sc=document.createElement('script');sc.src='html2pdf.bundle.min.js';sc.onload=run;sc.onerror=function(){done('No se pudo cargar el generador de PDF')};document.head.appendChild(sc);
 }
 
+
+/* ---- Clientes agregados a mano por Ignacio (no llegaron por la página) ---- */
+var TIPOS_MAN=['Pintura','Impermeabilización','Aplicación','San Felipe Casas','Residencial','Proyecto industrial','Accesorios B-Roller','Totes a granel','Otro'];
+var CANALES=['WhatsApp','Llamada','Instagram / Facebook','Recomendación','Visita / tienda','Otro'];
+var CONCEPTOS=[['Pintura vinílica · cubeta 19 L',0],['Pintura vinílica · galón 3.785 L',0],['Pintura vinílica · litro',0],['Imperm Master · cubeta 19 L',1109],['Aplicación de pintura · m²',50],['Aplicación de impermeabilizante · m²',0],['Resanación',0],['Igualación de color',0],['Accesorios B-Roller',0]];
+$('conceptos').innerHTML=CONCEPTOS.map(function(c){return '<option value="'+esc(c[0])+'"></option>'}).join('');
+function folioMan(){var s='BPM-',ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';for(var i=0;i<6;i++)s+=ch[Math.floor(Math.random()*ch.length)];return s}
+function opts(list,v){return list.map(function(x){return '<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>'}).join('')}
+function prowHTML(it){
+  it=it||{};
+  return '<div class="prow"><input class="p-n" list="conceptos" placeholder="Concepto" aria-label="Concepto" value="'+esc(it.nombre||'')+'">'+
+    '<input class="p-q" type="number" min="0" step="any" inputmode="decimal" aria-label="Cantidad" value="'+esc(it.qty==null?1:it.qty)+'">'+
+    '<input class="p-p" type="number" step="any" inputmode="decimal" placeholder="$ c/u" aria-label="Precio unitario" value="'+(it.pr?esc(it.pr):'')+'">'+
+    '<button type="button" class="rm" aria-label="Quitar partida">×</button></div>';
+}
+function readItems(){
+  return Array.prototype.map.call(document.querySelectorAll('#f-rows .prow'),function(r){
+    return {nombre:r.querySelector('.p-n').value.trim(),qty:Number(r.querySelector('.p-q').value)||1,pr:Math.round((Number(r.querySelector('.p-p').value)||0)*100)/100};
+  }).filter(function(i){return i.nombre});
+}
+function updTotal(){var t=readItems().reduce(function(s,i){return s+i.qty*i.pr},0);$('f-total').textContent=money(t);return t}
+function openForm(o){
+  formOpen=true;var d=$('drawer'),edit=!!o;o=o||{};
+  d.innerHTML=
+   '<div class="dh"><div><span class="lbl">'+(edit?esc(o.id||'')+' · cliente agregado a mano':'Cliente que no llegó por la página')+'</span><h2>'+(edit?'Editar cliente':'Agregar cliente')+'</h2></div><button type="button" class="x" id="f-cancel">Cerrar</button></div>'+
+   '<form id="f-form" class="sec" novalidate>'+
+    '<div class="fgrid">'+
+     '<label class="fld"><span class="lbl">Nombre o empresa <span class="req">*</span></span><input id="f-nombre" autocomplete="off" value="'+esc(o.nombre||'')+'"></label>'+
+     '<label class="fld"><span class="lbl">WhatsApp <span class="req">*</span></span><input id="f-tel" type="tel" inputmode="tel" autocomplete="off" placeholder="686 000 0000" value="'+esc(o.telefono||'')+'"></label>'+
+    '</div>'+
+    '<label class="fld"><span class="lbl">Lugar de entrega</span><input id="f-dir" autocomplete="off" placeholder="Colonia o campo, ciudad" value="'+esc(o.direccion||'')+'"></label>'+
+    '<div class="fgrid">'+
+     '<label class="fld"><span class="lbl">Qué le interesa</span><select id="f-tipo">'+opts(TIPOS_MAN,o.modo||'Pintura')+'</select></label>'+
+     '<label class="fld"><span class="lbl">Cómo llegó</span><select id="f-canal">'+opts(CANALES,o.canal||'WhatsApp')+'</select></label>'+
+    '</div>'+
+    '<div class="sec"><span class="lbl">Partidas cotizadas</span>'+
+     '<div class="phead lbl"><span>Concepto</span><span>Cant.</span><span>Precio c/u</span><span></span></div>'+
+     '<div id="f-rows" class="sec">'+((o.items&&o.items.length?o.items:[{}]).map(prowHTML).join(''))+'</div>'+
+     '<div><button type="button" class="btn ghost sm" id="f-addrow">+ Partida</button></div>'+
+     '<div class="ftot"><span>Total</span><span id="f-total">$0</span></div>'+
+    '</div>'+
+    (edit?'':
+    '<div class="fgrid">'+
+     '<label class="fld"><span class="lbl">Etapa</span><select id="f-etapa">'+STAGES.filter(function(s){return OPEN.indexOf(s.id)>=0}).map(function(s){return '<option value="'+s.id+'"'+(s.id==='contactado'?' selected':'')+'>'+s.n+'</option>'}).join('')+'</select></label>'+
+     '<label class="fld"><span class="lbl">Próximo seguimiento</span><input type="date" id="f-prox" value="'+day(1)+'"></label>'+
+    '</div>'+
+    '<label class="fld"><span class="lbl">Nota</span><textarea id="f-nota" rows="2" placeholder="Ej. Pidió precio de 3 cubetas color arena"></textarea></label>')+
+    '<div class="ferr" id="f-err" role="alert"></div>'+
+    '<div class="factions"><button class="btn" type="submit" id="f-save">'+(edit?'Guardar cambios':'Agregar al pipeline')+'</button><button class="btn ghost" type="button" id="f-cancel2">Cancelar</button></div>'+
+   '</form>';
+  d.hidden=false;$('scrim').hidden=false;d.scrollTop=0;updTotal();
+  d.dataset.edit=edit?o.fbId:'';
+  $('f-nombre').focus();
+}
+function closeForm(){formOpen=false;var d=$('drawer');d.dataset.edit='';if(sel){drawerFor=null;renderDrawer()}else{d.hidden=true;$('scrim').hidden=true}}
+function saveForm(){
+  var nombre=$('f-nombre').value.trim(),tel=$('f-tel').value.trim(),err=$('f-err');
+  if(nombre.length<3){err.textContent='Escribe el nombre del cliente o de la empresa.';$('f-nombre').focus();return}
+  if(tel.replace(/\D/g,'').length<10){err.textContent='Escribe un WhatsApp de 10 dígitos.';$('f-tel').focus();return}
+  var items=readItems(),tot=Math.round(updTotal()),editId=$('drawer').dataset.edit;
+  var base={nombre:nombre,telefono:tel,direccion:$('f-dir').value.trim(),modo:$('f-tipo').value,canal:$('f-canal').value,items:items,total:tot};
+  var btn=$('f-save');btn.disabled=true;err.textContent='';
+  if(editId){
+    var o=byId(editId);
+    base.crmAct=new Date().toISOString();
+    base.crmNotas=notasCrm(o||{}).concat([{f:day(0),t:'Datos o partidas editados.'}]);
+    window.BP.update(editId,base).then(function(){toast('Cambios guardados');sel=editId;closeForm()}).catch(function(e){console.error(e);btn.disabled=false;err.textContent='No se pudo guardar. Revisa tu conexión e intenta de nuevo.'});
+    return;
+  }
+  var nota=$('f-nota').value.trim(),notas=[{f:day(0),t:'Cliente agregado a mano por Ignacio ('+base.canal+').'}];
+  if(nota)notas.push({f:day(0),t:nota});
+  var p=Object.assign(base,{id:folioMan(),tipo:'cotizacion',origen:'manual',fecha:new Date().toLocaleDateString('es-MX'),status:'nueva',pago:'Cotización (por definir)',
+    notas:'Cliente directo · '+base.canal,crmEtapa:$('f-etapa').value,crmProx:$('f-prox').value,crmMotivo:'',crmNotas:notas,crmAct:new Date().toISOString()});
+  window.BP.add(p).then(function(id){toast(p.id+' agregado al pipeline');sel=id;closeForm()}).catch(function(e){console.error(e);btn.disabled=false;err.textContent='No se pudo guardar. Revisa tu conexión e intenta de nuevo.'});
+}
+$('nuevo').addEventListener('click',function(){sel=null;openForm(null)});
+
 var board=$('board');
 board.addEventListener('click',function(e){
   var a=e.target.closest('[data-adv]');
@@ -407,22 +501,37 @@ board.addEventListener('drop',function(e){var c=e.target.closest('.col');if(!c)r
 
 var drawer=$('drawer');
 drawer.addEventListener('click',function(e){
+  if(formOpen){
+    if(e.target.id==='f-cancel'||e.target.id==='f-cancel2')closeForm();
+    if(e.target.id==='f-addrow'){$('f-rows').insertAdjacentHTML('beforeend',prowHTML());var r=$('f-rows').lastElementChild;r.querySelector('.p-n').focus()}
+    if(e.target.classList.contains('rm')){var rows=$('f-rows');if(rows.children.length>1)e.target.closest('.prow').remove();else e.target.closest('.prow').querySelectorAll('input').forEach(function(i){i.value=i.classList.contains('p-q')?'1':''});updTotal()}
+    return;
+  }
   if(e.target.id==='cerrar'){sel=null;renderDrawer()}
   if(e.target.id==='d-pdf')descargarPdf(byId(sel),e.target);
+  if(e.target.id==='d-edit')openForm(byId(sel));
+});
+drawer.addEventListener('input',function(e){
+  if(!formOpen)return;
+  if($('f-err'))$('f-err').textContent='';
+  if(e.target.classList.contains('p-n')){var c=CONCEPTOS.filter(function(x){return x[0]===e.target.value})[0],pp=e.target.closest('.prow').querySelector('.p-p');if(c&&c[1]&&!pp.value)pp.value=c[1]}
+  if(e.target.closest('.prow'))updTotal();
 });
 drawer.addEventListener('change',function(e){
+  if(formOpen)return;
   var o=byId(sel);if(!o)return;
   if(e.target.id==='d-etapa')move(o,e.target.value);
   if(e.target.id==='d-prox')guardar(o,{crmProx:e.target.value},'Seguimiento agendado');
   if(e.target.id==='d-motivo')guardar(o,{crmMotivo:e.target.value},'Motivo guardado');
 });
 drawer.addEventListener('submit',function(e){
-  e.preventDefault();var o=byId(sel),inp=$('d-nota'),v=inp.value.trim();if(!o||!v)return;
+  e.preventDefault();
+  if(formOpen){saveForm();return}var o=byId(sel),inp=$('d-nota'),v=inp.value.trim();if(!o||!v)return;
   inp.value='';
   guardar(o,{crmNotas:notasCrm(o).concat([{f:day(0),t:v}])},'Nota guardada');
 });
-$('scrim').addEventListener('click',function(){sel=null;renderDrawer()});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'&&sel){sel=null;renderDrawer()}});
+$('scrim').addEventListener('click',function(){if(formOpen){closeForm();return}sel=null;renderDrawer()});
+document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;if(formOpen){closeForm();return}if(sel){sel=null;renderDrawer()}});
 $('buscar').addEventListener('input',function(e){q=e.target.value;renderBoard()});
 $('filtro').addEventListener('change',function(e){ft=e.target.value;renderBoard()});
 
@@ -451,7 +560,7 @@ $('loginForm').addEventListener('submit',function(e){
 $('salir').addEventListener('click',function(){
   try{localStorage.removeItem(LS_KEY)}catch(x){}
   if(unsub){unsub();unsub=null}
-  data=[];sel=null;renderDrawer();$('app').hidden=true;$('login').hidden=false;$('pwd').value='';
+  data=[];sel=null;formOpen=false;renderDrawer();$('app').hidden=true;$('login').hidden=false;$('pwd').value='';
 });
 var saved=null;try{saved=localStorage.getItem(LS_KEY)}catch(x){}
 if(saved&&saved===PASS_HASH)boot();
