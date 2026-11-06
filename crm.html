@@ -32,7 +32,7 @@ button{cursor:pointer}
 .login h1{font-family:var(--display);font-weight:400;font-size:34px;line-height:1;margin:0;text-transform:uppercase}
 .login h1 span{color:var(--accent)}
 .login p{margin:0;color:var(--muted)}
-.login input{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:11px 12px;width:100%}
+.login select,.login input{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:11px 12px;width:100%}
 .login .err{color:var(--bad);min-height:1.3em;font-size:13.5px}
 
 .top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between;border-bottom:3px solid var(--accent);padding-bottom:14px}
@@ -158,6 +158,7 @@ button{cursor:pointer}
   <form id="loginForm" autocomplete="off">
     <h1>Bolt <span>Paint</span> CRM</h1>
     <p>Seguimiento de cotizaciones</p>
+    <select id="usr" aria-label="Usuario"><option value="ignacio">Ignacio Pelayo</option><option value="juancarlos">Juan Carlos SF</option><option value="admin">Administrador</option></select>
     <input id="pwd" type="password" placeholder="Contraseña" aria-label="Contraseña">
     <div class="err" id="loginErr" role="alert"></div>
     <button class="btn" type="submit">Entrar</button>
@@ -171,7 +172,7 @@ button{cursor:pointer}
       <p>Cada cotización que sale de la página cae aquí con su precio ya calculado.</p>
     </div>
     <div class="who">
-      <div><span class="lbl">Usuario</span><b>Ignacio Pelayo</b> · Ventas y servicio al cliente</div>
+      <div><span class="lbl">Usuario</span><b id="uName"></b> · <span id="uRol"></span></div>
       <div><span class="lbl">WhatsApp que recibe las cotizaciones</span><b>686 317 3475</b></div>
       <div><span class="conn" id="conn"><i></i><span id="connTxt">Conectando…</span></span></div>
       <button class="btn ghost sm" id="salir" type="button">Salir</button>
@@ -223,8 +224,11 @@ window.dispatchEvent(new Event('bp-ready'));
 <script>
 (function(){
 'use strict';
-var PASS_HASH='c758661802ac055e15addba5f9526d254b05c6dcf1e19e9f63a6aabfd164c781';
-var LS_KEY='bpcrm_sesion';
+var USERS=[{id:'ignacio',n:'Ignacio Pelayo',r:'Ventas y servicio al cliente',rol:'vendedor',h:'3ea7ff3a4ca74bb156ccde80d08933adbdaaa6bb872e78c8121c99d76505ba5b'},{id:'juancarlos',n:'Juan Carlos SF',r:'Ventas y servicio al cliente',rol:'vendedor',h:'7531ef3d371ac2332cc51036b3f7a9bb22a249fa3da5b39890434db793779470'},{id:'admin',n:'Administrador',r:'Administración',rol:'admin',h:'da816df23081fdccf0fcfcc243640a97e67b1fe30e185a1fee90ec4dc46273ba'}];
+var LS_KEY='bpcrm_sesion2';
+var ME=null;
+function yo(){return ME?ME.n:''}
+function nota(t){return {f:day(0),t:t,u:yo()}}
 var STAGES=[
  {id:'nueva',n:'Nueva',c:'var(--accent)',d:'Llegó de la página. Falta el primer contacto.'},
  {id:'contactado',n:'Contactado',c:'var(--navy)',d:'Ignacio ya habló con el cliente y confirmó sus datos.'},
@@ -316,7 +320,7 @@ function dueInfo(o){
 function waLink(o){
   var d=String(o.telefono||'').replace(/\D/g,'');if(d.length<10)return '';
   if(d.length===10)d='52'+d;
-  return 'https://wa.me/'+d+'?text='+encodeURIComponent('Hola, soy Ignacio Pelayo de Bolt Paint. Le doy seguimiento a su cotización '+(o.id||'')+'.');
+  return 'https://wa.me/'+d+'?text='+encodeURIComponent('Hola, soy '+(ME&&ME.rol!=='admin'?ME.n:'el equipo')+' de Bolt Paint. Le doy seguimiento a su cotización '+(o.id||'')+'.');
 }
 
 function visible(){
@@ -363,7 +367,7 @@ function renderBoard(){
       return '<div class="cardwrap"><button type="button" class="card" draggable="true" data-id="'+esc(o.fbId)+'">'+
         '<span class="r1"><span>'+esc(o.id||'')+'</span><span>'+fmtDate(fechaIso(o))+'</span></span>'+
         '<span class="name">'+esc(o.nombre||'(sin nombre)')+'</span>'+
-        '<span class="tag">'+esc(tipo(o))+(o.origen==='manual'?' · agregado por Ignacio':'')+'</span>'+
+        '<span class="tag">'+esc(tipo(o))+(o.origen==='manual'?' · agregado por '+esc(o.creadoPor||'Ignacio Pelayo'):'')+'</span>'+
         '<span class="desc">'+esc(resumen(o))+'</span>'+
         '<span class="r3"><span class="tot">'+money(total(o))+'</span>'+
         (du?'<span class="due '+du.c+'">'+du.t+'</span>':(st.id==='perdida'&&o.crmMotivo?'<span class="due">'+esc(o.crmMotivo)+'</span>':''))+'</span>'+
@@ -387,7 +391,7 @@ function renderDrawer(){
     var qty=Number(i.qty)||1, imp=(Number(i.pr)||0)*qty;
     return '<tr class="'+(imp<0?'neg':'')+'"><td>'+(qty>1?qty+'× ':'')+esc(i.nombre)+'</td><td class="n">'+(imp===0?'—':money(imp))+'</td></tr>';
   }).join('')||(hayDet?'':'<tr><td>Sin partidas guardadas</td><td class="n"></td></tr>');
-  var notas=notasCrm(o).slice().reverse().map(function(n){return '<li><time>'+fmtDate(n.f)+'</time>'+esc(n.t)+'</li>'}).join('')||'<li>Sin notas todavía.</li>';
+  var notas=notasCrm(o).slice().reverse().map(function(n){return '<li><time>'+fmtDate(n.f)+(n.u?' · '+esc(n.u):'')+'</time>'+esc(n.t)+'</li>'}).join('')||'<li>Sin notas todavía.</li>';
   var extra=[];
   if(o.plan)extra.push('Plan: '+o.plan);
   if(o.notas)extra.push(o.notas);
@@ -411,6 +415,7 @@ function renderDrawer(){
      '<table>'+rows+'<tr class="t"><td>Total cotizado</td><td class="n">'+money(total(o))+'</td></tr></table>'+
      (o.docHTML?'<div><button type="button" class="btn ghost sm" id="d-pdf">Descargar el PDF del cliente</button></div>':'')+
      (o.origen==='manual'?'<div><button type="button" class="btn ghost sm" id="d-edit">Editar datos y partidas</button></div>':'')+
+     (ME&&ME.rol==='admin'?'<div><button type="button" class="btn ghost sm" id="d-arch">Archivar cotización</button></div>':'')+
    '</div>'+
    '<div class="sec"><span class="lbl">Bitácora de seguimiento</span>'+
      '<form class="addn" id="d-form"><input id="d-nota" placeholder="Ej. Llamé, pide entrega el viernes" aria-label="Nueva nota" autocomplete="off"><button class="btn sm" type="submit">Agregar</button></form>'+
@@ -424,13 +429,13 @@ function render(){renderKpis();renderFiltro();renderBoard();renderDrawer()}
 
 /* ---- Escritura: solo campos crm* del pedido ---- */
 function guardar(o,upd,okMsg){
-  upd.crmAct=new Date().toISOString();
+  upd.crmAct=new Date().toISOString();upd.crmPor=yo();
   return window.BP.update(o.fbId,upd).then(function(){if(okMsg)toast(okMsg)}).catch(function(e){console.error(e);toast('No se pudo guardar. Revisa tu conexión e intenta de nuevo.')});
 }
 function move(o,st){
   if(!o||STAGE_IDS.indexOf(st)<0||etapa(o)===st)return;
   var name=STAGES[STAGE_IDS.indexOf(st)].n;
-  var upd={crmEtapa:st,crmNotas:notasCrm(o).concat([{f:day(0),t:'Movida a '+name+'.'}])};
+  var upd={crmEtapa:st,crmNotas:notasCrm(o).concat([nota('Movida a '+name+'.')])};
   if(OPEN.indexOf(st)<0)upd.crmProx='';
   else if(!o.crmProx||o.crmProx<day(0))upd.crmProx=day(1);
   if(st!=='perdida')upd.crmMotivo='';
@@ -519,14 +524,14 @@ function saveForm(){
   if(editId){
     var o=byId(editId);
     base.crmAct=new Date().toISOString();
-    base.crmNotas=notasCrm(o||{}).concat([{f:day(0),t:'Datos o partidas editados.'}]);
+    base.crmNotas=notasCrm(o||{}).concat([nota('Datos o partidas editados.')]);
     window.BP.update(editId,base).then(function(){toast('Cambios guardados');sel=editId;closeForm()}).catch(function(e){console.error(e);btn.disabled=false;err.textContent='No se pudo guardar. Revisa tu conexión e intenta de nuevo.'});
     return;
   }
-  var nota=$('f-nota').value.trim(),notas=[{f:day(0),t:'Cliente agregado a mano por Ignacio ('+base.canal+').'}];
-  if(nota)notas.push({f:day(0),t:nota});
+  var nota=$('f-nota').value.trim(),notas=[nota('Cliente agregado a mano por '+yo()+' ('+base.canal+').')];
+  if(nota)notas.push({f:day(0),t:nota,u:yo()});
   var p=Object.assign(base,{id:folioMan(),tipo:'cotizacion',origen:'manual',fecha:new Date().toLocaleDateString('es-MX'),status:'nueva',pago:'Cotización (por definir)',
-    notas:'Cliente directo · '+base.canal,crmEtapa:$('f-etapa').value,crmProx:$('f-prox').value,crmMotivo:'',crmNotas:notas,crmAct:new Date().toISOString()});
+    notas:'Cliente directo · '+base.canal,creadoPor:yo(),crmEtapa:$('f-etapa').value,crmProx:$('f-prox').value,crmMotivo:'',crmNotas:notas,crmAct:new Date().toISOString()});
   window.BP.add(p).then(function(id){toast(p.id+' agregado al pipeline');sel=id;closeForm()}).catch(function(e){console.error(e);btn.disabled=false;err.textContent='No se pudo guardar. Revisa tu conexión e intenta de nuevo.'});
 }
 $('nuevo').addEventListener('click',function(){sel=null;openForm(null)});
@@ -553,6 +558,8 @@ drawer.addEventListener('click',function(e){
   if(e.target.id==='cerrar'){sel=null;renderDrawer()}
   if(e.target.id==='d-pdf')descargarPdf(byId(sel),e.target);
   if(e.target.id==='d-edit')openForm(byId(sel));
+  if(e.target.id==='d-arch'&&ME&&ME.rol==='admin'){var ob=byId(sel);if(e.target.dataset.ok!=='1'){e.target.dataset.ok='1';e.target.textContent='Toca otra vez para archivar';return}
+    window.BP.update(ob.fbId,{archivado:true,crmAct:new Date().toISOString(),crmPor:yo(),crmNotas:notasCrm(ob).concat([nota('Archivada.')])}).then(function(){toast((ob.id||'Cotización')+' archivada');sel=null;renderDrawer()}).catch(function(err){console.error(err);toast('No se pudo archivar. Intenta de nuevo.')})}
 });
 drawer.addEventListener('input',function(e){
   if(!formOpen)return;
@@ -571,7 +578,7 @@ drawer.addEventListener('submit',function(e){
   e.preventDefault();
   if(formOpen){saveForm();return}var o=byId(sel),inp=$('d-nota'),v=inp.value.trim();if(!o||!v)return;
   inp.value='';
-  guardar(o,{crmNotas:notasCrm(o).concat([{f:day(0),t:v}])},'Nota guardada');
+  guardar(o,{crmNotas:notasCrm(o).concat([nota(v)])},'Nota guardada');
 });
 $('scrim').addEventListener('click',function(){if(formOpen){closeForm();return}sel=null;renderDrawer()});
 document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;if(formOpen){closeForm();return}if(sel){sel=null;renderDrawer()}});
@@ -583,7 +590,7 @@ function sha256(t){
   return crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0')}).join('')});
 }
 function boot(){
-  $('login').hidden=true;$('app').hidden=false;
+  $('login').hidden=true;$('app').hidden=false;$('uName').textContent=ME.n;$('uRol').textContent=ME.r;
   var start=function(){
     if(unsub)return;
     unsub=window.BP.listen(function(list){
@@ -595,18 +602,19 @@ function boot(){
 }
 $('loginForm').addEventListener('submit',function(e){
   e.preventDefault();
-  sha256($('pwd').value).then(function(h){
-    if(h===PASS_HASH){try{localStorage.setItem(LS_KEY,h)}catch(x){}$('loginErr').textContent='';boot()}
+  var uid=$('usr').value,cand=USERS.filter(function(x){return x.id===uid})[0];
+  sha256(uid+'|'+$('pwd').value).then(function(h){
+    if(cand&&h===cand.h){try{localStorage.setItem(LS_KEY,JSON.stringify({id:uid,h:h}))}catch(x){}$('loginErr').textContent='';ME=cand;boot()}
     else{$('loginErr').textContent='Contraseña incorrecta';$('pwd').value='';$('pwd').focus()}
   }).catch(function(){$('loginErr').textContent='Este navegador no permite verificar la contraseña. Abre la página con https.'});
 });
 $('salir').addEventListener('click',function(){
   try{localStorage.removeItem(LS_KEY)}catch(x){}
   if(unsub){unsub();unsub=null}
-  data=[];sel=null;formOpen=false;renderDrawer();$('app').hidden=true;$('login').hidden=false;$('pwd').value='';
+  ME=null;data=[];sel=null;formOpen=false;renderDrawer();$('app').hidden=true;$('login').hidden=false;$('pwd').value='';
 });
-var saved=null;try{saved=localStorage.getItem(LS_KEY)}catch(x){}
-if(saved&&saved===PASS_HASH)boot();
+var saved=null;try{saved=JSON.parse(localStorage.getItem(LS_KEY)||'null');localStorage.removeItem('bpcrm_sesion')}catch(x){}
+if(saved){var su=USERS.filter(function(x){return x.id===saved.id&&x.h===saved.h})[0];if(su){ME=su;$('usr').value=su.id;boot()}}
 })();
 </script>
 </body>
